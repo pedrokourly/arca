@@ -222,9 +222,9 @@ enum StatusRelatorioEnum {
 }
 
 enum TipoAcaoEnum {
-  CRIACAO
-  VISUALIZACAO
-  ATUALIZACAO
-  DELECAO
-  // Adicione outros tipos de ação conforme necessário
+  CREATION
+  VIEW
+  UPDATE
+  DELETION
+  // Add other action types as needed
 }
