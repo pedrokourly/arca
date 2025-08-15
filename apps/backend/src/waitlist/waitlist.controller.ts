@@ -2,14 +2,15 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { WaitlistService } from './waitlist.service';
 import { CreateWaitlistDto } from './dto/create-waitlist.dto';
 import { UpdateWaitlistDto } from './dto/update-waitlist.dto';
+import { UUID } from 'node:crypto';
 
 @Controller('waitlist')
 export class WaitlistController {
   constructor(private readonly waitlistService: WaitlistService) {}
 
   @Post()
-  create(@Body() createWaitlistDto: CreateWaitlistDto) {
-    return this.waitlistService.create(createWaitlistDto);
+  create(@Body() body: CreateWaitlistDto) {
+    return this.waitlistService.create(body);
   }
 
   @Get()
@@ -18,17 +19,17 @@ export class WaitlistController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.waitlistService.findOne(+id);
+  findOne(@Param('id') id: UUID) {
+    return this.waitlistService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateWaitlistDto: UpdateWaitlistDto) {
-    return this.waitlistService.update(+id, updateWaitlistDto);
+  update(@Param('id') id: UUID, @Body() body: UpdateWaitlistDto) {
+    return this.waitlistService.update(id, body);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.waitlistService.remove(+id);
+  remove(@Param('id') id: UUID) {
+    return this.waitlistService.remove(id);
   }
 }
