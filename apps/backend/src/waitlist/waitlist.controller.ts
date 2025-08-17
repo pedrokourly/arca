@@ -18,6 +18,11 @@ export class WaitlistController {
     return this.waitlistService.findAll();
   }
 
+  @Get('stats')
+  findPositions() {
+    return this.waitlistService.findPositions();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: UUID) {
     return this.waitlistService.findOne(id);

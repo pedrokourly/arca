@@ -61,6 +61,35 @@ export class WaitlistService {
     return waitlistEntry;
   }
 
+  async findPositions() {
+    const waitlistEntries = await this.prisma.listaEspera.findMany({
+      select: {
+        createdAt: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      }
+    });
+
+    const qntFila = waitlistEntries.length;
+    
+    if (qntFila === 0) {
+      return {
+        qntFila: 0,
+        ultimaAtualizacao: new Date().toISOString(),
+      };
+    }
+
+    // Última atualização baseada na entrada mais recente
+    const ultimaEntrada = waitlistEntries[0]; // Primeiro elemento já que está ordenado por desc
+    const ultimaAtualizacao = ultimaEntrada.createdAt.toISOString();
+
+    return {
+      qntFila,
+      ultimaAtualizacao,
+    };
+  }
+
   async update(id: UUID, body: UpdateWaitlistDto) {
     if (!isUUID(id)) {
       throw new BadRequestException('Invalid UUID format');
