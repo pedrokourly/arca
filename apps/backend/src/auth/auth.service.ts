@@ -1,5 +1,4 @@
 import { Inject, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
-import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { HashingServiceProtocol } from './hash/hashing.service';
 import { PrismaService } from 'src/prisma/prisma.service';
