@@ -1,4 +1,4 @@
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { HashingServiceProtocol } from './hash/hashing.service';
@@ -6,6 +6,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { LoginDto } from './dto/login.dto';
 import jwtConfig from './config/jwt.config';
 import { ConfigType } from '@nestjs/config';
+import { UserDto } from './dto/user.dto';
 
 @Injectable()
 export class AuthService {
@@ -18,36 +19,15 @@ export class AuthService {
     private readonly jwtService: JwtService
   ) {}
 
-  async validateUser(email: string, password: string): Promise<any> {
-    const user = await this.prisma.usuario.findFirst({
-      where: {
-        email: email,
-      },
-    });
-    
-    if (!user) {
-      return null;
-    }
-
-    const isPasswordValid = await this.hashingService.compare(password, user.senhaHash);
-    if (!isPasswordValid) {
-      return null;
-    }
-
-    // Retorna o usuário sem a senha
-    const { senhaHash, ...result } = user;
-    return result;
-  }
-
-  async login(body: LoginDto): Promise<any> {
+  async validateUser(body: LoginDto): Promise<any> {
     const user = await this.prisma.usuario.findFirst({
       where: {
         email: body.email,
       },
     });
     
-    if (!user){
-      throw new UnauthorizedException('Falha ao autenticar usuário.');
+    if (!user) {
+      throw new NotFoundException(`Usuário não encontrado.`);
     }
 
     const isPasswordValid = await this.hashingService.compare(body.password, user.senhaHash);
@@ -55,6 +35,12 @@ export class AuthService {
       throw new UnauthorizedException('Senha ou e-mail inválido.');
     }
 
+    // Retorna o usuário sem a senha
+    const { senhaHash, ...result } = user;
+    return result;
+  }
+
+  async login(user: UserDto): Promise<any> {
     const token = await this.jwtService.signAsync(
       { 
         sub: user.id_User, 

@@ -1,8 +1,13 @@
-import { IsEmail, IsInt, IsNotEmpty, IsString, MaxLength, Min, MinLength } from 'class-validator';
+import { IsEmail, IsInt, IsNotEmpty, IsString, IsUUID, MaxLength, Min, MinLength } from 'class-validator';
+import { UUID } from 'node:crypto';
 
-// DTO de criação de usuário com base no modelo Usuario do Prisma
+// DTO de usuário com base no modelo Usuario do Prisma
 // Campos persistidos: nome (<=50), email (<=100), senha (será convertida para senhaHash), roleId (SmallInt)
-export class CreateUserDto {
+export class UserDto {
+    @IsUUID()
+    @IsNotEmpty()
+    id_User: UUID
+
     @IsString()
     @IsNotEmpty()
     @MaxLength(50)
