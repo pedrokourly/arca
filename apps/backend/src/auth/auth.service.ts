@@ -1,28 +1,78 @@
-
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
+import { HashingServiceProtocol } from './hash/hashing.service';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { LoginDto } from './dto/login.dto';
+import jwtConfig from './config/jwt.config';
+import { ConfigType } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private usersService: UsersService,
-    private jwtService: JwtService
+    private hashingService: HashingServiceProtocol,
+    private prisma: PrismaService,
+
+    @Inject(jwtConfig.KEY)
+    private readonly jwtConfiguration: ConfigType<typeof jwtConfig>,
+    private readonly jwtService: JwtService
   ) {}
 
-  async validateUser(username: string, pass: string): Promise<any> {
-    const user = await this.usersService.findOne(username);
-    if (user && user.password === pass) {
-      const { password, ...result } = user;
-      return result;
+  async validateUser(email: string, password: string): Promise<any> {
+    const user = await this.prisma.usuario.findFirst({
+      where: {
+        email: email,
+      },
+    });
+    
+    if (!user) {
+      return null;
     }
-    return null;
+
+    const isPasswordValid = await this.hashingService.compare(password, user.senhaHash);
+    if (!isPasswordValid) {
+      return null;
+    }
+
+    // Retorna o usuário sem a senha
+    const { senhaHash, ...result } = user;
+    return result;
   }
 
-  async login(user: any) {
-    const payload = { username: user.username, sub: user.userId };
+  async login(body: LoginDto): Promise<any> {
+    const user = await this.prisma.usuario.findFirst({
+      where: {
+        email: body.email,
+      },
+    });
+    
+    if (!user){
+      throw new UnauthorizedException('Falha ao autenticar usuário.');
+    }
+
+    const isPasswordValid = await this.hashingService.compare(body.password, user.senhaHash);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Senha ou e-mail inválido.');
+    }
+
+    const token = await this.jwtService.signAsync(
+      { 
+        sub: user.id_User, 
+        email: user.email 
+      },
+      {
+        secret: this.jwtConfiguration.secret,
+        expiresIn: this.jwtConfiguration.jwtTtl,
+        audience: this.jwtConfiguration.audience,
+        issuer: this.jwtConfiguration.issuer,
+      }
+    );
+
     return {
-      access_token: this.jwtService.sign(payload),
+      id: user.id_User,
+      name: user.nome,
+      email: user.email,
+      token: token,
     };
   }
 }
