@@ -19,6 +19,7 @@ export class UsersService {
 
   async create(createUserDto: CreateUserDto) {
     try {
+
       const passwordHash = await this.HashingService.hash(createUserDto.senha);
 
       return this.prisma.usuario.create({
