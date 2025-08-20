@@ -1,4 +1,9 @@
-import { Inject, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { HashingServiceProtocol } from './hash/hashing.service';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -6,6 +11,7 @@ import { LoginDto } from './dto/login.dto';
 import jwtConfig from './config/jwt.config';
 import { ConfigType } from '@nestjs/config';
 import { UserDto } from './dto/user.dto';
+import { UUID } from 'node:crypto';
 
 @Injectable()
 export class AuthService {
@@ -15,7 +21,7 @@ export class AuthService {
 
     @Inject(jwtConfig.KEY)
     private readonly jwtConfiguration: ConfigType<typeof jwtConfig>,
-    private readonly jwtService: JwtService
+    private readonly jwtService: JwtService,
   ) {}
 
   async validateUser(body: LoginDto): Promise<any> {
@@ -24,12 +30,15 @@ export class AuthService {
         email: body.email,
       },
     });
-    
+
     if (!user) {
       throw new NotFoundException(`Usuário não encontrado.`);
     }
 
-    const isPasswordValid = await this.hashingService.compare(body.password, user.senhaHash);
+    const isPasswordValid = await this.hashingService.compare(
+      body.password,
+      user.senhaHash,
+    );
     if (!isPasswordValid) {
       throw new UnauthorizedException('Senha ou e-mail inválido.');
     }
@@ -41,16 +50,17 @@ export class AuthService {
 
   async login(user: UserDto): Promise<any> {
     const token = await this.jwtService.signAsync(
-      { 
-        sub: user.id_User, 
-        email: user.email 
+      {
+        sub: user.id_User,
+        email: user.email,
+        access: user.roleId,
       },
       {
         secret: this.jwtConfiguration.secret,
         expiresIn: this.jwtConfiguration.jwtTtl,
         audience: this.jwtConfiguration.audience,
         issuer: this.jwtConfiguration.issuer,
-      }
+      },
     );
 
     return {
@@ -59,5 +69,23 @@ export class AuthService {
       email: user.email,
       token: token,
     };
+  }
+
+  async findOne(id: UUID) {
+    const user = await this.prisma.usuario.findFirst({
+      where: { id_User: id },
+      select: {
+        id_User: true,
+        nome: true,
+        email: true,
+        senhaHash: false,
+        roleId: true,
+      },
+    });
+    if (!user) {
+      throw new NotFoundException(`Usuário não encontrado.`);
+    }
+
+    return user;
   }
 }
