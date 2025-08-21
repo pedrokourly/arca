@@ -70,22 +70,4 @@ export class AuthService {
       token: token,
     };
   }
-
-  async findOne(id: UUID) {
-    const user = await this.prisma.usuario.findFirst({
-      where: { id_User: id },
-      select: {
-        id_User: true,
-        nome: true,
-        email: true,
-        senhaHash: false,
-        roleId: true,
-      },
-    });
-    if (!user) {
-      throw new NotFoundException(`Usuário não encontrado.`);
-    }
-
-    return user;
-  }
 }
