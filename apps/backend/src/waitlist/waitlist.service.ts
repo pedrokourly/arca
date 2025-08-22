@@ -1,4 +1,9 @@
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateWaitlistDto } from './dto/create-waitlist.dto';
 import { UpdateWaitlistDto } from './dto/update-waitlist.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -10,39 +15,46 @@ export class WaitlistService {
   constructor(private prisma: PrismaService) {}
 
   async create(body: CreateWaitlistDto) {
-    try {
-      const newWaitlistEntry = await this.prisma.listaEspera.create({
-        data: {
-          nomeRegistro: body.nomeRegistro,
-          nomeSocial: body.nomeSocial,
-          dataNascimento: new Date(body.dataNascimento),
-          telefonePessoal: body.telefonePessoal,
-          contatoEmergencia: body.contatoEmergencia,
-          enderecoRua: body.enderecoRua,
-          enderecoNumero: body.enderecoNumero,
-          enderecoBairro: body.enderecoBairro,
-          enderecoCidade: body.enderecoCidade,
-          enderecoEstado: body.enderecoEstado,
-          enderecoCEP: body.enderecoCEP,
-          id_Genero: body.id_Genero || 1, // Padrão: Masculino
-          id_CorPele: body.id_CorPele || 1, // Padrão: Branca
-          id_Escolaridade: body.id_Escolaridade || 1, // Padrão: Ensino Fundamental Incompleto
-        }
-      });
-      return newWaitlistEntry;
-    } catch (error) {
-      throw new InternalServerErrorException(
-        'Error creating waitlist entry',
-        error.message,
+    const existingEntry = await this.prisma.listaEspera.findFirst({
+      where: {
+        nomeRegistro: body.nomeRegistro,
+        dataNascimento: new Date(body.dataNascimento),
+        telefonePessoal: body.telefonePessoal,
+      },
+    });
+
+    if (existingEntry) {
+      throw new BadRequestException(
+        'Já existe uma pessoa na lista de espera com o mesmo nome, data de nascimento e telefone pessoal.',
       );
     }
+
+    const newWaitlistEntry = await this.prisma.listaEspera.create({
+      data: {
+        nomeRegistro: body.nomeRegistro,
+        nomeSocial: body.nomeSocial,
+        dataNascimento: new Date(body.dataNascimento),
+        telefonePessoal: body.telefonePessoal,
+        contatoEmergencia: body.contatoEmergencia,
+        enderecoRua: body.enderecoRua,
+        enderecoNumero: body.enderecoNumero,
+        enderecoBairro: body.enderecoBairro,
+        enderecoCidade: body.enderecoCidade,
+        enderecoEstado: body.enderecoEstado,
+        enderecoCEP: body.enderecoCEP,
+        id_Genero: body.id_Genero || 1, // Padrão: Masculino
+        id_CorPele: body.id_CorPele || 1, // Padrão: Branca
+        id_Escolaridade: body.id_Escolaridade || 1, // Padrão: Ensino Fundamental Incompleto
+      },
+    });
+    return newWaitlistEntry;
   }
 
   async findAll() {
     const waitlistEntries = await this.prisma.listaEspera.findMany({
       orderBy: {
         createdAt: 'desc',
-      }
+      },
     });
     return waitlistEntries;
   }
@@ -68,11 +80,11 @@ export class WaitlistService {
       },
       orderBy: {
         createdAt: 'desc',
-      }
+      },
     });
 
     const qntFila = waitlistEntries.length;
-    
+
     if (qntFila === 0) {
       return {
         qntFila: 0,
@@ -108,7 +120,9 @@ export class WaitlistService {
         where: { id_Lista: id },
         data: {
           ...body,
-          dataNascimento: body.dataNascimento ? new Date(body.dataNascimento) : waitlistEntry.dataNascimento,
+          dataNascimento: body.dataNascimento
+            ? new Date(body.dataNascimento)
+            : waitlistEntry.dataNascimento,
         },
       });
 

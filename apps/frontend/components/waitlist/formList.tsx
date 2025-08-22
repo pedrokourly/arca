@@ -35,6 +35,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { API_ENDPOINTS, apiRequest } from "@/utils/apiHandler";
+import { getErrorMessage } from "@/utils/toastErrorHandler";
 
 const formSchema = z.object({
   nomeRegistro: z
@@ -155,110 +156,6 @@ export function WaitlistForm() {
       id_Escolaridade: undefined,
     },
   });
-
-  function getErrorMessage(error: unknown): {
-    title: string;
-    description: string;
-  } {
-    // Verificar se é um erro de rede/conexão
-    if (error instanceof TypeError && error.message.includes("fetch")) {
-      return {
-        title: "Servidor indisponível",
-        description:
-          "Não foi possível conectar ao servidor. Contate o setor de T.I.",
-      };
-    }
-
-    // Verificar se é um erro HTTP específico
-    if (error instanceof Error) {
-      // Erro 400 - Bad Request (dados inválidos)
-      if (error.message.includes("400")) {
-        return {
-          title: "Dados inválidos",
-          description:
-            "Verifique se todos os campos estão preenchidos corretamente.",
-        };
-      }
-
-      // Erro 404 - Not Found
-      if (error.message.includes("404")) {
-        return {
-          title: "Serviço não encontrado",
-          description:
-            "O serviço está temporariamente indisponível. Contate o setor de T.I.",
-        };
-      }
-
-      // Erro 409 - Conflict (usuário já cadastrado)
-      if (
-        error.message.includes("409") ||
-        error.message.toLowerCase().includes("já existe")
-      ) {
-        return {
-          title: "Usuário já cadastrado",
-          description:
-            "Você já está na lista de espera. Verifique se já não se inscreveu anteriormente.",
-        };
-      }
-
-      // Erro 422 - Unprocessable Entity (validação)
-      if (error.message.includes("422")) {
-        return {
-          title: "Erro de validação",
-          description:
-            "Alguns dados fornecidos são inválidos. Verifique e tente novamente.",
-        };
-      }
-
-      // Erro 500 - Internal Server Error
-      if (error.message.includes("500")) {
-        return {
-          title: "Erro interno do servidor",
-          description: "Ocorreu um erro no servidor. Contate o setor de T.I.",
-        };
-      }
-
-      // Erro 503 - Service Unavailable
-      if (error.message.includes("503")) {
-        return {
-          title: "Serviço temporariamente indisponível",
-          description:
-            "O sistema está em manutenção. Tente novamente em alguns minutos.",
-        };
-      }
-
-      // Timeout
-      if (error.message.toLowerCase().includes("timeout")) {
-        return {
-          title: "Tempo esgotado",
-          description:
-            "A requisição demorou muito para responder. Verifique sua conexão e tente novamente.",
-        };
-      }
-
-      // Erro de CORS
-      if (error.message.toLowerCase().includes("cors")) {
-        return {
-          title: "Erro de configuração",
-          description:
-            "Problema de configuração do servidor. Contate o setor de T.I.",
-        };
-      }
-
-      // Erro genérico com mensagem específica
-      return {
-        title: "Erro ao enviar inscrição",
-        description: error.message,
-      };
-    }
-
-    // Erro completamente desconhecido
-    return {
-      title: "Erro inesperado",
-      description:
-        "Ocorreu um erro inesperado. Tente novamente ou contate o suporte técnico.",
-    };
-  }
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
