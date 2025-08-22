@@ -15,20 +15,6 @@ export class WaitlistService {
   constructor(private prisma: PrismaService) {}
 
   async create(body: CreateWaitlistDto) {
-    const existingEntry = await this.prisma.listaEspera.findFirst({
-      where: {
-        nomeRegistro: body.nomeRegistro,
-        dataNascimento: new Date(body.dataNascimento),
-        telefonePessoal: body.telefonePessoal,
-      },
-    });
-
-    if (existingEntry) {
-      throw new BadRequestException(
-        'Já existe uma pessoa na lista de espera com o mesmo nome, data de nascimento e telefone pessoal.',
-      );
-    }
-
     const newWaitlistEntry = await this.prisma.listaEspera.create({
       data: {
         nomeRegistro: body.nomeRegistro,
