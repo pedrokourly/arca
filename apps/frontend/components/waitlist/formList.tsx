@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -33,75 +34,109 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { API_ENDPOINTS, apiRequest } from "@/utils/apiHandler";
 
 const formSchema = z.object({
-  nomeRegistro: z.string().min(1, {
-    message: "Nome de registro deve ter entre 1 e 150 caracteres.",
-  }).max(150, {
-    message: "Nome de registro deve ter entre 1 e 150 caracteres.",
-  }),
-  nomeSocial: z.string().min(1, {
-    message: "Nome social deve ter entre 1 e 100 caracteres.",
-  }).max(100, {
-    message: "Nome social deve ter entre 1 e 100 caracteres.",
-  }).optional(),
+  nomeRegistro: z
+    .string()
+    .min(1, {
+      message: "Nome de registro deve ter entre 1 e 150 caracteres.",
+    })
+    .max(150, {
+      message: "Nome de registro deve ter entre 1 e 150 caracteres.",
+    }),
+  nomeSocial: z
+    .string()
+    .min(1, {
+      message: "Nome social deve ter entre 1 e 100 caracteres.",
+    })
+    .max(100, {
+      message: "Nome social deve ter entre 1 e 100 caracteres.",
+    })
+    .optional(),
   dataNascimento: z.date({
     message: "Data de nascimento é obrigatória.",
   }),
-  telefonePessoal: z.string().min(1, {
-    message: "Telefone pessoal deve ter entre 1 e 20 caracteres.",
-  }).max(20, {
-    message: "Telefone pessoal deve ter entre 1 e 20 caracteres.",
-  }),
-  contatoEmergencia: z.string().min(1, {
-    message: "Contato de emergência deve ter entre 1 e 20 caracteres.",
-  }).max(20, {
-    message: "Contato de emergência deve ter entre 1 e 20 caracteres.",
-  }),
-  enderecoRua: z.string().min(1, {
-    message: "Endereço (rua) deve ter entre 1 e 255 caracteres.",
-  }).max(255, {
-    message: "Endereço (rua) deve ter entre 1 e 255 caracteres.",
-  }),
-  enderecoNumero: z.string().min(1, {
-    message: "Número do endereço deve ter entre 1 e 10 caracteres.",
-  }).max(10, {
-    message: "Número do endereço deve ter entre 1 e 10 caracteres.",
-  }),
-  enderecoBairro: z.string().min(1, {
-    message: "Bairro deve ter entre 1 e 100 caracteres.",
-  }).max(100, {
-    message: "Bairro deve ter entre 1 e 100 caracteres.",
-  }),
-  enderecoCidade: z.string().min(1, {
-    message: "Cidade deve ter entre 1 e 100 caracteres.",
-  }).max(100, {
-    message: "Cidade deve ter entre 1 e 100 caracteres.",
-  }),
+  telefonePessoal: z
+    .string()
+    .min(1, {
+      message: "Telefone pessoal deve ter entre 1 e 20 caracteres.",
+    })
+    .max(20, {
+      message: "Telefone pessoal deve ter entre 1 e 20 caracteres.",
+    }),
+  contatoEmergencia: z
+    .string()
+    .min(1, {
+      message: "Contato de emergência deve ter entre 1 e 20 caracteres.",
+    })
+    .max(20, {
+      message: "Contato de emergência deve ter entre 1 e 20 caracteres.",
+    }),
+  enderecoRua: z
+    .string()
+    .min(1, {
+      message: "Endereço (rua) deve ter entre 1 e 255 caracteres.",
+    })
+    .max(255, {
+      message: "Endereço (rua) deve ter entre 1 e 255 caracteres.",
+    }),
+  enderecoNumero: z
+    .string()
+    .min(1, {
+      message: "Número do endereço deve ter entre 1 e 10 caracteres.",
+    })
+    .max(10, {
+      message: "Número do endereço deve ter entre 1 e 10 caracteres.",
+    }),
+  enderecoBairro: z
+    .string()
+    .min(1, {
+      message: "Bairro deve ter entre 1 e 100 caracteres.",
+    })
+    .max(100, {
+      message: "Bairro deve ter entre 1 e 100 caracteres.",
+    }),
+  enderecoCidade: z
+    .string()
+    .min(1, {
+      message: "Cidade deve ter entre 1 e 100 caracteres.",
+    })
+    .max(100, {
+      message: "Cidade deve ter entre 1 e 100 caracteres.",
+    }),
   enderecoEstado: z.string().length(2, {
     message: "Estado deve ter exatamente 2 caracteres.",
   }),
   enderecoCEP: z.string().regex(/^\d{8}$/, {
     message: "CEP deve conter exatamente 8 dígitos.",
   }),
-  id_Genero: z.number({
-    message: "Gênero é obrigatório.",
-  }).min(1, {
-    message: "Gênero deve ser selecionado.",
-  }),
-  id_CorPele: z.number({
-    message: "Cor de pele é obrigatória.",
-  }).min(1, {
-    message: "Cor de pele deve ser selecionada.",
-  }),
-  id_Escolaridade: z.number({
-    message: "Escolaridade é obrigatória.",
-  }).min(1, {
-    message: "Escolaridade deve ser selecionada.",
-  }),
+  id_Genero: z
+    .number({
+      message: "Gênero é obrigatório.",
+    })
+    .min(1, {
+      message: "Gênero deve ser selecionado.",
+    }),
+  id_CorPele: z
+    .number({
+      message: "Cor de pele é obrigatória.",
+    })
+    .min(1, {
+      message: "Cor de pele deve ser selecionada.",
+    }),
+  id_Escolaridade: z
+    .number({
+      message: "Escolaridade é obrigatória.",
+    })
+    .min(1, {
+      message: "Escolaridade deve ser selecionada.",
+    }),
 });
 
 export function WaitlistForm() {
+  const [isLoading, setIsLoading] = useState(false);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -121,8 +156,55 @@ export function WaitlistForm() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsLoading(true);
+
+    try {
+      // Formatar dados para envio
+      const payload = {
+        nomeRegistro: values.nomeRegistro,
+        nomeSocial: values.nomeSocial || undefined,
+        dataNascimento: values.dataNascimento.toISOString().split("T")[0], // Formato YYYY-MM-DD
+        telefonePessoal: values.telefonePessoal,
+        contatoEmergencia: values.contatoEmergencia,
+        enderecoRua: values.enderecoRua,
+        enderecoNumero: values.enderecoNumero,
+        enderecoBairro: values.enderecoBairro,
+        enderecoCidade: values.enderecoCidade,
+        enderecoEstado: values.enderecoEstado.toUpperCase(),
+        enderecoCEP: values.enderecoCEP,
+        id_Genero: values.id_Genero,
+        id_CorPele: values.id_CorPele,
+        id_Escolaridade: values.id_Escolaridade,
+      };
+
+      const result = await apiRequest(API_ENDPOINTS.waitlist, {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+
+      // Sucesso - mostrar toast e resetar formulário
+      toast.success("Inscrição realizada com sucesso!", {
+        description:
+          "Você foi adicionado à lista de espera. Entraremos em contato em breve.",
+      });
+
+      form.reset();
+    } catch (error) {
+      console.error("Erro ao enviar formulário:", error);
+
+      // Mostrar erro específico ou genérico
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Erro interno do servidor. Tente novamente mais tarde.";
+
+      toast.error("Erro ao enviar inscrição", {
+        description: errorMessage,
+      });
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -152,7 +234,10 @@ export function WaitlistForm() {
             <FormItem>
               <FormLabel>Nome Social</FormLabel>
               <FormControl>
-                <Input placeholder="Digite seu nome social (opcional)" {...field} />
+                <Input
+                  placeholder="Digite seu nome social (opcional)"
+                  {...field}
+                />
               </FormControl>
               <FormDescription>
                 Nome pelo qual você prefere ser chamado(a).
@@ -199,9 +284,7 @@ export function WaitlistForm() {
                   />
                 </PopoverContent>
               </Popover>
-              <FormDescription>
-                Sua data de nascimento.
-              </FormDescription>
+              <FormDescription>Sua data de nascimento.</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -216,9 +299,7 @@ export function WaitlistForm() {
               <FormControl>
                 <Input placeholder="(11) 99999-9999" {...field} />
               </FormControl>
-              <FormDescription>
-                Seu telefone para contato.
-              </FormDescription>
+              <FormDescription>Seu telefone para contato.</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -267,9 +348,7 @@ export function WaitlistForm() {
               <FormControl>
                 <Input placeholder="123" {...field} />
               </FormControl>
-              <FormDescription>
-                Número do endereço.
-              </FormDescription>
+              <FormDescription>Número do endereço.</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -284,9 +363,7 @@ export function WaitlistForm() {
               <FormControl>
                 <Input placeholder="Digite o bairro" {...field} />
               </FormControl>
-              <FormDescription>
-                Nome do bairro.
-              </FormDescription>
+              <FormDescription>Nome do bairro.</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -301,9 +378,7 @@ export function WaitlistForm() {
               <FormControl>
                 <Input placeholder="Digite a cidade" {...field} />
               </FormControl>
-              <FormDescription>
-                Nome da cidade.
-              </FormDescription>
+              <FormDescription>Nome da cidade.</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -318,9 +393,7 @@ export function WaitlistForm() {
               <FormControl>
                 <Input placeholder="SP" maxLength={2} {...field} />
               </FormControl>
-              <FormDescription>
-                Sigla do estado (2 caracteres).
-              </FormDescription>
+              <FormDescription>Sigla do estado (2 caracteres).</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -333,13 +406,13 @@ export function WaitlistForm() {
             <FormItem>
               <FormLabel>CEP *</FormLabel>
               <FormControl>
-                <Input 
-                  placeholder="12345678" 
+                <Input
+                  placeholder="12345678"
                   maxLength={8}
                   {...field}
                   onChange={(e) => {
                     // Remove tudo que não é número
-                    const value = e.target.value.replace(/\D/g, '');
+                    const value = e.target.value.replace(/\D/g, "");
                     field.onChange(value);
                   }}
                 />
@@ -358,7 +431,12 @@ export function WaitlistForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Gênero *</FormLabel>
-              <Select onValueChange={(value) => field.onChange(value ? parseInt(value) : undefined)} value={field.value?.toString()}>
+              <Select
+                onValueChange={(value) =>
+                  field.onChange(value ? parseInt(value) : undefined)
+                }
+                value={field.value?.toString()}
+              >
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione um gênero" />
@@ -371,9 +449,7 @@ export function WaitlistForm() {
                   <SelectItem value="4">Prefiro não informar</SelectItem>
                 </SelectContent>
               </Select>
-              <FormDescription>
-                Seu gênero (obrigatório).
-              </FormDescription>
+              <FormDescription>Seu gênero (obrigatório).</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -385,7 +461,12 @@ export function WaitlistForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Cor de Pele *</FormLabel>
-              <Select onValueChange={(value) => field.onChange(value ? parseInt(value) : undefined)} value={field.value?.toString()}>
+              <Select
+                onValueChange={(value) =>
+                  field.onChange(value ? parseInt(value) : undefined)
+                }
+                value={field.value?.toString()}
+              >
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione uma cor de pele" />
@@ -400,9 +481,7 @@ export function WaitlistForm() {
                   <SelectItem value="6">Prefiro não informar</SelectItem>
                 </SelectContent>
               </Select>
-              <FormDescription>
-                Sua cor de pele (obrigatório).
-              </FormDescription>
+              <FormDescription>Sua cor de pele (obrigatório).</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -414,14 +493,21 @@ export function WaitlistForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Escolaridade *</FormLabel>
-              <Select onValueChange={(value) => field.onChange(value ? parseInt(value) : undefined)} value={field.value?.toString()}>
+              <Select
+                onValueChange={(value) =>
+                  field.onChange(value ? parseInt(value) : undefined)
+                }
+                value={field.value?.toString()}
+              >
                 <FormControl>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione uma escolaridade" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="1">Ensino Fundamental Incompleto</SelectItem>
+                  <SelectItem value="1">
+                    Ensino Fundamental Incompleto
+                  </SelectItem>
                   <SelectItem value="2">Ensino Fundamental Completo</SelectItem>
                   <SelectItem value="3">Ensino Médio Incompleto</SelectItem>
                   <SelectItem value="4">Ensino Médio Completo</SelectItem>
@@ -432,9 +518,7 @@ export function WaitlistForm() {
                   <SelectItem value="9">Doutorado</SelectItem>
                 </SelectContent>
               </Select>
-              <FormDescription>
-                Sua escolaridade (obrigatório).
-              </FormDescription>
+              <FormDescription>Sua escolaridade (obrigatório).</FormDescription>
               <FormMessage />
             </FormItem>
           )}
