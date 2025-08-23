@@ -1,0 +1,21 @@
+<svg width="400" height="300" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="400" height="300" fill="#f3f4f6"/>
+  
+  <!-- Border -->
+  <rect x="1" y="1" width="398" height="298" stroke="#e5e7eb" stroke-width="2" fill="none"/>
+  
+  <!-- Icon -->
+  <circle cx="200" cy="120" r="30" fill="#d1d5db"/>
+  <path d="M185 110 L200 95 L215 110 L210 115 L205 110 L205 135 L195 135 L195 110 L190 115 Z" fill="#9ca3af"/>
+  
+  <!-- Text -->
+  <text x="200" y="180" text-anchor="middle" fill="#6b7280" font-family="Inter, system-ui, sans-serif" font-size="16" font-weight="500">
+    Placeholder Image
+  </text>
+  
+  <!-- Dimensions -->
+  <text x="200" y="200" text-anchor="middle" fill="#9ca3af" font-family="Inter, system-ui, sans-serif" font-size="12">
+    400 × 300
+  </text>
+</svg>
