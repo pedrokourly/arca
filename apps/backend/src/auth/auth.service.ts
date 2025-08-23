@@ -30,8 +30,7 @@ export class AuthService {
       },
     });
 
-    if (!user) {
-      throw new NotFoundException(`Usuário não encontrado.`);
+      throw new UnauthorizedException('Senha ou e-mail inválido.');
     }
 
     const isPasswordValid = await this.hashingService.compare(
