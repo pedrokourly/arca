@@ -10,42 +10,7 @@ const handler = NextAuth({
         password: { label: "Senha", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials.password) {
-          return null;
-        }
-
-        try {
-          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333'}/auth/login`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              email: credentials.email,
-              password: credentials.password,
-            }),
-          });
-
-          if (!res.ok) {
-            console.error("Falha na autenticação com a API");
-            return null;
-          }
-          const user = await res.json();
-          
-          if (user && user.token) {
-            return {
-              id: user.id,
-              name: user.name,
-              email: user.email,
-              accessToken: user.token, 
-            };
-          }
-
-          return null; 
-        } catch (error) {
-          console.error("Erro na chamada de authorize: ", error);
-          return null;
-        }
+        return authenticateUser(credentials?.email, credentials?.password);
       },
     }),
   ],
