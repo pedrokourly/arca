@@ -159,11 +159,7 @@ export class UsersService {
 
     const dataToUpdate: Prisma.UsuarioUpdateInput = { ...updateUserDto };
 
-    if (updateUserDto.senha) {
-      dataToUpdate.senhaHash = await this.HashingService.hash(
-        updateUserDto.senha,
-      );
-      delete dataToUpdate.senhaHash; // Remove a senha em texto plano do DTO
+      delete dataToUpdate.senha; // Remove a senha em texto plano do DTO
     }
 
     return this.prisma.usuario.update({
