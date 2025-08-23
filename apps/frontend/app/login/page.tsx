@@ -1,8 +1,38 @@
-import { GalleryVerticalEnd } from "lucide-react"
+"use client"
 
+import { GalleryVerticalEnd } from "lucide-react"
 import { LoginForm } from "@/components/login-form"
+import { useSession } from "next-auth/react"
+import { useRouter } from "next/navigation"
+import { useEffect } from "react"
 
 export default function LoginPage() {
+  const { data: session, status } = useSession()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.push("/")
+      router.refresh()
+    }
+  }, [status, router])
+
+  if (status === "loading") {
+    return (
+      <div className="flex min-h-svh items-center justify-center">
+        <div className="text-lg">Carregando...</div>
+      </div>
+    )
+  }
+
+  if (status === "authenticated") {
+    return (
+      <div className="flex min-h-svh items-center justify-center">
+        <div className="text-lg">Redirecionando...</div>
+      </div>
+    )
+  }
+
   return (
     <div className="grid min-h-svh lg:grid-cols-2">
       <div className="flex flex-col gap-4 p-6 md:p-10">
