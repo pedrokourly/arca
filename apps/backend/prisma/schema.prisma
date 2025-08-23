@@ -33,7 +33,7 @@ model Usuario {
   relatorioComoSupervisor   RelatorioAlta[]    @relation("SupervisorRelatorios")
   pacientesComoEstagiario   Paciente[]         @relation("EstagiarioResponsavel")
   pacientesComoSupervisor   Paciente[]         @relation("SupervisorResponsavel")
-
+  
   @@map("USUARIOS")
 }
 
