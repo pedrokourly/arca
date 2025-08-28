@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "public"."LISTA_ESPERA" ADD COLUMN     "isActive" BOOLEAN NOT NULL DEFAULT true;

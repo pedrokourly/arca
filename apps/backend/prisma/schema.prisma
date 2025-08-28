@@ -157,6 +157,7 @@ model ListaEspera {
   enderecoEstado    String   @db.Char(2)
   enderecoCEP       String   @db.Char(8)
   createdAt         DateTime @default(now())
+  isActive          Boolean  @default(true)
   id_Genero         Int      @db.SmallInt
   id_CorPele        Int      @db.SmallInt
   id_Escolaridade   Int      @db.SmallInt

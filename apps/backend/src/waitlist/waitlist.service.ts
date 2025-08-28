@@ -56,7 +56,26 @@ export class WaitlistService {
     if (!waitlistEntry) {
       throw new NotFoundException('Waitlist entry not found');
     }
-    return waitlistEntry;
+
+    // Calcular a posição na lista
+    // Conta quantas pessoas ativas foram criadas antes desta pessoa
+    const posicaoNaLista = await this.prisma.listaEspera.count({
+      where: {
+        createdAt: {
+          lt: waitlistEntry.createdAt, // Criadas antes desta entrada
+        },
+        isActive: true, // Apenas pessoas ativas
+      },
+    });
+
+    // A posição é contagem + 1 (porque a contagem começa em 0)
+    const posicao = posicaoNaLista + 1;
+
+    return {
+      ...waitlistEntry,
+      posicaoNaLista: posicao,
+      situacao: waitlistEntry.isActive ? 'Ativo' : 'Inativo',
+    };
   }
 
   async findPositions() {
