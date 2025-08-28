@@ -4,7 +4,7 @@ import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, InfoIcon } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
@@ -34,6 +34,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/components/ui/alert";
 import { API_ENDPOINTS, apiRequest } from "@/utils/apiHandler";
 import { getErrorMessage } from "@/utils/toastErrorHandler";
 
@@ -137,6 +142,7 @@ const formSchema = z.object({
 
 export function WaitlistForm() {
   const [isLoading, setIsLoading] = useState(false);
+  const [waitlistId, setWaitlistId] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -184,6 +190,10 @@ export function WaitlistForm() {
         body: JSON.stringify(payload),
       });
 
+      // Capturar o ID da lista de espera retornado pela API
+      const { id_Lista } = result;
+      setWaitlistId(id_Lista);
+
       // Sucesso - mostrar toast e resetar formulário
       toast.success("Inscrição realizada com sucesso!", {
         description:
@@ -206,6 +216,8 @@ export function WaitlistForm() {
   }
 
   return (
+    <div className="space-y-6">
+
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <FormField
@@ -522,8 +534,32 @@ export function WaitlistForm() {
           )}
         />
 
-        <Button type="submit">Enviar Inscrição</Button>
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? "Enviando..." : "Enviar Inscrição"}
+        </Button>
       </form>
     </Form>
+    {/* Alert com ID da lista de espera */}
+      {waitlistId && (
+        <Alert>
+          <InfoIcon className="h-4 w-4" />
+          <AlertTitle>Inscrição realizada com sucesso!</AlertTitle>
+          <AlertDescription>
+            <div className="space-y-2">
+              <p>
+                <strong>Seu ID da lista de espera é:</strong>{" "}
+                <code className="bg-muted px-2 py-1 rounded text-sm font-mono">
+                  {waitlistId}
+                </code>
+              </p>
+              <p className="text-sm text-muted-foreground">
+                <strong>IMPORTANTE:</strong> Guarde este número! Você pode utilizá-lo no futuro para verificar 
+                sua posição na lista de espera e acompanhar o status da sua inscrição.
+              </p>
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
+    </div>
   );
 }
