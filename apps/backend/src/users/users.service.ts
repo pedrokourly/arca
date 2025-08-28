@@ -74,6 +74,13 @@ export class UsersService {
         email: true,
         senhaHash: false,
         roleId: true,
+        role: {
+          select: {
+            id_Role: true,
+            role: true,
+            descricao: true,
+          },
+        },
       },
     });
     if (!users) {
@@ -131,16 +138,6 @@ export class UsersService {
       );
     }
 
-    // REGRA 2: Você não pode atribuir um nível de acesso igual ou superior ao seu
-    if (updateUserDto.roleId && updateUserDto.roleId <= creator.access) {
-      // A exceção para Admin (1) atribuindo Admin (1)
-      if (!(creator.access === 1 && updateUserDto.roleId === 1)) {
-        throw new ForbiddenException(
-          'Você não tem permissão para atribuir um nível de acesso igual ou superior ao seu.',
-        );
-      }
-    }
-
     // Verifica se o email já existe
     if (updateUserDto.email && updateUserDto.email !== user.email) {
       const existingUser = await this.prisma.usuario.findFirst({
@@ -157,9 +154,16 @@ export class UsersService {
       }
     }
 
-    const dataToUpdate: Prisma.UsuarioUpdateInput = { ...updateUserDto };
+    // Preparar dados para atualização - excluir roleId
+    const dataToUpdate: Prisma.UsuarioUpdateInput = {
+      nome: updateUserDto.nome,
+      email: updateUserDto.email,
+    };
 
-      delete dataToUpdate.senha; // Remove a senha em texto plano do DTO
+    if (updateUserDto.senha) {
+      dataToUpdate.senhaHash = await this.HashingService.hash(
+        updateUserDto.senha,
+      );
     }
 
     return this.prisma.usuario.update({

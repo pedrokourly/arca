@@ -30,6 +30,7 @@ export class AuthService {
       },
     });
 
+    if (!user) {
       throw new UnauthorizedException('Senha ou e-mail inválido.');
     }
 

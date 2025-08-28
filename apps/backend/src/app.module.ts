@@ -4,21 +4,18 @@ import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
-import { PrismaModule } from './prisma/prisma.module';
 import { WaitlistModule } from './waitlist/waitlist.module';
-
 
 @Module({
   imports: [
     ConfigModule.forRoot({
         isGlobal: true,
+        envFilePath: process.env.NODE_ENV
+          ? `.env.${process.env.NODE_ENV}`
+          : '.env',
     }),
-    UsersModule,
     AuthModule,
-      envFilePath: process.env.NODE_ENV
-        ? `.env.${process.env.NODE_ENV}`
-        : '.env',
-    }),
+    UsersModule,
     WaitlistModule
   ],
   controllers: [AppController],
