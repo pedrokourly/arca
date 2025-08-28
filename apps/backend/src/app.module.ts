@@ -6,7 +6,6 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { WaitlistModule } from './waitlist/waitlist.module';
 
-
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -15,8 +14,8 @@ import { WaitlistModule } from './waitlist/waitlist.module';
           ? `.env.${process.env.NODE_ENV}`
           : '.env',
     }),
-    UsersModule,
     AuthModule,
+    UsersModule,
     WaitlistModule
   ],
   controllers: [AppController],
