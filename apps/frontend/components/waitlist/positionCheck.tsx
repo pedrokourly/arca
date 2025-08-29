@@ -103,11 +103,14 @@ export function PositionCheck() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      {/* Card de Consulta */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <SearchIcon className="h-5 w-5" />
+            <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-semibold">
+              1
+            </div>
             Consultar Posição na Lista de Espera
           </CardTitle>
           <CardDescription>
@@ -116,7 +119,7 @@ export function PositionCheck() {
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               <FormField
                 control={form.control}
                 name="idLista"
@@ -126,6 +129,7 @@ export function PositionCheck() {
                     <FormControl>
                       <Input
                         placeholder="Ex: 123e4567-e89b-12d3-a456-426614174000"
+                        className="font-mono"
                         {...field}
                       />
                     </FormControl>
@@ -137,8 +141,8 @@ export function PositionCheck() {
                 )}
               />
               
-              <div className="flex gap-2">
-                <Button type="submit" disabled={isLoading} className="flex-1">
+              <div className="flex gap-3">
+                <Button type="submit" disabled={isLoading} className="flex-1 md:flex-none md:min-w-48">
                   {isLoading ? "Consultando..." : "Consultar Posição"}
                 </Button>
                 {waitlistData && (
@@ -157,39 +161,58 @@ export function PositionCheck() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <UserIcon className="h-5 w-5" />
-              Informações da Lista de Espera
+              <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-semibold">
+                2
+              </div>
+              Suas Informações na Lista de Espera
             </CardTitle>
+            <CardDescription>
+              Dados da sua inscrição e posição atual na fila de atendimento
+            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Status e Posição */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card>
+          <CardContent className="space-y-8">
+            {/* Status e Posição - Destaque */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card className="border-primary/20 bg-primary/5">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-lg">Posição na Lista</CardTitle>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <UserIcon className="h-5 w-5 text-primary" />
+                    Posição na Lista
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-primary">
+                  <div className="text-4xl font-bold text-primary mb-2">
                     #{waitlistData.posicaoNaLista}
                   </div>
-                  <p className="text-sm text-muted-foreground mt-1">
+                  <p className="text-sm text-muted-foreground">
                     Posição atual na fila de espera
                   </p>
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className={`border-opacity-20 ${
+                waitlistData.isActive 
+                  ? "border-green-500 bg-green-50/50" 
+                  : "border-red-500 bg-red-50/50"
+              }`}>
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-lg">Status</CardTitle>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <SearchIcon className={`h-5 w-5 ${
+                      waitlistData.isActive ? "text-green-600" : "text-red-600"
+                    }`} />
+                    Status
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <Badge 
-                    variant={waitlistData.isActive ? "default" : "secondary"}
-                    className="text-sm"
+                    variant={waitlistData.isActive ? "default" : "destructive"}
+                    className="text-sm mb-2"
                   >
                     {waitlistData.situacao}
                   </Badge>
-                  <p className="text-sm text-muted-foreground mt-2">
+                  <p className={`text-sm ${
+                    waitlistData.isActive ? "text-green-700" : "text-red-700"
+                  }`}>
                     {waitlistData.isActive 
                       ? "Sua inscrição está ativa na lista" 
                       : "Sua inscrição foi desativada"
@@ -203,27 +226,40 @@ export function PositionCheck() {
 
             {/* Informações Pessoais */}
             <div>
-              <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                <UserIcon className="h-4 w-4" />
+              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <UserIcon className="h-5 w-5 text-primary" />
                 Dados Pessoais
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <div>
-                  <span className="font-medium">Nome:</span> {waitlistData.nomeRegistro}
-                </div>
-                {waitlistData.nomeSocial && (
-                  <div>
-                    <span className="font-medium">Nome Social:</span> {waitlistData.nomeSocial}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <div className="p-3 bg-muted/50 rounded-lg">
+                    <span className="text-sm font-medium text-muted-foreground">Nome Completo</span>
+                    <p className="font-medium">{waitlistData.nomeRegistro}</p>
                   </div>
-                )}
-                <div className="flex items-center gap-2">
-                  <CalendarIcon className="h-4 w-4" />
-                  <span className="font-medium">Data de Nascimento:</span> 
-                  {format(new Date(waitlistData.dataNascimento), "dd/MM/yyyy", { locale: ptBR })}
+                  {waitlistData.nomeSocial && (
+                    <div className="p-3 bg-muted/50 rounded-lg">
+                      <span className="text-sm font-medium text-muted-foreground">Nome Social</span>
+                      <p className="font-medium">{waitlistData.nomeSocial}</p>
+                    </div>
+                  )}
                 </div>
-                <div className="flex items-center gap-2">
-                  <PhoneIcon className="h-4 w-4" />
-                  <span className="font-medium">Telefone:</span> {waitlistData.telefonePessoal}
+                <div className="space-y-3">
+                  <div className="p-3 bg-muted/50 rounded-lg">
+                    <span className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                      <CalendarIcon className="h-4 w-4" />
+                      Data de Nascimento
+                    </span>
+                    <p className="font-medium">
+                      {format(new Date(waitlistData.dataNascimento), "dd/MM/yyyy", { locale: ptBR })}
+                    </p>
+                  </div>
+                  <div className="p-3 bg-muted/50 rounded-lg">
+                    <span className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                      <PhoneIcon className="h-4 w-4" />
+                      Telefone
+                    </span>
+                    <p className="font-medium">{waitlistData.telefonePessoal}</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -232,45 +268,48 @@ export function PositionCheck() {
 
             {/* Endereço */}
             <div>
-              <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                <MapPinIcon className="h-4 w-4" />
+              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <MapPinIcon className="h-5 w-5 text-primary" />
                 Endereço
               </h3>
-              <div className="text-sm space-y-1">
-                <div>{waitlistData.enderecoRua}, {waitlistData.enderecoNumero}</div>
-                <div>{waitlistData.enderecoBairro}</div>
-                <div>{waitlistData.enderecoCidade} - {waitlistData.enderecoEstado}</div>
-                <div>CEP: {waitlistData.enderecoCEP}</div>
+              <div className="p-4 bg-muted/50 rounded-lg space-y-2">
+                <p className="font-medium">{waitlistData.enderecoRua}, {waitlistData.enderecoNumero}</p>
+                <p className="text-muted-foreground">{waitlistData.enderecoBairro}</p>
+                <p className="text-muted-foreground">{waitlistData.enderecoCidade} - {waitlistData.enderecoEstado}</p>
+                <p className="text-sm font-mono bg-background px-2 py-1 rounded border inline-block">
+                  CEP: {waitlistData.enderecoCEP}
+                </p>
               </div>
             </div>
 
             <Separator />
 
-            {/* Data de Inscrição */}
-            <div>
-              <span className="font-medium text-sm">Data de Inscrição:</span>
-              <span className="text-sm ml-2">
-                {format(new Date(waitlistData.createdAt), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-              </span>
-            </div>
+            {/* Data de Inscrição e Informações importantes */}
+            <div className="space-y-4">
+              <div className="p-3 bg-muted/50 rounded-lg">
+                <span className="text-sm font-medium text-muted-foreground">Data de Inscrição</span>
+                <p className="font-medium">
+                  {format(new Date(waitlistData.createdAt), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                </p>
+              </div>
 
-            {/* Informações importantes */}
-            <Alert>
-              <UserIcon className="h-4 w-4" />
-              <AlertTitle>Informações Importantes</AlertTitle>
-              <AlertDescription>
-                <ul className="list-disc list-inside space-y-1 text-sm">
-                  <li>Guarde seu ID da lista de espera para consultas futuras</li>
-                  <li>Entraremos em contato quando chegar sua vez</li>
-                  <li>Mantenha seus dados de contato sempre atualizados</li>
-                  {!waitlistData.isActive && (
-                    <li className="text-destructive">
-                      Sua inscrição está inativa - entre em contato conosco para mais informações
-                    </li>
-                  )}
-                </ul>
-              </AlertDescription>
-            </Alert>
+              <Alert className={waitlistData.isActive ? "border-blue-200 bg-blue-50" : "border-red-200 bg-red-50"}>
+                <UserIcon className="h-4 w-4" />
+                <AlertTitle>Informações Importantes</AlertTitle>
+                <AlertDescription>
+                  <ul className="list-disc list-inside space-y-1 text-sm mt-2">
+                    <li>Guarde seu ID da lista de espera para consultas futuras</li>
+                    <li>Entraremos em contato quando chegar sua vez</li>
+                    <li>Mantenha seus dados de contato sempre atualizados</li>
+                    {!waitlistData.isActive && (
+                      <li className="text-red-700 font-medium">
+                        Sua inscrição está inativa - entre em contato conosco para mais informações
+                      </li>
+                    )}
+                  </ul>
+                </AlertDescription>
+              </Alert>
+            </div>
           </CardContent>
         </Card>
       )}

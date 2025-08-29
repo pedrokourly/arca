@@ -12,6 +12,8 @@ import { cn } from "@/lib/utils";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import {
   Form,
   FormControl,
@@ -216,343 +218,415 @@ export function WaitlistForm() {
   }
 
   return (
-    <div className="space-y-6">
-
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-        <FormField
-          control={form.control}
-          name="nomeRegistro"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Nome de Registro *</FormLabel>
-              <FormControl>
-                <Input placeholder="Digite seu nome completo" {...field} />
-              </FormControl>
-              <FormDescription>
-                Seu nome completo conforme documento oficial.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="nomeSocial"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Nome Social</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="Digite seu nome social (opcional)"
-                  {...field}
+    <div className="space-y-8">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          {/* Seção: Informações Pessoais */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-semibold">
+                  1
+                </div>
+                Informações Pessoais
+              </CardTitle>
+              <CardDescription>
+                Dados pessoais básicos para identificação
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                  control={form.control}
+                  name="nomeRegistro"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nome de Registro *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Digite seu nome completo" {...field} />
+                      </FormControl>
+                      <FormDescription>
+                        Seu nome completo conforme documento oficial.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </FormControl>
-              <FormDescription>
-                Nome pelo qual você prefere ser chamado(a).
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
 
-        <FormField
-          control={form.control}
-          name="dataNascimento"
-          render={({ field }) => (
-            <FormItem className="flex flex-col">
-              <FormLabel>Data de Nascimento *</FormLabel>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant={"outline"}
-                      className={cn(
-                        "w-full pl-3 text-left font-normal",
-                        !field.value && "text-muted-foreground"
-                      )}
-                    >
-                      {field.value ? (
-                        format(field.value, "dd/MM/yyyy", { locale: ptBR })
-                      ) : (
-                        <span>Selecione a data de nascimento</span>
-                      )}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={field.value}
-                    onSelect={field.onChange}
-                    disabled={(date) =>
-                      date > new Date() || date < new Date("1900-01-01")
-                    }
-                    captionLayout="dropdown"
+                <FormField
+                  control={form.control}
+                  name="nomeSocial"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nome Social</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Digite seu nome social (opcional)"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Nome pelo qual você prefere ser chamado(a).
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                  control={form.control}
+                  name="dataNascimento"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>Data de Nascimento *</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant={"outline"}
+                              className={cn(
+                                "w-full pl-3 text-left font-normal",
+                                !field.value && "text-muted-foreground"
+                              )}
+                            >
+                              {field.value ? (
+                                format(field.value, "dd/MM/yyyy", { locale: ptBR })
+                              ) : (
+                                <span>Selecione a data de nascimento</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            disabled={(date) =>
+                              date > new Date() || date < new Date("1900-01-01")
+                            }
+                            captionLayout="dropdown"
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormDescription>Sua data de nascimento.</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="space-y-6">
+                  <FormField
+                    control={form.control}
+                    name="telefonePessoal"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Telefone Pessoal *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="(11) 99999-9999" {...field} />
+                        </FormControl>
+                        <FormDescription>Seu telefone para contato.</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </PopoverContent>
-              </Popover>
-              <FormDescription>Sua data de nascimento.</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
 
-        <FormField
-          control={form.control}
-          name="telefonePessoal"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Telefone Pessoal *</FormLabel>
-              <FormControl>
-                <Input placeholder="(11) 99999-9999" {...field} />
-              </FormControl>
-              <FormDescription>Seu telefone para contato.</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                  <FormField
+                    control={form.control}
+                    name="contatoEmergencia"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Contato de Emergência *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="(11) 99999-9999" {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          Telefone de contato de emergência.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-        <FormField
-          control={form.control}
-          name="contatoEmergencia"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Contato de Emergência *</FormLabel>
-              <FormControl>
-                <Input placeholder="(11) 99999-9999" {...field} />
-              </FormControl>
-              <FormDescription>
-                Telefone de contato de emergência.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          {/* Seção: Endereço */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-semibold">
+                  2
+                </div>
+                Endereço
+              </CardTitle>
+              <CardDescription>
+                Informações de localização e residência
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div className="md:col-span-3">
+                  <FormField
+                    control={form.control}
+                    name="enderecoRua"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Endereço (Rua) *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Digite o nome da rua" {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          Nome da rua, avenida ou logradouro.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
 
-        <FormField
-          control={form.control}
-          name="enderecoRua"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Endereço (Rua) *</FormLabel>
-              <FormControl>
-                <Input placeholder="Digite o nome da rua" {...field} />
-              </FormControl>
-              <FormDescription>
-                Nome da rua, avenida ou logradouro.
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="enderecoNumero"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Número *</FormLabel>
-              <FormControl>
-                <Input placeholder="123" {...field} />
-              </FormControl>
-              <FormDescription>Número do endereço.</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="enderecoBairro"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Bairro *</FormLabel>
-              <FormControl>
-                <Input placeholder="Digite o bairro" {...field} />
-              </FormControl>
-              <FormDescription>Nome do bairro.</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="enderecoCidade"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Cidade *</FormLabel>
-              <FormControl>
-                <Input placeholder="Digite a cidade" {...field} />
-              </FormControl>
-              <FormDescription>Nome da cidade.</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="enderecoEstado"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Estado *</FormLabel>
-              <FormControl>
-                <Input placeholder="SP" maxLength={2} {...field} />
-              </FormControl>
-              <FormDescription>Sigla do estado (2 caracteres).</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="enderecoCEP"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>CEP *</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="12345678"
-                  maxLength={8}
-                  {...field}
-                  onChange={(e) => {
-                    // Remove tudo que não é número
-                    const value = e.target.value.replace(/\D/g, "");
-                    field.onChange(value);
-                  }}
+                <FormField
+                  control={form.control}
+                  name="enderecoNumero"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Número *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="123" {...field} />
+                      </FormControl>
+                      <FormDescription>Número do endereço.</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </FormControl>
-              <FormDescription>
-                CEP sem pontuação (apenas números).
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+              </div>
 
-        <FormField
-          control={form.control}
-          name="id_Genero"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Gênero *</FormLabel>
-              <Select
-                onValueChange={(value) =>
-                  field.onChange(value ? parseInt(value) : undefined)
-                }
-                value={field.value?.toString()}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione um gênero" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="1">Masculino</SelectItem>
-                  <SelectItem value="2">Feminino</SelectItem>
-                  <SelectItem value="3">Não-binário</SelectItem>
-                  <SelectItem value="4">Prefiro não informar</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormDescription>Seu gênero (obrigatório).</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <FormField
+                  control={form.control}
+                  name="enderecoBairro"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Bairro *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Digite o bairro" {...field} />
+                      </FormControl>
+                      <FormDescription>Nome do bairro.</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-        <FormField
-          control={form.control}
-          name="id_CorPele"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Cor de Pele *</FormLabel>
-              <Select
-                onValueChange={(value) =>
-                  field.onChange(value ? parseInt(value) : undefined)
-                }
-                value={field.value?.toString()}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione uma cor de pele" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="1">Branca</SelectItem>
-                  <SelectItem value="2">Preta</SelectItem>
-                  <SelectItem value="3">Parda</SelectItem>
-                  <SelectItem value="4">Amarela</SelectItem>
-                  <SelectItem value="5">Indígena</SelectItem>
-                  <SelectItem value="6">Prefiro não informar</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormDescription>Sua cor de pele (obrigatório).</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                <FormField
+                  control={form.control}
+                  name="enderecoCidade"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cidade *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Digite a cidade" {...field} />
+                      </FormControl>
+                      <FormDescription>Nome da cidade.</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-        <FormField
-          control={form.control}
-          name="id_Escolaridade"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Escolaridade *</FormLabel>
-              <Select
-                onValueChange={(value) =>
-                  field.onChange(value ? parseInt(value) : undefined)
-                }
-                value={field.value?.toString()}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione uma escolaridade" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="1">
-                    Ensino Fundamental Incompleto
-                  </SelectItem>
-                  <SelectItem value="2">Ensino Fundamental Completo</SelectItem>
-                  <SelectItem value="3">Ensino Médio Incompleto</SelectItem>
-                  <SelectItem value="4">Ensino Médio Completo</SelectItem>
-                  <SelectItem value="5">Ensino Superior Incompleto</SelectItem>
-                  <SelectItem value="6">Ensino Superior Completo</SelectItem>
-                  <SelectItem value="7">Pós-graduação</SelectItem>
-                  <SelectItem value="8">Mestrado</SelectItem>
-                  <SelectItem value="9">Doutorado</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormDescription>Sua escolaridade (obrigatório).</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                <div className="grid grid-cols-2 gap-4">
+                  <FormField
+                    control={form.control}
+                    name="enderecoEstado"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Estado *</FormLabel>
+                        <FormControl>
+                          <Input placeholder="SP" maxLength={2} {...field} />
+                        </FormControl>
+                        <FormDescription>Sigla do estado.</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? "Enviando..." : "Enviar Inscrição"}
-        </Button>
-      </form>
-    </Form>
-    {/* Alert com ID da lista de espera */}
+                  <FormField
+                    control={form.control}
+                    name="enderecoCEP"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>CEP *</FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="12345678"
+                            maxLength={8}
+                            {...field}
+                            onChange={(e) => {
+                              // Remove tudo que não é número
+                              const value = e.target.value.replace(/\D/g, "");
+                              field.onChange(value);
+                            }}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          CEP (apenas números).
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Seção: Informações Complementares */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-semibold">
+                  3
+                </div>
+                Informações Complementares
+              </CardTitle>
+              <CardDescription>
+                Dados sociodemográficos para melhor atendimento
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <FormField
+                  control={form.control}
+                  name="id_Genero"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Gênero *</FormLabel>
+                      <Select
+                        onValueChange={(value) =>
+                          field.onChange(value ? parseInt(value) : undefined)
+                        }
+                        value={field.value?.toString()}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione um gênero" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="1">Masculino</SelectItem>
+                          <SelectItem value="2">Feminino</SelectItem>
+                          <SelectItem value="3">Não-binário</SelectItem>
+                          <SelectItem value="4">Prefiro não informar</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>Seu gênero (obrigatório).</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="id_CorPele"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cor de Pele *</FormLabel>
+                      <Select
+                        onValueChange={(value) =>
+                          field.onChange(value ? parseInt(value) : undefined)
+                        }
+                        value={field.value?.toString()}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione uma cor de pele" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="1">Branca</SelectItem>
+                          <SelectItem value="2">Preta</SelectItem>
+                          <SelectItem value="3">Parda</SelectItem>
+                          <SelectItem value="4">Amarela</SelectItem>
+                          <SelectItem value="5">Indígena</SelectItem>
+                          <SelectItem value="6">Prefiro não informar</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>Sua cor de pele (obrigatório).</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="id_Escolaridade"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Escolaridade *</FormLabel>
+                      <Select
+                        onValueChange={(value) =>
+                          field.onChange(value ? parseInt(value) : undefined)
+                        }
+                        value={field.value?.toString()}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Selecione uma escolaridade" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="1">
+                            Ensino Fundamental Incompleto
+                          </SelectItem>
+                          <SelectItem value="2">Ensino Fundamental Completo</SelectItem>
+                          <SelectItem value="3">Ensino Médio Incompleto</SelectItem>
+                          <SelectItem value="4">Ensino Médio Completo</SelectItem>
+                          <SelectItem value="5">Ensino Superior Incompleto</SelectItem>
+                          <SelectItem value="6">Ensino Superior Completo</SelectItem>
+                          <SelectItem value="7">Pós-graduação</SelectItem>
+                          <SelectItem value="8">Mestrado</SelectItem>
+                          <SelectItem value="9">Doutorado</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>Sua escolaridade (obrigatório).</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Botão de Submit */}
+          <div className="flex justify-end">
+            <Button 
+              type="submit" 
+              disabled={isLoading}
+              size="lg"
+              className="w-full md:w-auto md:min-w-48"
+            >
+              {isLoading ? "Enviando..." : "Enviar Inscrição"}
+            </Button>
+          </div>
+        </form>
+      </Form>
+
+      {/* Alert com ID da lista de espera */}
       {waitlistId && (
-        <Alert>
+        <Alert className="border-green-200 bg-green-50 text-green-900">
           <InfoIcon className="h-4 w-4" />
           <AlertTitle>Inscrição realizada com sucesso!</AlertTitle>
           <AlertDescription>
-            <div className="space-y-2">
+            <div className="space-y-3">
               <p>
                 <strong>Seu ID da lista de espera é:</strong>{" "}
-                <code className="bg-muted px-2 py-1 rounded text-sm font-mono">
+                <code className="bg-green-100 border border-green-200 px-3 py-1 rounded text-sm font-mono font-semibold">
                   {waitlistId}
                 </code>
               </p>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm">
                 <strong>IMPORTANTE:</strong> Guarde este número! Você pode utilizá-lo no futuro para verificar 
                 sua posição na lista de espera e acompanhar o status da sua inscrição.
               </p>
