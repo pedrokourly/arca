@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+import * as bcrypt from 'bcrypt'
 
 const prisma = new PrismaClient()
 
@@ -96,6 +97,32 @@ async function main() {
     console.log('✅ Status de atendimento inseridos com sucesso!')
   } else {
     console.log('ℹ️  Status de atendimento já existem no banco de dados.')
+  }
+
+  // Inserir usuário administrador padrão apenas se não existir
+  const existingAdmin = await prisma.usuario.findFirst({
+    where: {
+      email: 'admin@arca.com'
+    }
+  })
+  
+  if (!existingAdmin) {
+    const salt = await bcrypt.genSalt()
+    const hashedPassword = await bcrypt.hash('Admin123!', salt)
+    
+    await prisma.usuario.create({
+      data: {
+        nome: 'Administrador do Sistema',
+        email: 'admin@arca.com',
+        senhaHash: hashedPassword,
+        roleId: 1 // ADMIN role
+      }
+    })
+    console.log('✅ Usuário administrador criado com sucesso!')
+    console.log('📧 Email: admin@arca.com')
+    console.log('🔑 Senha: Admin123!')
+  } else {
+    console.log('ℹ️  Usuário administrador já existe no banco de dados.')
   }
 
   console.log('🎉 Processo de seed finalizado!')
