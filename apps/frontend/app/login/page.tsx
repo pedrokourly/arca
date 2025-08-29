@@ -1,28 +1,30 @@
-"use client"
+"use client";
 
-import { GalleryVerticalEnd } from "lucide-react"
-import { LoginForm } from "@/components/login-form"
-import { useSession } from "next-auth/react"
-import { useRouter } from "next/navigation"
-import { useEffect } from "react"
+import { GalleryVerticalEnd, CornerDownLeft } from "lucide-react";
+import { LoginForm } from "@/components/login-form";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export default function LoginPage() {
-  const { data: session, status } = useSession()
-  const router = useRouter()
+  const { data: session, status } = useSession();
+  const router = useRouter();
 
   useEffect(() => {
     if (status === "authenticated") {
-      router.push("/")
-      router.refresh()
+      router.push("/dashboard");
+      router.refresh();
     }
-  }, [status, router])
+  }, [status, router]);
 
   if (status === "loading") {
     return (
       <div className="flex min-h-svh items-center justify-center">
         <div className="text-lg">Carregando...</div>
       </div>
-    )
+    );
   }
 
   if (status === "authenticated") {
@@ -30,7 +32,7 @@ export default function LoginPage() {
       <div className="flex min-h-svh items-center justify-center">
         <div className="text-lg">Redirecionando...</div>
       </div>
-    )
+    );
   }
 
   return (
@@ -43,6 +45,12 @@ export default function LoginPage() {
             </div>
             Arca
           </a>
+          <Button asChild variant="outline">
+            <Link href="/">
+              <CornerDownLeft className="size-4" />
+              Voltar ao Início
+            </Link>
+          </Button>
         </div>
         <div className="flex flex-1 items-center justify-center">
           <div className="w-full max-w-xs">
@@ -58,5 +66,5 @@ export default function LoginPage() {
         />
       </div>
     </div>
-  )
+  );
 }

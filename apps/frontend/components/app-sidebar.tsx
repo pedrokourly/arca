@@ -59,6 +59,7 @@ const data = {
       title: "Usuários",
       url: "#",
       icon: ShieldUser,
+      isActive: true,
       items: [
         {
           title: "Lista",
