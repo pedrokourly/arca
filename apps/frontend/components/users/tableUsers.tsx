@@ -1,6 +1,6 @@
 "use client";
 
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import {
   Table,
@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface User {
   id_User: string;
@@ -38,11 +39,10 @@ interface User {
 }
 
 export function UsersTable() {
-  // Use também o 'status' para um controle de UI mais robusto
   const { data: session, status } = useSession();
 
   const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true); // Pode ser renomeado para isFetchingUsers
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Estados para deleção de usuário
@@ -206,19 +206,63 @@ export function UsersTable() {
     // O useEffect agora será re-executado quando o status da sessão mudar.
   }, [session, status]);
 
-  // UI melhorada para lidar com o carregamento da sessão
+  // Skeleton para carregamento da sessão
   if (status === "loading") {
-    return <div className="p-4">Carregando sessão...</div>;
+    return (
+      <div className="w-full">
+        <div className="space-y-4">
+          <Skeleton className="h-8 w-48" />
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-3/4" />
+          </div>
+        </div>
+      </div>
+    );
   }
 
+  // Skeleton para carregamento dos usuários
   if (loading) {
-    return <div className="p-4">Buscando usuários...</div>;
-  }
-
-  if (error) {
-    return <div className="p-4 text-red-500">Erro: {error}<Button onClick={() => signOut({ callbackUrl: '/login' })} variant="outline">
-        Sair
-      </Button></div>;
+    return (
+      <div className="w-full">
+        <Table>
+          <TableCaption>
+            <Skeleton className="h-4 w-64 mx-auto" />
+          </TableCaption>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Nome</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Tipo de usuário</TableHead>
+              <TableHead className="text-center">Ações</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {Array.from({ length: 5 }).map((_, index) => (
+              <TableRow key={index}>
+                <TableCell>
+                  <Skeleton className="h-4 w-32" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-48" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-24" />
+                </TableCell>
+                <TableCell className="text-center">
+                  <div className="flex justify-center gap-2">
+                    <Skeleton className="h-8 w-8 rounded" />
+                    <Skeleton className="h-8 w-8 rounded" />
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+        <Skeleton className="h-10 w-20 mt-4" />
+      </div>
+    );
   }
 
   // Filtrar usuários para não mostrar o usuário atualmente logado
@@ -266,9 +310,6 @@ export function UsersTable() {
           ))}
         </TableBody>
       </Table>
-      <Button onClick={() => signOut({ callbackUrl: '/login' })} variant="outline">
-        Sair
-      </Button>
 
       {/* Dialog de confirmação de exclusão */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
