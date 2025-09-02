@@ -28,6 +28,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { usePermissions } from "@/hooks/usePermissions";
 import { ConditionalRender } from "@/components/auth/ConditionalRender";
+import { apiService } from "@/utils/apiHandler";
 
 interface User {
   id_User: string;
@@ -88,20 +89,7 @@ export function UsersTable() {
         email: editFormData.email,
       };
 
-      const response = await fetch(`http://localhost:3333/users/${userToEdit.id_User}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session?.token}`,
-        },
-        body: JSON.stringify(updateData),
-      });
-
-      if (!response.ok) {
-        throw new Error("Falha ao atualizar usuário");
-      }
-
-      const updatedUser = await response.json();
+      const updatedUser = await apiService.updateUser(userToEdit.id_User, updateData, session?.token || '');
       
       // Atualiza a lista local
       setUsers(users.map(user => 
@@ -141,16 +129,7 @@ export function UsersTable() {
     if (!userToDelete) return;
     console.log("Excluir usuário:", userToDelete);
     try {
-      const response = await fetch(`http://localhost:3333/users/${userToDelete.id_User}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${session?.token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Falha ao excluir usuário");
-      }
+      await apiService.deleteUser(userToDelete.id_User, session?.token || '');
 
       setUsers(users.filter(user => user.id_User !== userToDelete.id_User));
       toast.success("Usuário excluído com sucesso!");
@@ -243,16 +222,7 @@ export function UsersTable() {
 
       try {
         setLoading(true);
-        const response = await fetch("http://localhost:3333/users", {
-          headers: {
-            Authorization: `Bearer ${session.token}`,
-          },
-        });
-        if (!response.ok) {
-          throw new Error("Falha ao buscar usuários");
-        }
-
-        const data = await response.json();
+        const data = await apiService.getUsers(session.token);
         setUsers(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Erro desconhecido");

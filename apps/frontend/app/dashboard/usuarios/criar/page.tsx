@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { UserPlus, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { usePermissions } from "@/hooks/usePermissions";
+import { apiService } from "@/utils/apiHandler";
 
 interface CreateUserData {
   nome: string;
@@ -139,22 +140,8 @@ export default function CriarUsuarioPage() {
     setIsLoading(true);
     
     try {
-      const response = await fetch("http://localhost:3333/users", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${session.token}`,
-        },
-        body: JSON.stringify(formData),
-      });
+      const newUser = await apiService.createUser(formData, session.token);
       console.log(JSON.stringify(formData));
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Erro ao criar usuário");
-      }
-
-      const newUser = await response.json();
       
       toast.success("Usuário criado com sucesso!");
       router.push("/dashboard/usuarios");

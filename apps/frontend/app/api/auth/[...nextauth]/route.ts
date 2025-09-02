@@ -1,6 +1,7 @@
 // app/api/auth/[...nextauth]/route.ts
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { apiService } from "@/utils/apiHandler";
 
 const handler = NextAuth({
   // 1. Definição dos Provedores de Autenticação
@@ -17,18 +18,13 @@ const handler = NextAuth({
         // 'credentials' contém o email e a senha enviados do formulário de login.
 
         // Chame a API do seu backend para autenticar
-        const res = await fetch("http://localhost:3333/auth/login", {
-          method: "POST",
-          body: JSON.stringify({
-            email: credentials?.email,
-            password: credentials?.password,
-          }),
-          headers: { "Content-Type": "application/json" },
+        const user = await apiService.login({
+          email: credentials?.email || '',
+          password: credentials?.password || '',
         });
-        const user = await res.json();
         
         // Se a resposta da sua API for bem-sucedida e tiver os dados do usuário e o token...
-        if (res.ok && user) {
+        if (user) {
           // O objeto retornado aqui será salvo no token da sessão do NextAuth.
           // É CRUCIAL que você inclua o token do seu backend e as roles/permissões aqui.
           return {
