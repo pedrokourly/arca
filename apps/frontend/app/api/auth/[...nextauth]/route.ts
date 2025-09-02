@@ -1,7 +1,6 @@
 // app/api/auth/[...nextauth]/route.ts
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { toast } from "sonner";
 
 const handler = NextAuth({
   // 1. Definição dos Provedores de Autenticação
