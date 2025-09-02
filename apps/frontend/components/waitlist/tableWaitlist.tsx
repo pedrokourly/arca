@@ -169,21 +169,25 @@ export function WaitlistTable() {
     }
   };
 
-  // Função para editar entrada
-  const handleEdit = (entryId: string) => {
+  // Função genérica para manipular entrada por ID
+  const handleEntryAction = (entryId: string, action: (entry: WaitlistEntry) => void) => {
     const entry = filteredEntries.find(e => e.id_Lista === entryId);
     if (entry) {
-      handleEditClick(entry);
+      action(entry);
     }
+  };
+
+  // Função para editar entrada
+  const handleEdit = (entryId: string) => {
+    handleEntryAction(entryId, handleEditClick);
   };
 
   // Função para visualizar entrada
   const handleView = (entryId: string) => {
-    const entry = filteredEntries.find(e => e.id_Lista === entryId);
-    if (entry) {
+    handleEntryAction(entryId, (entry) => {
       setEntryToView(entry);
       setViewDialogOpen(true);
-    }
+    });
   };
 
   // Função para abrir dialog de exclusão
