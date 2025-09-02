@@ -1,0 +1,10 @@
+{
+  "jest.jestCommandLine": "npm test --",
+  "jest.rootPath": "apps/backend",
+  "jest.runMode": "on-demand",
+  "typescript.preferences.includePackageJsonAutoImports": "auto",
+  "jest.useDashboardWhenAvailable": false,
+  "jest.nodeEnv": {
+    "NODE_ENV": "test"
+  }
+}
