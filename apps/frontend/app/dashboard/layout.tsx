@@ -58,7 +58,7 @@ export default function DashboardLayout({
     
     breadcrumbs.push({
       label: "Plataforma",
-      href: "/Plataforma",
+      href: "/dashboard",
       isLast: segments.length === 1
     })
     
