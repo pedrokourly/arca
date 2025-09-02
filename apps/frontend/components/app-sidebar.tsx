@@ -12,6 +12,7 @@ import {
   ClipboardList,
   ShieldUser,
 } from "lucide-react";
+import { usePermissions } from "@/hooks/usePermissions";
 
 import { NavMain } from "@/components/nav-main";
 import { NavUser } from "@/components/nav-user";
@@ -25,6 +26,37 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { canAccessUsers, canCreateUsers, canManagePermissions } = usePermissions();
+
+  // Filtrar itens do menu de usuários baseado nas permissões
+  const getUsersMenuItems = () => {
+    const items = [];
+    
+    if (canAccessUsers()) {
+      items.push({
+        title: "Lista",
+        url: "/dashboard/usuarios",
+      });
+    }
+    
+    if (canCreateUsers()) {
+      items.push({
+        title: "Criar",
+        url: "/dashboard/usuarios/criar",
+      });
+    }
+    
+    if (canManagePermissions()) {
+      items.push({
+        title: "Permissões",
+        url: "/dashboard/usuarios/permissoes",
+      });
+    }
+    
+    return items;
+  };
 
 // This is sample data.
 const data = {
@@ -55,30 +87,16 @@ const data = {
         }
       ],
     },
-    {
+    // Só mostra menu de usuários se tiver permissão
+    ...(canAccessUsers() ? [{
       title: "Usuários",
       url: "#",
       icon: ShieldUser,
       isActive: true,
-      items: [
-        {
-          title: "Lista",
-          url: "/dashboard/usuarios",
-        },
-        {
-          title: "Criar",
-          url: "/dashboard/usuarios/criar",
-        },
-        {
-          title: "Permissões",
-          url: "/dashboard/usuarios/permissoes",
-        }
-      ],
-    }
+      items: getUsersMenuItems(),
+    }] : []),
   ],
 };
-
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>

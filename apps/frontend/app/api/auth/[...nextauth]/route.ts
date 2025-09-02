@@ -1,6 +1,7 @@
 // app/api/auth/[...nextauth]/route.ts
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { toast } from "sonner";
 
 const handler = NextAuth({
   // 1. Definição dos Provedores de Autenticação
@@ -26,7 +27,7 @@ const handler = NextAuth({
           headers: { "Content-Type": "application/json" },
         });
         const user = await res.json();
-        console.log(user);
+        
         // Se a resposta da sua API for bem-sucedida e tiver os dados do usuário e o token...
         if (res.ok && user) {
           // O objeto retornado aqui será salvo no token da sessão do NextAuth.
@@ -35,7 +36,7 @@ const handler = NextAuth({
             id: user.id, // UUID do usuário retornado pelo backend
             name: user.name, // Nome do usuário retornado pelo backend
             email: user.email, // Email do usuário retornado pelo backend
-            roleId: user.roleId || 3, // ID numérico da role (padrão: 3 para ESTAGIARIO se não especificado)
+            roleId: user.roleId, // Role do usuário retornado pelo backend
             token: user.token,
           };
         }

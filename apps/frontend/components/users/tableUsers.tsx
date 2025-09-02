@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "../ui/button";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, Search, Filter, X } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -25,6 +25,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { usePermissions } from "@/hooks/usePermissions";
+import { ConditionalRender } from "@/components/auth/ConditionalRender";
 
 interface User {
   id_User: string;
@@ -40,10 +43,16 @@ interface User {
 
 export function UsersTable() {
   const { data: session, status } = useSession();
+  const { canCreateUsers, canManagePermissions, hasPermission } = usePermissions();
 
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Estados para filtros e pesquisa
+  const [searchTerm, setSearchTerm] = useState("");
+  const [roleFilter, setRoleFilter] = useState<"all" | "1" | "2" | "3" | "4">("all");
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
 
   // Estados para deleção de usuário
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -116,7 +125,7 @@ export function UsersTable() {
 
   // Função para editar usuário
   const handleEdit = (userId: string) => {
-    const user = users.find(u => u.id_User === userId);
+    const user = filteredUsers.find(u => u.id_User === userId);
     if (user) {
       handleEditClick(user);
     }
@@ -168,6 +177,63 @@ export function UsersTable() {
     return roleMap[numericRoleId as keyof typeof roleMap] || `Role ${roleId}`;
   };
 
+  // Função para determinar quais usuários o usuário atual pode ver
+  const getAccessibleUsers = () => {
+    const currentUserRole = session?.user?.roleId || 4; // Default para Estagiário se não definido
+    
+    // Remove o usuário logado da lista
+    let accessibleUsers = users.filter(user => user.id_User !== session?.user?.id);
+
+    // Aplica filtro baseado no nível de acesso
+    switch (currentUserRole) {
+      case 1: // Coordenador/Admin - pode ver todos
+        break;
+      case 2: // Secretário - pode ver Supervisores e Estagiários
+        accessibleUsers = accessibleUsers.filter(user => user.roleId > 2);
+        break;
+      case 3: // Supervisor - pode ver apenas Estagiários  
+        accessibleUsers = accessibleUsers.filter(user => user.roleId > 3);
+        break;
+      case 4: // Estagiário - pode ver apenas outros Estagiários
+        accessibleUsers = accessibleUsers.filter(user => user.roleId === 4);
+        break;
+      default:
+        // Se role não reconhecido, só pode ver estagiários
+        accessibleUsers = accessibleUsers.filter(user => user.roleId === 4);
+    }
+    
+    return accessibleUsers;
+  };
+
+  // Função para filtrar usuários
+  const filterUsers = () => {
+    // Pega apenas os usuários que o usuário atual pode ver
+    let filtered = getAccessibleUsers();
+
+    // Filtro por role
+    if (roleFilter !== "all") {
+      filtered = filtered.filter(user => user.roleId === parseInt(roleFilter));
+    }
+
+    // Filtro por pesquisa
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(user =>
+        user.nome.toLowerCase().includes(term) ||
+        user.email.toLowerCase().includes(term) ||
+        (user.role?.role && user.role.role.toLowerCase().includes(term))
+      );
+    }
+
+    setFilteredUsers(filtered);
+  };
+
+  // Função para limpar filtros
+  const clearFilters = () => {
+    setSearchTerm("");
+    setRoleFilter("all");
+  };
+
   useEffect(() => {
     const fetchUsers = async () => {
       if (!session || !session.token) {
@@ -205,6 +271,11 @@ export function UsersTable() {
     // 1. Adicione 'session' e 'status' ao array de dependências.
     // O useEffect agora será re-executado quando o status da sessão mudar.
   }, [session, status]);
+
+  // useEffect para aplicar filtros quando dados ou filtros mudam
+  useEffect(() => {
+    filterUsers();
+  }, [users, searchTerm, roleFilter, session?.user?.id]);
 
   // Skeleton para carregamento da sessão
   if (status === "loading") {
@@ -265,13 +336,95 @@ export function UsersTable() {
     );
   }
 
-  // Filtrar usuários para não mostrar o usuário atualmente logado
-  const filteredUsers = users.filter(user => user.id_User !== session?.user?.id);
-
   return (
-    <div className="w-full">
+    <div className="w-full space-y-4">
+      {/* Barra de ações */}
+      <div className="flex flex-col sm:flex-row gap-4 p-4 bg-muted/50 rounded-lg">
+        <div className="flex-1">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Input
+              placeholder="Pesquisar por nome, email ou tipo de usuário..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+        </div>
+        
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Select value={roleFilter} onValueChange={(value: "all" | "1" | "2" | "3" | "4") => setRoleFilter(value)}>
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <Filter className="h-4 w-4 mr-2" />
+              <SelectValue placeholder="Filtrar por tipo" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os tipos</SelectItem>
+              {session?.user?.roleId === 1 && (
+                <SelectItem value="1">Coordenador/Admin</SelectItem>
+              )}
+              {(session?.user?.roleId === 1 || session?.user?.roleId === 2) && (
+                <SelectItem value="2">Secretário</SelectItem>
+              )}
+              {(session?.user?.roleId === 1 || session?.user?.roleId === 2 || session?.user?.roleId === 3) && (
+                <SelectItem value="3">Supervisor</SelectItem>
+              )}
+              <SelectItem value="4">Estagiário</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          {(searchTerm || roleFilter !== "all") && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={clearFilters}
+              className="shrink-0"
+            >
+              <X className="h-4 w-4 mr-2" />
+              Limpar
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Estatísticas */}
+      <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+        <span>
+          Total: <span className="font-medium text-foreground">{getAccessibleUsers().length}</span>
+        </span>
+        {session?.user?.roleId === 1 && (
+          <span>
+            Coordenadores: <span className="font-medium text-blue-600">{getAccessibleUsers().filter(u => u.roleId === 1).length}</span>
+          </span>
+        )}
+        {(session?.user?.roleId === 1 || session?.user?.roleId === 2) && (
+          <span>
+            Secretários: <span className="font-medium text-green-600">{getAccessibleUsers().filter(u => u.roleId === 2).length}</span>
+          </span>
+        )}
+        {(session?.user?.roleId === 1 || session?.user?.roleId === 2 || session?.user?.roleId === 3) && (
+          <span>
+            Supervisores: <span className="font-medium text-yellow-600">{getAccessibleUsers().filter(u => u.roleId === 3).length}</span>
+          </span>
+        )}
+        <span>
+          Estagiários: <span className="font-medium text-purple-600">{getAccessibleUsers().filter(u => u.roleId === 4).length}</span>
+        </span>
+        {filteredUsers.length !== getAccessibleUsers().length && (
+          <span>
+            Exibindo: <span className="font-medium text-orange-600">{filteredUsers.length}</span>
+          </span>
+        )}
+      </div>
+
       <Table>
-        <TableCaption>Lista de usuários do sistema (exceto você)</TableCaption>
+        <TableCaption>
+          Lista de usuários do sistema 
+          {filteredUsers.length !== getAccessibleUsers().length 
+            ? `(${filteredUsers.length} de ${getAccessibleUsers().length} usuários)`
+            : `(${getAccessibleUsers().length} usuários acessíveis)`
+          }
+        </TableCaption>
         <TableHeader>
           <TableRow>
             <TableHead>Nome</TableHead>
@@ -281,33 +434,47 @@ export function UsersTable() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {filteredUsers.map((user) => (
+          {filteredUsers.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                {getAccessibleUsers().length === 0 
+                  ? "Nenhum usuário acessível encontrado no sistema."
+                  : "Nenhum usuário encontrado com os filtros aplicados."
+                }
+              </TableCell>
+            </TableRow>
+          ) : (
+            filteredUsers.map((user) => (
             <TableRow key={user.id_User}>
               <TableCell className="font-medium">{user.nome}</TableCell>
               <TableCell>{user.email}</TableCell>
               <TableCell className="justify">{user.role?.role || getRoleName(user.roleId)}</TableCell>
               <TableCell className="text-center">
                 <div className="flex justify-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEdit(user.id_User)}
-                    className="h-8 w-8 p-0"
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDeleteClick(user)}
-                    className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <ConditionalRender requiredMaxRole={2}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEdit(user.id_User)}
+                      className="h-8 w-8 p-0"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  </ConditionalRender>
+                  <ConditionalRender requiredMaxRole={1}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeleteClick(user)}
+                      className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </ConditionalRender>
                 </div>
               </TableCell>
             </TableRow>
-          ))}
+          )))}
         </TableBody>
       </Table>
 

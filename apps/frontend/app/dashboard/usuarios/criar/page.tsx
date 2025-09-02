@@ -1,4 +1,43 @@
+"use client";
+
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+
 export default function CriarUsuarioPage() {
+  const router = useRouter();
+  const { data: session, status } = useSession();
+
+  // Proteção client-side
+  useEffect(() => {
+    if (status === "loading") return;
+    
+    if (!session) {
+      router.push("/login");
+      return;
+    }
+
+    // Verifica se tem permissão (roleId 1 ou 2)
+    const userRoleId = session.user?.roleId;
+    if (!userRoleId || userRoleId > 2) {
+      router.push("/dashboard/unauthorized");
+      return;
+    }
+  }, [session, status, router]);
+
+  // Loading state
+  if (status === "loading") {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  // Se não tem permissão, não renderiza
+  if (!session?.user?.roleId || session.user.roleId > 2) {
+    return null;
+  }
   return (
     <div className="py-6">
       <div className="container mx-auto px-4 max-w-6xl">

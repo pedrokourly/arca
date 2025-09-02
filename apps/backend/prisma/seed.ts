@@ -16,6 +16,10 @@ async function main() {
           descricao: 'Administrador do sistema'
         },
         {
+          role: 'SECRETARIO',
+          descricao: 'Secretário administrativo'
+        },
+        {
           role: 'SUPERVISOR',
           descricao: 'Supervisor de estagiários'
         },
@@ -99,30 +103,63 @@ async function main() {
     console.log('ℹ️  Status de atendimento já existem no banco de dados.')
   }
 
-  // Inserir usuário administrador padrão apenas se não existir
-  const existingAdmin = await prisma.usuario.findFirst({
-    where: {
-      email: 'admin@arca.com'
+  // Inserir usuários padrão para cada tipo de acesso apenas se não existirem
+  const usuarios = [
+    {
+      nome: 'Administrador do Sistema',
+      email: 'admin@arca.com',
+      senha: 'Admin123!',
+      roleId: 1, // ADMIN
+      description: 'Usuário administrador'
+    },
+    {
+      nome: 'Secretário Padrão',
+      email: 'secretario@arca.com',
+      senha: 'Secretario123!',
+      roleId: 2, // SECRETARIO
+      description: 'Usuário secretário'
+    },
+    {
+      nome: 'Supervisor Padrão',
+      email: 'supervisor@arca.com',
+      senha: 'Supervisor123!',
+      roleId: 3, // SUPERVISOR
+      description: 'Usuário supervisor'
+    },
+    {
+      nome: 'Estagiário Padrão',
+      email: 'estagiario@arca.com',
+      senha: 'Estagiario123!',
+      roleId: 4, // ESTAGIARIO
+      description: 'Usuário estagiário'
     }
-  })
-  
-  if (!existingAdmin) {
-    const salt = await bcrypt.genSalt()
-    const hashedPassword = await bcrypt.hash('Admin123!', salt)
-    
-    await prisma.usuario.create({
-      data: {
-        nome: 'Administrador do Sistema',
-        email: 'admin@arca.com',
-        senhaHash: hashedPassword,
-        roleId: 1 // ADMIN role
+  ]
+
+  for (const usuario of usuarios) {
+    const existingUser = await prisma.usuario.findFirst({
+      where: {
+        email: usuario.email
       }
     })
-    console.log('✅ Usuário administrador criado com sucesso!')
-    console.log('📧 Email: admin@arca.com')
-    console.log('🔑 Senha: Admin123!')
-  } else {
-    console.log('ℹ️  Usuário administrador já existe no banco de dados.')
+    
+    if (!existingUser) {
+      const salt = await bcrypt.genSalt()
+      const hashedPassword = await bcrypt.hash(usuario.senha, salt)
+      
+      await prisma.usuario.create({
+        data: {
+          nome: usuario.nome,
+          email: usuario.email,
+          senhaHash: hashedPassword,
+          roleId: usuario.roleId
+        }
+      })
+      console.log(`✅ ${usuario.description} criado com sucesso!`)
+      console.log(`📧 Email: ${usuario.email}`)
+      console.log(`🔑 Senha: ${usuario.senha}`)
+    } else {
+      console.log(`ℹ️  ${usuario.description} já existe no banco de dados.`)
+    }
   }
 
   console.log('🎉 Processo de seed finalizado!')

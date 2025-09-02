@@ -1,6 +1,9 @@
 "use client"
 
 import { usePathname } from "next/navigation"
+import { useSession } from "next-auth/react"
+import { useRouter } from "next/navigation"
+import { useEffect } from "react"
 import { AppSidebar } from "@/components/app-sidebar"
 import {
   Breadcrumb,
@@ -23,6 +26,30 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
+  const { data: session, status } = useSession()
+  const router = useRouter()
+
+  // Verifica se o usuário está autenticado
+  useEffect(() => {
+    if (status === "loading") return // Aguarda carregar
+    if (!session) {
+      router.push("/login") // Redireciona para login se não autenticado
+    }
+  }, [session, status, router])
+
+  // Mostra loading enquanto verifica a sessão
+  if (status === "loading") {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
+
+  // Se não está autenticado, não renderiza o dashboard
+  if (!session) {
+    return null
+  }
   
   // Função para gerar breadcrumbs baseado na URL
   const generateBreadcrumbs = () => {
