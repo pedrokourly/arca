@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { LogIn } from "lucide-react"
 import { signIn } from "next-auth/react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
@@ -50,6 +51,9 @@ export function LoginForm({
       {...props}
     >
       <div className="flex flex-col items-center gap-2 text-center">
+        <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-2">
+          <LogIn className="w-6 h-6 text-primary" />
+        </div>
         <h1 className="text-2xl font-bold">Faça login na sua conta</h1>
         <p className="text-muted-foreground text-sm text-balance">
           Digite o email e a senha da sua conta para acessar o sistema.

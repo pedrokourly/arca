@@ -16,9 +16,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <body
-        className={``}
-      >
+      <body suppressHydrationWarning={true}>
         <AuthProvider>
           {children}
           <Toaster richColors />

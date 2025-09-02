@@ -18,11 +18,12 @@ datasource db {
 // ===============================================
 
 model Usuario {
-  id_User   String @id @default(uuid()) @map("ID_User") @db.Uuid
-  nome      String @db.VarChar(50)
-  email     String @unique @db.VarChar(100)
-  senhaHash String @map("SenhaHash") @db.VarChar(255)
-  roleId    Int    @map("ID_Role") @db.SmallInt
+  id_User   String  @id @default(uuid()) @map("ID_User") @db.Uuid
+  nome      String  @db.VarChar(50)
+  email     String  @unique @db.VarChar(100)
+  senhaHash String  @map("SenhaHash") @db.VarChar(255)
+  roleId    Int     @map("ID_Role") @db.SmallInt
+  isActive  Boolean @default(true)
 
   role                      Role               @relation(fields: [roleId], references: [id_Role])
   documentosUsuario         DocumentoUsuario[] @relation("UsuarioDocumentos")
@@ -33,7 +34,7 @@ model Usuario {
   relatorioComoSupervisor   RelatorioAlta[]    @relation("SupervisorRelatorios")
   pacientesComoEstagiario   Paciente[]         @relation("EstagiarioResponsavel")
   pacientesComoSupervisor   Paciente[]         @relation("SupervisorResponsavel")
-  
+
   @@map("USUARIOS")
 }
 
