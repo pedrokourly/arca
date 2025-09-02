@@ -30,7 +30,7 @@ export default function UsuariosPage() {
               className="flex items-center gap-2"
             >
               <Plus className="h-4 w-4" />
-              Adicionar Alguem na Lista
+              Adicionar Pessoa na Lista
             </Button>
           </div>
         </div>
