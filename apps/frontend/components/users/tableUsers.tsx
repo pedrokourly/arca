@@ -43,7 +43,6 @@ interface User {
 
 export function UsersTable() {
   const { data: session, status } = useSession();
-  const { canCreateUsers, canManagePermissions, hasPermission } = usePermissions();
 
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);

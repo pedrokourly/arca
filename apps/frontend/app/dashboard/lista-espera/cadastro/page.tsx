@@ -4,7 +4,7 @@ import { UserPlus, Clock, Shield } from "lucide-react";
 
 export default function CreatePacientForm() {
   return (
-    <div className="container mx-auto px-4 py-6 max-w-5xl">
+    <div className="container mx-auto px-4 py-6 max-w-6xl">
       {/* Header da página */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-4">
@@ -12,6 +12,7 @@ export default function CreatePacientForm() {
             <UserPlus className="w-6 h-6 text-primary" />
           </div>
           <div>
+            
             <h1 className="text-3xl font-bold text-foreground">
               Cadastro na Lista de Espera
             </h1>

@@ -55,13 +55,11 @@ const formSchema = z.object({
     }),
   nomeSocial: z
     .string()
-    .min(1, {
-      message: "Nome social deve ter entre 1 e 100 caracteres.",
-    })
     .max(100, {
-      message: "Nome social deve ter entre 1 e 100 caracteres.",
+      message: "Nome social deve ter no máximo 100 caracteres.",
     })
-    .optional(),
+    .optional()
+    .or(z.literal("")),
   dataNascimento: z.date({
     message: "Data de nascimento é obrigatória.",
   }),
@@ -172,7 +170,7 @@ export function WaitlistForm() {
       // Formatar dados para envio
       const payload = {
         nomeRegistro: values.nomeRegistro,
-        nomeSocial: values.nomeSocial || undefined,
+        nomeSocial: values.nomeSocial && values.nomeSocial.trim() !== "" ? values.nomeSocial : undefined,
         dataNascimento: values.dataNascimento.toISOString().split("T")[0], // Formato YYYY-MM-DD
         telefonePessoal: values.telefonePessoal,
         contatoEmergencia: values.contatoEmergencia,

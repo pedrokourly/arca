@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/sidebar";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { canAccessUsers, canCreateUsers, canManagePermissions } = usePermissions();
+  const { canAccessUsers, canCreateUsers } = usePermissions();
 
   // Filtrar itens do menu de usuários baseado nas permissões
   const getUsersMenuItems = () => {
@@ -45,13 +45,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       items.push({
         title: "Criar",
         url: "/dashboard/usuarios/criar",
-      });
-    }
-    
-    if (canManagePermissions()) {
-      items.push({
-        title: "Permissões",
-        url: "/dashboard/usuarios/permissoes",
       });
     }
     
@@ -79,7 +72,7 @@ const data = {
       items: [
         {
           title: "Consulta",
-          url: "/dashboard/lista-espera/consulta",
+          url: "/dashboard/lista-espera",
         },
         {
           title: "Cadastro",

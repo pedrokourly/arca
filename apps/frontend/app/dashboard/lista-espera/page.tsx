@@ -1,5 +1,5 @@
 "use client";
-import { WaitlistTable } from "@/components/Waitlist/tableWaitlist";
+import { WaitlistTable } from "@/components/waitlist/tableWaitlist";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
