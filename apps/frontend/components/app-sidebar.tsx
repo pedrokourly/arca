@@ -44,7 +44,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     if (canCreateUsers()) {
       items.push({
         title: "Criar",
-        url: "/dashboard/usuarios/criar",
+        url: "/dashboard/usuarios/cadastro",
       });
     }
     

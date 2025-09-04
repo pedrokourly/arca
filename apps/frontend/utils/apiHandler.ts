@@ -22,8 +22,27 @@ export async function apiRequest(endpoint: string, options: RequestInit = {}) {
   });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.message || `Erro ${response.status}`);
+    let errorData;
+    try {
+      errorData = await response.json();
+    } catch {
+      errorData = { message: `HTTP ${response.status} - ${response.statusText}` };
+    }
+    
+    const error = new Error(errorData.message || `Erro ${response.status}`) as Error & { 
+      status: number; 
+      userId?: string;
+      userName?: string;
+    };
+    error.status = response.status;
+    
+    // Para conflitos (409), inclui dados extras se disponíveis
+    if (response.status === 409 && errorData.userId) {
+      error.userId = errorData.userId;
+      error.userName = errorData.userName;
+    }
+    
+    throw error;
   }
 
   return response.json();
@@ -32,29 +51,51 @@ export async function apiRequest(endpoint: string, options: RequestInit = {}) {
 // Helper functions for common API operations
 export const apiService = {
   // User operations
-  createUser: (userData: any, token: string) =>
+  createUser: (userData: any, token: string) => 
     apiRequest(API_ENDPOINTS.users, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { 
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify(userData),
     }),
 
   getUsers: (token: string) =>
     apiRequest(API_ENDPOINTS.users, {
-      headers: { Authorization: `Bearer ${token}` },
+      method: 'GET',
+      headers: { 
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
     }),
 
   updateUser: (userId: string, userData: any, token: string) =>
     apiRequest(`${API_ENDPOINTS.users}/${userId}`, {
       method: 'PUT',
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { 
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify(userData),
     }),
 
   deleteUser: (userId: string, token: string) =>
     apiRequest(`${API_ENDPOINTS.users}/${userId}`, {
       method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}` },
+      headers: { 
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+    }),
+
+  reactivateUser: (userId: string, token: string) =>
+    apiRequest(`${API_ENDPOINTS.users}/${userId}/reactivate`, {
+      method: 'PATCH',
+      headers: { 
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
     }),
 
   // Auth operations
