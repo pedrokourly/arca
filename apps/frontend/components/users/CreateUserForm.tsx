@@ -80,8 +80,8 @@ export default function CreateUserForm() {
     const userRoleId = session?.user?.roleId;
     const roles = [
       { value: 1, label: "Coordenador/Admin", disabled: userRoleId !== 1 },
-      { value: 2, label: "Secretário", disabled: userRoleId! > 2 },
-      { value: 3, label: "Supervisor", disabled: userRoleId! > 2 },
+      { value: 2, label: "Secretário", disabled: userRoleId === undefined || userRoleId > 2 },
+      { value: 3, label: "Supervisor", disabled: userRoleId === undefined || userRoleId > 2 },
       { value: 4, label: "Estagiário", disabled: false }
     ];
     
