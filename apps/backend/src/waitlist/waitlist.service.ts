@@ -83,6 +83,9 @@ export class WaitlistService {
       select: {
         createdAt: true,
       },
+      where: {
+        isActive: true,
+      },
       orderBy: {
         createdAt: 'desc',
       },
@@ -145,8 +148,28 @@ export class WaitlistService {
       throw new BadRequestException('Invalid UUID format');
     }
 
-    return await this.prisma.listaEspera.delete({
+    const waitlistEntry = await this.prisma.listaEspera.findUnique({
       where: { id_Lista: id },
     });
+
+    if (!waitlistEntry) {
+      throw new NotFoundException('Waitlist entry not found');
+    }
+
+    try {
+      const deactivatedEntry = await this.prisma.listaEspera.update({
+        where: { id_Lista: id },
+        data: {
+          isActive: false,
+        },
+      });
+
+      return deactivatedEntry;
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error deactivating waitlist entry',
+        error.message,
+      );
+    }
   }
 }

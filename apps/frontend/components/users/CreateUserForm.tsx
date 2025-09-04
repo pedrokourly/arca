@@ -1,8 +1,8 @@
 "use client";
 
+import React, { useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +12,30 @@ import { UserPlus, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { usePermissions } from "@/hooks/usePermissions";
 import { apiService } from "@/utils/apiHandler";
+import { z } from "zod";
+
+// Schema de validação Zod
+const createUserSchema = z.object({
+  nome: z
+    .string()
+    .min(1, "Nome é obrigatório")
+    .max(50, "Nome deve ter no máximo 50 caracteres")
+    .trim(),
+  email: z
+    .string()
+    .min(1, "Email é obrigatório")
+    .email("Email deve ter um formato válido")
+    .max(100, "Email deve ter no máximo 100 caracteres")
+    .trim(),
+  senha: z
+    .string()
+    .min(8, "Senha deve ter no mínimo 8 caracteres")
+    .max(255, "Senha deve ter no máximo 255 caracteres"),
+  roleId: z
+    .number()
+    .min(1, "Função é obrigatória")
+    .int("Função deve ser um número inteiro")
+});
 
 interface CreateUserData {
   nome: string;
@@ -20,9 +44,20 @@ interface CreateUserData {
   roleId: number;
 }
 
-export default function CriarUsuarioPage() {
+type CreateUserFormErrors = {
+  [K in keyof CreateUserData]?: string;
+};
+
+interface ReactivationOption {
+  show: boolean;
+  userId?: string;
+  userName?: string;
+  message?: string;
+}
+
+export default function CreateUserForm() {
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const { canCreateUsers } = usePermissions();
 
   // Estados do formulário
@@ -30,49 +65,23 @@ export default function CriarUsuarioPage() {
     nome: "",
     email: "",
     senha: "",
-    roleId: 4 // Estagiário por padrão
+    roleId: 4 // Estagiário por padrão (número)
   });
   
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-
-  // Proteção client-side
-  useEffect(() => {
-    if (status === "loading") return;
-    
-    if (!session) {
-      router.push("/login");
-      return;
-    }
-
-    // Verifica se tem permissão para criar usuários
-    if (!canCreateUsers()) {
-      router.push("/dashboard/unauthorized");
-      return;
-    }
-  }, [session, status, router, canCreateUsers]);
-
-  // Loading state
-  if (status === "loading") {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  // Se não tem permissão, não renderiza
-  if (!session || !canCreateUsers()) {
-    return null;
-  }
+  const [formErrors, setFormErrors] = useState<CreateUserFormErrors>({});
+  const [reactivationOption, setReactivationOption] = useState<ReactivationOption>({
+    show: false
+  });
 
   // Mapear roles baseado no nível de acesso do usuário logado
   const getAvailableRoles = () => {
-    const userRoleId = session.user?.roleId;
+    const userRoleId = session?.user?.roleId;
     const roles = [
       { value: 1, label: "Coordenador/Admin", disabled: userRoleId !== 1 },
-      { value: 2, label: "Secretário", disabled: userRoleId > 2 },
-      { value: 3, label: "Supervisor", disabled: userRoleId > 2 },
+      { value: 2, label: "Secretário", disabled: userRoleId === undefined || userRoleId > 2 },
+      { value: 3, label: "Supervisor", disabled: userRoleId === undefined || userRoleId > 2 },
       { value: 4, label: "Estagiário", disabled: false }
     ];
     
@@ -83,53 +92,43 @@ export default function CriarUsuarioPage() {
   const handleInputChange = (field: keyof CreateUserData, value: string | number) => {
     setFormData(prev => ({
       ...prev,
-      [field]: value
+      [field]: field === 'roleId' ? Number(value) : value
     }));
+    
+    // Limpa o erro do campo quando o usuário começa a digitar
+    if (formErrors[field]) {
+      setFormErrors(prev => ({
+        ...prev,
+        [field]: undefined
+      }));
+    }
   };
 
   const validateForm = (): boolean => {
-    if (!formData.nome.trim()) {
-      toast.error("Nome é obrigatório");
+    try {
+      // Garantir que roleId seja um número
+      const dataToValidate = {
+        ...formData,
+        roleId: Number(formData.roleId)
+      };
+      
+      createUserSchema.parse(dataToValidate);
+      setFormErrors({});
+      
+      // Atualizar formData com roleId como número
+      setFormData(dataToValidate);
+      return true;
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const errors: CreateUserFormErrors = {};
+        error.issues.forEach((issue) => {
+          const field = issue.path[0] as keyof CreateUserData;
+          errors[field] = issue.message;
+        });
+        setFormErrors(errors);
+      }
       return false;
     }
-    
-    if (formData.nome.length > 50) {
-      toast.error("Nome deve ter no máximo 50 caracteres");
-      return false;
-    }
-
-    if (!formData.email.trim()) {
-      toast.error("Email é obrigatório");
-      return false;
-    }
-
-    if (formData.email.length > 100) {
-      toast.error("Email deve ter no máximo 100 caracteres");
-      return false;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      toast.error("Email deve ter um formato válido");
-      return false;
-    }
-
-    if (!formData.senha.trim()) {
-      toast.error("Senha é obrigatória");
-      return false;
-    }
-
-    if (formData.senha.length < 8) {
-      toast.error("Senha deve ter no mínimo 8 caracteres");
-      return false;
-    }
-
-    if (!formData.roleId) {
-      toast.error("Função é obrigatória");
-      return false;
-    }
-
-    return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -140,44 +139,123 @@ export default function CriarUsuarioPage() {
     setIsLoading(true);
     
     try {
-      const newUser = await apiService.createUser(formData, session.token);
-      console.log(JSON.stringify(formData));
+      const newUser = await apiService.createUser(formData, session!.token);
       
       toast.success("Usuário criado com sucesso!");
       router.push("/dashboard/usuarios");
       
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro ao criar usuário:", error);
-      toast.error(error instanceof Error ? error.message : "Erro ao criar usuário");
+      
+      // Verifica se é um conflito (usuário desativado)
+      if (error?.status === 409) {
+        setReactivationOption({
+          show: true,
+          userId: error.userId,
+          userName: error.userName || "usuário desconhecido",
+          message: error.message || "Usuário desativado encontrado"
+        });
+      } else {
+        toast.error(error instanceof Error ? error.message : "Erro ao criar usuário");
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleReactivateUser = async () => {
+    if (!reactivationOption.userId) {
+      toast.error("ID do usuário não encontrado para reativação");
+      return;
+    }
+
+    setIsLoading(true);
+    
+    try {
+      // Usa o ID retornado diretamente pelo backend
+      await apiService.reactivateUser(reactivationOption.userId, session!.token);
+      
+      toast.success(`Usuário ${reactivationOption.userName} reativado com sucesso!`);
+      router.push("/dashboard/usuarios");
+      
+    } catch (error: any) {
+      console.error("Erro ao reativar usuário:", error);
+      toast.error(error instanceof Error ? error.message : "Erro ao reativar usuário");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCancelReactivation = () => {
+    setReactivationOption({ show: false });
+  };
+
+  // Se não tem permissão, não renderiza o formulário
+  if (!session || !canCreateUsers()) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <p className="text-center text-muted-foreground">
+            Você não tem permissão para criar usuários.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   const availableRoles = getAvailableRoles();
 
   return (
-    <div className="py-6">
-      <div className="container mx-auto px-4 max-w-6xl">
-        {/* Header */}
-        <div className="mb-8">
-          
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-              <UserPlus className="w-6 h-6 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-foreground">
-                Criar Usuário
-              </h1>
-              <p className="text-muted-foreground">
-                Adicione um novo usuário ao sistema ARCA
-              </p>
-            </div>
-          </div>
-        </div>
+    <>
+      {/* Formulário de Reativação */}
+      {reactivationOption.show ? (
+        <Card className="border-orange-200 bg-orange-50">
+          <CardHeader>
+            <CardTitle className="text-orange-800">Usuário Desativado Encontrado</CardTitle>
+            <CardDescription className="text-orange-700">
+              {reactivationOption.message}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="p-4 bg-orange-100 rounded-lg">
+                <h4 className="font-medium text-orange-800 mb-2">O que você gostaria de fazer?</h4>
+                <ul className="text-sm text-orange-700 space-y-1">
+                  <li>• <strong>Reativar:</strong> O usuário {reactivationOption.userName} voltará a ter acesso ao sistema</li>
+                  <li>• <strong>Cancelar:</strong> Voltar ao formulário de criação para escolher outro email</li>
+                </ul>
+              </div>
 
-        {/* Formulário */}
+              <div className="flex justify-end space-x-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleCancelReactivation}
+                  disabled={isLoading}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleReactivateUser}
+                  disabled={isLoading}
+                  className="bg-orange-600 hover:bg-orange-700"
+                >
+                  {isLoading ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Reativando...
+                    </>
+                  ) : (
+                    `Reativar ${reactivationOption.userName}`
+                  )}
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        /* Formulário Principal */
         <Card>
           <CardHeader>
             <CardTitle>Informações do Usuário</CardTitle>
@@ -202,7 +280,11 @@ export default function CriarUsuarioPage() {
                     maxLength={50}
                     disabled={isLoading}
                     required
+                    className={formErrors.nome ? "border-destructive" : ""}
                   />
+                  {formErrors.nome && (
+                    <p className="text-xs text-destructive">{formErrors.nome}</p>
+                  )}
                   <p className="text-xs text-muted-foreground">
                     Máximo 50 caracteres
                   </p>
@@ -221,7 +303,11 @@ export default function CriarUsuarioPage() {
                     maxLength={100}
                     disabled={isLoading}
                     required
+                    className={formErrors.email ? "border-destructive" : ""}
                   />
+                  {formErrors.email && (
+                    <p className="text-xs text-destructive">{formErrors.email}</p>
+                  )}
                   <p className="text-xs text-muted-foreground">
                     Máximo 100 caracteres
                   </p>
@@ -239,7 +325,7 @@ export default function CriarUsuarioPage() {
                     onValueChange={(value) => handleInputChange("roleId", parseInt(value))}
                     disabled={isLoading}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className={formErrors.roleId ? "border-destructive" : ""}>
                       <SelectValue placeholder="Selecione uma função" />
                     </SelectTrigger>
                     <SelectContent>
@@ -250,6 +336,9 @@ export default function CriarUsuarioPage() {
                       ))}
                     </SelectContent>
                   </Select>
+                  {formErrors.roleId && (
+                    <p className="text-xs text-destructive">{formErrors.roleId}</p>
+                  )}
                   <p className="text-xs text-muted-foreground">
                     Você só pode criar usuários com nível igual ou inferior ao seu
                   </p>
@@ -270,6 +359,7 @@ export default function CriarUsuarioPage() {
                       maxLength={255}
                       disabled={isLoading}
                       required
+                      className={formErrors.senha ? "border-destructive" : ""}
                     />
                     <Button
                       type="button"
@@ -286,6 +376,9 @@ export default function CriarUsuarioPage() {
                       )}
                     </Button>
                   </div>
+                  {formErrors.senha && (
+                    <p className="text-xs text-destructive">{formErrors.senha}</p>
+                  )}
                   <p className="text-xs text-muted-foreground">
                     Mínimo 8 caracteres. O usuário deverá alterar no primeiro acesso.
                   </p>
@@ -334,7 +427,7 @@ export default function CriarUsuarioPage() {
             </form>
           </CardContent>
         </Card>
-      </div>
-    </div>
+      )}
+    </>
   );
 }

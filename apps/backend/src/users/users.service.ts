@@ -1,6 +1,7 @@
 import {
   BadGatewayException,
   BadRequestException,
+  ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -34,11 +35,33 @@ export class UsersService {
     }
 
     // Verifica se o email já existe
-    const existingUser = await this.prisma.usuario.findUnique({
-      where: { email: createUserDto.email },
+    const existingUser = await this.prisma.usuario.findFirst({
+      where: { 
+        email: createUserDto.email,
+      },
     });
+    
     if (existingUser) {
-      throw new BadRequestException('E-mail já cadastrado.');
+      // Se o usuário existe e está ativo, não pode criar
+      if (existingUser.isActive) {
+        throw new BadRequestException('E-mail já cadastrado.');
+      }
+
+      // Se o usuário existe mas está inativo, verifica se tem permissão para ver a opção de reativar
+      const canReactivate = 
+        creator.access < existingUser.roleId ||
+        (creator.access === 1 && existingUser.roleId === 1);
+      
+      if (canReactivate) {
+        throw new ConflictException({
+          message: `Este e-mail pertence a um usuário desativado (${existingUser.nome}). Deseja reativar este usuário em vez de criar um novo?`,
+          userId: existingUser.id_User,
+          userName: existingUser.nome
+        });
+      } else {
+        // Se não tem permissão para reativar, apenas informa que o email já está em uso
+        throw new BadRequestException('E-mail já cadastrado.');
+      }
     }
 
     const passwordHash = await this.HashingService.hash(createUserDto.senha);
@@ -67,6 +90,7 @@ export class UsersService {
         roleId: {
           gte: creator.access,
         },
+        isActive: true,
       },
       select: {
         id_User: true,
@@ -100,6 +124,7 @@ export class UsersService {
         roleId: {
           gte: creator.access,
         },
+        isActive: true,
       },
       select: {
         id_User: true,
@@ -148,9 +173,30 @@ export class UsersService {
       });
 
       if (existingUser) {
-        throw new BadRequestException(
-          'O e-mail informado já está em uso por outro usuário.',
-        );
+        // Se o usuário existe e está ativo, não pode usar o email
+        if (existingUser.isActive) {
+          throw new BadRequestException(
+            'O e-mail informado já está em uso por outro usuário.',
+          );
+        }
+        
+        // Se o usuário existe mas está inativo, verifica se tem permissão para ver a opção de reativar
+        const canReactivate = 
+          creator.access < existingUser.roleId ||
+          (creator.access === 1 && existingUser.roleId === 1);
+        
+        if (canReactivate) {
+          throw new ConflictException({
+            message: `Este e-mail pertence a um usuário desativado (${existingUser.nome}). Deseja reativar este usuário em vez de alterar o e-mail?`,
+            userId: existingUser.id_User,
+            userName: existingUser.nome
+          });
+        } else {
+          // Se não tem permissão para reativar, apenas informa que o email já está em uso
+          throw new BadRequestException(
+            'O e-mail informado já está em uso por outro usuário.',
+          );
+        }
       }
     }
 
@@ -204,10 +250,48 @@ export class UsersService {
       );
     }
 
-    await this.prisma.usuario.delete({
+    await this.prisma.usuario.update({
+      where: { id_User: id },
+      data: {
+        isActive: false,
+      },
+    });
+
+    return { message: `Usuário com ID ${id} desativado com sucesso.` };
+  }
+
+  async reactivate(id: UUID, creator: TokenDto) {
+    // Busca o usuário que será reativado
+    const user = await this.prisma.usuario.findUnique({
       where: { id_User: id },
     });
 
-    return { message: `Usuário com ID ${id} removido com sucesso.` };
+    if (!user) {
+      throw new NotFoundException(`Usuário não encontrado.`);
+    }
+
+    if (user.isActive) {
+      throw new BadRequestException('Este usuário já está ativo.');
+    }
+
+    // Verifica se tem permissão para reativar
+    const canReactivate =
+      creator.access < user.roleId ||
+      (creator.access === 1 && user.roleId === 1);
+
+    if (!canReactivate) {
+      throw new ForbiddenException(
+        'Você não tem permissão para reativar um usuário com nível de acesso igual ou superior ao seu.',
+      );
+    }
+
+    await this.prisma.usuario.update({
+      where: { id_User: id },
+      data: {
+        isActive: true,
+      },
+    });
+
+    return { message: `Usuário ${user.nome} reativado com sucesso.` };
   }
 }

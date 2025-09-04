@@ -31,6 +31,11 @@ export class UsersController {
     return this.usersService.update(id, updateUserDto, req.user as TokenDto);
   }
 
+  @Patch(':id/reactivate')
+  reactivate(@Param('id', ParseUUIDPipe) id: UUID, @Req() req: any) {
+    return this.usersService.reactivate(id, req.user as TokenDto);
+  }
+
   @Delete(':id')
   remove(@Param('id', ParseUUIDPipe) id: UUID, @Req() req: any) {
     return this.usersService.remove(id, req.user as TokenDto);

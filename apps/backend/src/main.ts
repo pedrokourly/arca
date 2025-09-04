@@ -7,6 +7,11 @@ async function bootstrap() {
 
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,
+    forbidNonWhitelisted: true,
+    transform: true,
+    transformOptions: {
+      enableImplicitConversion: true,
+    },
   }));
 
   app.enableCors(
@@ -16,10 +21,6 @@ async function bootstrap() {
       credentials: true,
     }
   );
-
-  app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,
-  }));
 
   await app.listen(process.env.PORT ?? 3333);
 }
