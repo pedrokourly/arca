@@ -84,8 +84,7 @@ export const apiService = {
     apiRequest(`${API_ENDPOINTS.users}/${userId}`, {
       method: 'DELETE',
       headers: { 
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
+        'Authorization': `Bearer ${token}`
       },
     }),
 
