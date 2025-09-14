@@ -29,7 +29,7 @@ export class WaitlistService {
         enderecoEstado: body.enderecoEstado,
         enderecoCEP: body.enderecoCEP,
         id_Genero: body.id_Genero || 1, // Padrão: Masculino
-        id_CorPele: body.id_CorPele || 1, // Padrão: Branca
+        id_Etnia: body.id_etnia || 1, // Padrão: Branca
         id_Escolaridade: body.id_Escolaridade || 1, // Padrão: Ensino Fundamental Incompleto
       },
     });

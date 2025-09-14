@@ -50,10 +50,10 @@ async function main() {
     console.log('ℹ️  Gêneros já existem no banco de dados.')
   }
 
-  // Inserir cores de pele apenas se não existirem
-  const existingCoresPele = await prisma.corPele.count()
+  // Inserir etnia apenas se não existirem
+  const existingCoresPele = await prisma.etnia.count()
   if (existingCoresPele === 0) {
-    await prisma.corPele.createMany({
+    await prisma.etnia.createMany({
       data: [
         { nome: 'Branca' },
         { nome: 'Preta' },
@@ -62,9 +62,9 @@ async function main() {
         { nome: 'Indígena' }
       ]
     })
-    console.log('✅ Cores de pele inseridas com sucesso!')
+    console.log('✅ Etnias inseridas com sucesso!')
   } else {
-    console.log('ℹ️  Cores de pele já existem no banco de dados.')
+    console.log('ℹ️  Etnias já existem no banco de dados.')
   }
 
   // Inserir escolaridades apenas se não existirem

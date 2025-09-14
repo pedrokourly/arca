@@ -53,7 +53,7 @@ model Paciente {
   nomeSocial                String?  @db.VarChar(100)
   dataNascimento            DateTime @db.Date
   id_Genero                 Int      @db.SmallInt
-  id_CorPele                Int      @db.SmallInt
+  id_etnia                Int      @db.SmallInt
   id_Escolaridade           Int      @db.SmallInt
   telefonePessoal           String   @db.VarChar(20)
   contatoEmergencia         String   @db.VarChar(20)
@@ -68,7 +68,7 @@ model Paciente {
   id_Supervisor_Responsavel String   @db.Uuid
 
   genero                Genero       @relation(fields: [id_Genero], references: [id_Genero])
-  corPele               CorPele      @relation(fields: [id_CorPele], references: [id_CorPele])
+  etnia               etnia      @relation(fields: [id_etnia], references: [id_etnia])
   escolaridade          Escolaridade @relation(fields: [id_Escolaridade], references: [id_Escolaridade])
   estagiarioResponsavel Usuario      @relation("EstagiarioResponsavel", fields: [id_Estagiario_Responsavel], references: [id_User])
   supervisorResponsavel Usuario      @relation("SupervisorResponsavel", fields: [id_Supervisor_Responsavel], references: [id_User])
@@ -159,11 +159,11 @@ model ListaEspera {
   enderecoCEP       String   @db.Char(8)
   createdAt         DateTime @default(now())
   id_Genero         Int      @db.SmallInt
-  id_CorPele        Int      @db.SmallInt
+  id_etnia        Int      @db.SmallInt
   id_Escolaridade   Int      @db.SmallInt
 
   genero       Genero       @relation(fields: [id_Genero], references: [id_Genero])
-  corPele      CorPele      @relation(fields: [id_CorPele], references: [id_CorPele])
+  etnia      etnia      @relation(fields: [id_etnia], references: [id_etnia])
   escolaridade Escolaridade @relation(fields: [id_Escolaridade], references: [id_Escolaridade])
 
   @@map("LISTA_ESPERA")
@@ -182,8 +182,8 @@ model Genero {
   @@map("GENERO")
 }
 
-model CorPele {
-  id_CorPele  Int           @id @default(autoincrement()) @map("ID_CorPele") @db.SmallInt
+model etnia {
+  id_etnia  Int           @id @default(autoincrement()) @map("ID_etnia") @db.SmallInt
   nome        String        @db.VarChar
   pacientes   Paciente[]
   listaEspera ListaEspera[]

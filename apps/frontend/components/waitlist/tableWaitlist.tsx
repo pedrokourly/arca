@@ -48,7 +48,7 @@ interface WaitlistEntry {
   createdAt: string;
   isActive: boolean;
   id_Genero: number;
-  id_CorPele: number;
+  id_etnia: number;
   id_Escolaridade: number;
 }
 

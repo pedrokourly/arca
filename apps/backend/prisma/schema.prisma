@@ -9,8 +9,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 // ===============================================
@@ -53,7 +54,7 @@ model Paciente {
   nomeSocial                String?  @db.VarChar(100)
   dataNascimento            DateTime @db.Date
   id_Genero                 Int      @db.SmallInt
-  id_CorPele                Int      @db.SmallInt
+  id_Etnia                Int      @db.SmallInt
   id_Escolaridade           Int      @db.SmallInt
   telefonePessoal           String   @db.VarChar(20)
   contatoEmergencia         String   @db.VarChar(20)
@@ -68,7 +69,7 @@ model Paciente {
   id_Supervisor_Responsavel String   @db.Uuid
 
   genero                Genero       @relation(fields: [id_Genero], references: [id_Genero])
-  corPele               CorPele      @relation(fields: [id_CorPele], references: [id_CorPele])
+  Etnia               Etnia      @relation(fields: [id_Etnia], references: [id_Etnia])
   escolaridade          Escolaridade @relation(fields: [id_Escolaridade], references: [id_Escolaridade])
   estagiarioResponsavel Usuario      @relation("EstagiarioResponsavel", fields: [id_Estagiario_Responsavel], references: [id_User])
   supervisorResponsavel Usuario      @relation("SupervisorResponsavel", fields: [id_Supervisor_Responsavel], references: [id_User])
@@ -160,11 +161,11 @@ model ListaEspera {
   createdAt         DateTime @default(now())
   isActive          Boolean  @default(true)
   id_Genero         Int      @db.SmallInt
-  id_CorPele        Int      @db.SmallInt
+  id_Etnia        Int      @db.SmallInt
   id_Escolaridade   Int      @db.SmallInt
 
   genero       Genero       @relation(fields: [id_Genero], references: [id_Genero])
-  corPele      CorPele      @relation(fields: [id_CorPele], references: [id_CorPele])
+  Etnia      Etnia      @relation(fields: [id_Etnia], references: [id_Etnia])
   escolaridade Escolaridade @relation(fields: [id_Escolaridade], references: [id_Escolaridade])
 
   @@map("LISTA_ESPERA")
@@ -183,8 +184,8 @@ model Genero {
   @@map("GENERO")
 }
 
-model CorPele {
-  id_CorPele  Int           @id @default(autoincrement()) @map("ID_CorPele") @db.SmallInt
+model Etnia {
+  id_Etnia  Int           @id @default(autoincrement()) @map("ID_Etnia") @db.SmallInt
   nome        String        @db.VarChar
   pacientes   Paciente[]
   listaEspera ListaEspera[]

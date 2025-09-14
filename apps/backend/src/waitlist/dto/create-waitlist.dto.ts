@@ -56,9 +56,9 @@ export class CreateWaitlistDto {
 
   @IsOptional()
   @Transform(({ value }) => parseInt(value, 10))
-  @IsInt({ message: 'ID da cor de pele deve ser um número inteiro' })
-  @Min(1, { message: 'ID da cor de pele deve ser maior que 0' })
-  id_CorPele?: number;
+  @IsInt({ message: 'ID da etnia deve ser um número inteiro' })
+  @Min(1, { message: 'ID da etnia deve ser maior que 0' })
+  id_etnia?: number;
 
   @IsOptional()
   @Transform(({ value }) => parseInt(value, 10))

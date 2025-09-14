@@ -123,12 +123,12 @@ const formSchema = z.object({
     .min(1, {
       message: "Gênero deve ser selecionado.",
     }),
-  id_CorPele: z
+  id_etnia: z
     .number({
-      message: "Cor de pele é obrigatória.",
+      message: "Etnia é obrigatória.",
     })
     .min(1, {
-      message: "Cor de pele deve ser selecionada.",
+      message: "Etnia deve ser selecionada.",
     }),
   id_Escolaridade: z
     .number({
@@ -157,7 +157,7 @@ export function WaitlistForm() {
       enderecoEstado: "",
       enderecoCEP: "",
       id_Genero: undefined,
-      id_CorPele: undefined,
+      id_etnia: undefined,
       id_Escolaridade: undefined,
     },
   });
@@ -180,7 +180,7 @@ export function WaitlistForm() {
         enderecoEstado: values.enderecoEstado.toUpperCase(),
         enderecoCEP: values.enderecoCEP,
         id_Genero: values.id_Genero,
-        id_CorPele: values.id_CorPele,
+        id_etnia: values.id_etnia,
         id_Escolaridade: values.id_Escolaridade,
       };
 
@@ -526,10 +526,10 @@ export function WaitlistForm() {
 
                 <FormField
                   control={form.control}
-                  name="id_CorPele"
+                  name="id_etnia"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Cor de Pele *</FormLabel>
+                      <FormLabel>Etnia *</FormLabel>
                       <Select
                         onValueChange={(value) =>
                           field.onChange(value ? parseInt(value) : undefined)
@@ -538,7 +538,7 @@ export function WaitlistForm() {
                       >
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Selecione uma cor de pele" />
+                            <SelectValue placeholder="Selecione uma Etnia" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -550,7 +550,7 @@ export function WaitlistForm() {
                           <SelectItem value="6">Prefiro não informar</SelectItem>
                         </SelectContent>
                       </Select>
-                      <FormDescription>Sua cor de pele (obrigatório).</FormDescription>
+                      <FormDescription>Sua Etnia (obrigatório).</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
