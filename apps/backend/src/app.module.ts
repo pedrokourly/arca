@@ -5,6 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { WaitlistModule } from './waitlist/waitlist.module';
+import { AuditModule } from './audit/audit.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { WaitlistModule } from './waitlist/waitlist.module';
           ? `.env.${process.env.NODE_ENV}`
           : '.env',
     }),
+    AuditModule,
     AuthModule,
     UsersModule,
     WaitlistModule
