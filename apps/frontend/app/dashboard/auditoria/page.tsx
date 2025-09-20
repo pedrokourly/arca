@@ -1,5 +1,5 @@
 "use client";
-import { WaitlistTable } from "@/components/waitlist/tableWaitlist";
+import { AuditTable } from "@/components/audit/tableAudit";
 import { Button } from "@/components/ui/button";
 import { Plus, BookAlert } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -27,7 +27,7 @@ export default function AuditPage() {
             </div>
           </div>
         </div>
-        <WaitlistTable />
+        <AuditTable />
       </div>
     </div>
   );

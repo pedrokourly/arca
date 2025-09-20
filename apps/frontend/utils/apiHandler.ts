@@ -10,6 +10,9 @@ export const API_ENDPOINTS = {
   // Waitlist endpoints
   waitlist: `${API_BASE_URL}/waitlist`,
   waitlistStats: `${API_BASE_URL}/waitlist/stats`,
+  
+  // Audit endpoints
+  audit: `${API_BASE_URL}/audit`,
 } as const;
 
 export async function apiRequest(endpoint: string, options: RequestInit = {}) {
@@ -112,6 +115,12 @@ export const apiService = {
 
   getWaitlistStats: (token: string) =>
     apiRequest(API_ENDPOINTS.waitlistStats, {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+
+  // Audit operations
+  getAuditLogs: (token: string) =>
+    apiRequest(API_ENDPOINTS.audit, {
       headers: { Authorization: `Bearer ${token}` },
     }),
 };
