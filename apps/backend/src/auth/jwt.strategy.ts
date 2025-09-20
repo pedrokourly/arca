@@ -5,7 +5,6 @@ import { UsersService } from 'src/users/users.service';
 import { UUID } from 'node:crypto';
 import { jwtConstants } from './constants';
 import { AuthService } from './auth.service';
-import { access } from 'node:fs';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
