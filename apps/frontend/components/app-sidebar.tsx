@@ -24,7 +24,7 @@ import {
 import { NavSystem } from "./nav-system";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { canAccessUsers, canCreateUsers, canSeeAudit } = usePermissions();
+  const { canAccessUsers, canCreateUsers, canSeeAudit, canSeeNavSystem } = usePermissions();
 
   // Filtrar itens do menu de usuários baseado nas permissões
   const getUsersMenuItems = () => {
@@ -88,7 +88,7 @@ const data = {
 
     
   ],
-
+  
   NavSystem: [
     ...(canSeeAudit() ? [{
       title: "Registo de Auditoria",
@@ -120,9 +120,11 @@ const data = {
       <SidebarContent>
         <NavMain items={data.navMain} />
       </SidebarContent>
-      <SidebarContent>
-        <NavSystem items={data.NavSystem} />
-      </SidebarContent>
+      {canSeeNavSystem() && (
+        <SidebarContent>
+          <NavSystem items={data.NavSystem} />
+        </SidebarContent>
+      )}
       <SidebarFooter>
         <NavUser user={data.user} />
       </SidebarFooter>

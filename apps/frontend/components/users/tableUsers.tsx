@@ -26,7 +26,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { usePermissions } from "@/hooks/usePermissions";
 import { ConditionalRender } from "@/components/auth/ConditionalRender";
 import { apiService } from "@/utils/apiHandler";
 
