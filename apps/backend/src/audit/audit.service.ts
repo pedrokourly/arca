@@ -25,7 +25,7 @@ export class AuditService {
     });
   }
 
-  async findAll(user : TokenDto) {
+  async findAll(user: TokenDto) {
     if(user.access !== 1){
       throw new UnauthorizedException('Acesso negado.');
     }
