@@ -75,7 +75,6 @@ model Paciente {
   supervisorResponsavel Usuario      @relation("SupervisorResponsavel", fields: [id_Supervisor_Responsavel], references: [id_User])
 
   relatoriosAlta RelatorioAlta[]
-  logsAuditoria  LogAuditoria[]
   atendimentos   Atendimento[]
 
   @@map("PACIENTE")
@@ -114,15 +113,17 @@ model RelatorioAlta {
 }
 
 model LogAuditoria {
-  id_Log              String       @id @default(uuid()) @map("ID_LOG") @db.Uuid
-  id_Usuario_Executor String       @db.Uuid
-  id_Paciente         String       @db.Uuid
-  tipoAcao            TipoAcaoEnum @map("TipoAcao")
-  acessoEm            DateTime     @default(now())
-  detalhes            String       @db.Text
+  id_Log                String    @id @default(uuid()) @map("ID_LOG") @db.Uuid
+  id_Usuario_Executor   String    @db.Uuid
+  nome_Usuario_Executor String    @db.VarChar(50)   
+  tipoAcao              String    @map("TipoAcao") @db.VarChar(100) 
+  entidade_Afetada      String?   @db.VarChar(50)   
+  id_Entidade_Afetada   String?   @db.VarChar(36)    
+  endereco_Ip           String?   @db.VarChar(45)    
+  acessoEm              DateTime  @default(now())
+  detalhes              Json?     @db.JsonB         
 
-  usuarioExecutor Usuario  @relation("UsuarioExecutorLogs", fields: [id_Usuario_Executor], references: [id_User])
-  paciente        Paciente @relation(fields: [id_Paciente], references: [id_Paciente])
+  usuarioExecutor Usuario @relation("UsuarioExecutorLogs", fields: [id_Usuario_Executor], references: [id_User])
 
   @@map("LOGS_AUDITORIA")
 }
@@ -219,12 +220,4 @@ enum StatusRelatorioEnum {
   EMITIDO
   CANCELADO
   // Adicione outros status conforme necessário
-}
-
-enum TipoAcaoEnum {
-  CREATION
-  VIEW
-  UPDATE
-  DELETION
-  // Add other action types as needed
 }

@@ -2,15 +2,10 @@
 
 import * as React from "react";
 import {
-  BookOpen,
-  Bot,
-  Frame,
   GalleryVerticalEnd,
-  Map,
-  PieChart,
-  Settings2,
   ClipboardList,
   ShieldUser,
+  Shield,
 } from "lucide-react";
 import { usePermissions } from "@/hooks/usePermissions";
 
@@ -26,9 +21,10 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { NavSystem } from "./nav-system";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { canAccessUsers, canCreateUsers } = usePermissions();
+  const { canAccessUsers, canCreateUsers, canSeeAudit, canSeeNavSystem } = usePermissions();
 
   // Filtrar itens do menu de usuários baseado nas permissões
   const getUsersMenuItems = () => {
@@ -54,14 +50,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 // This is sample data.
 const data = {
   user: {
-    name: "shadcn",
-    email: "m@example.com",
+    name: "Exemplo",
+    email: "mail@example.com",
     avatar: "/avatars/shadcn.jpg",
   },
-  teams: {
+  navHeader: {
     name: "Arca",
     logo: GalleryVerticalEnd,
-    plan: "Dashboard",
+    subtitle: "Dashboard",
   },
   navMain: [
     {
@@ -80,7 +76,8 @@ const data = {
         }
       ],
     },
-    // Só mostra menu de usuários se tiver permissão
+
+    // Só mostra menu se tiver permissão
     ...(canAccessUsers() ? [{
       title: "Usuários",
       url: "#",
@@ -88,7 +85,17 @@ const data = {
       isActive: true,
       items: getUsersMenuItems(),
     }] : []),
+
+    
   ],
+  
+  NavSystem: [
+    ...(canSeeAudit() ? [{
+      title: "Registo de Auditoria",
+      url: "/dashboard/auditoria",
+      icon: Shield
+    }] : []),
+  ]
 };
   return (
     <Sidebar collapsible="icon" {...props}>
@@ -100,11 +107,11 @@ const data = {
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                <data.teams.logo className="size-4" />
+                <data.navHeader.logo className="size-4" />
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{data.teams.name}</span>
-                <span className="truncate text-xs">{data.teams.plan}</span>
+                <span className="truncate font-medium">{data.navHeader.name}</span>
+                <span className="truncate text-xs">{data.navHeader.subtitle}</span>
               </div>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -113,6 +120,11 @@ const data = {
       <SidebarContent>
         <NavMain items={data.navMain} />
       </SidebarContent>
+      {canSeeNavSystem() && (
+        <SidebarContent>
+          <NavSystem items={data.NavSystem} />
+        </SidebarContent>
+      )}
       <SidebarFooter>
         <NavUser user={data.user} />
       </SidebarFooter>

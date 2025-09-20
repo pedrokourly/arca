@@ -1,8 +1,7 @@
 import { IsEmail, IsInt, IsNotEmpty, IsString, IsUUID, MaxLength, Min } from 'class-validator';
 import { UUID } from 'node:crypto';
 
-// DTO de usuário com base no modelo Usuario criador - Responsável pelas requisições
-// Campos persistidos: nome (<=50), email (<=100), senha (será convertida para senhaHash), roleId (SmallInt)
+// DTO de usuário com base no modelo Usuario - Responsável pelas requisições
 export class TokenDto {
     @IsUUID()
     @IsNotEmpty()
