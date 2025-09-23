@@ -64,7 +64,7 @@ export class WaitlistService {
         createdAt: {
           lt: waitlistEntry.createdAt, // Criadas antes desta entrada
         },
-        isActive: true, // Apenas pessoas ativas
+        id_Status: 1,                  // Apenas pessoas ativas
       },
     });
 
@@ -74,7 +74,7 @@ export class WaitlistService {
     return {
       ...waitlistEntry,
       posicaoNaLista: posicao,
-      situacao: waitlistEntry.isActive ? 'Ativo' : 'Inativo',
+      situacao: waitlistEntry.id_Status === 1 ? 'Ativo' : 'Inativo',
     };
   }
 
@@ -84,7 +84,7 @@ export class WaitlistService {
         createdAt: true,
       },
       where: {
-        isActive: true,
+        id_Status: 1,
       },
       orderBy: {
         createdAt: 'desc',
@@ -160,7 +160,7 @@ export class WaitlistService {
       const deactivatedEntry = await this.prisma.listaEspera.update({
         where: { id_Lista: id },
         data: {
-          isActive: false,
+          id_Status: 5,
         },
       });
 
