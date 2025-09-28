@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, Query } from '@nestjs/common';
 import { SessionService } from './session.service';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { UpdateSessionDto } from './dto/update-session.dto';
@@ -29,6 +29,11 @@ export class SessionController {
   @Patch(':id')
   update(@Param('id') id: UUID, @Req() req: any, @Body() updateSessionDto: UpdateSessionDto) {
     return this.sessionService.update(id, updateSessionDto, req.user as TokenDto);
+  }
+
+  @Patch(':id/status')
+  updateStatus(@Param('id') id: UUID, @Req() req: any, @Body() body: { id_Status: number } ) {
+    return this.sessionService.updateStatus(id, body.id_Status, req.user as TokenDto);
   }
 
   @Delete(':id')

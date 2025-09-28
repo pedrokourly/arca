@@ -6,6 +6,7 @@ import {
   ClipboardList,
   ShieldUser,
   Shield,
+  CalendarClock
 } from "lucide-react";
 import { usePermissions } from "@/hooks/usePermissions";
 
@@ -32,14 +33,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     
     if (canAccessUsers()) {
       items.push({
-        title: "Lista",
+        title: "Consulta",
         url: "/dashboard/usuarios",
       });
     }
     
     if (canCreateUsers()) {
       items.push({
-        title: "Criar",
+        title: "Cadastro",
         url: "/dashboard/usuarios/cadastro",
       });
     }
@@ -86,7 +87,22 @@ const data = {
       items: getUsersMenuItems(),
     }] : []),
 
-    
+    {
+      title: "Atendimentos",
+      url: "#",
+      icon: CalendarClock,
+      isActive: true,
+      items: [
+        {
+          title: "Consulta",
+          url: "/dashboard/atendimento",
+        },
+        {
+          title: "Cadastro",
+          url: "/dashboard/atendimento/cadastro",
+        }
+      ],
+    },
   ],
   
   NavSystem: [

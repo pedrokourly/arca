@@ -26,7 +26,14 @@ export class SessionService {
     });
     if (!paciente) {
       throw new BadRequestException(
-        'Paciente não encontrado.',
+      'Paciente não encontrado.',
+      );
+    }
+
+    // Verifica se o status do paciente está como "Aguardando Atendimento" (status 1)
+    if (paciente.id_Status !== 1) {
+      throw new BadRequestException(
+      'O paciente não está disponível para atendimento.',
       );
     }
 
@@ -124,14 +131,57 @@ export class SessionService {
       }
     });
 
+    // Atualiza o status do paciente na lista de espera para "Em Atendimento" (status 2)
+    await this.prisma.listaEspera.update({
+      where: { id_Lista: session.id_Lista },
+      data: {
+        id_Status: 2, // Status "Em Atendimento"
+      }
+    });
 
     return Session;
   }
 
   async findAll(user: TokenDto) {
+    const includeRelations = {
+      ListaEspera: {
+        select: {
+          id_Lista: true,
+          nomeRegistro: true,
+          nomeSocial: true,
+          telefonePessoal: true,
+        },
+      },
+      estagiarioExecutor: {
+        select: {
+          id_User: true,
+          nome: true,
+          email: true,
+        },
+      },
+      supervisorExecutor: {
+        select: {
+          id_User: true,
+          nome: true,
+          email: true,
+        },
+      },
+      status: {
+        select: {
+          id_Status: true,
+          nome: true,
+        },
+      },
+    };
+
     // Se o usuário for secretario ou admin, lista todas as sessões
     if (user.access <= 2) {
-      return this.prisma.atendimento.findMany();
+      return this.prisma.atendimento.findMany({
+        include: includeRelations,
+        orderBy: {
+          dataHoraInicio: 'desc',
+        },
+      });
     }
 
     // Se o usuário for supervisor, lista todas as sessões que ele supervisiona
@@ -139,6 +189,10 @@ export class SessionService {
       return this.prisma.atendimento.findMany({
         where: {
           id_Supervisor_Executor: user.sub,
+        },
+        include: includeRelations,
+        orderBy: {
+          dataHoraInicio: 'desc',
         },
       });
     }
@@ -148,6 +202,10 @@ export class SessionService {
       return this.prisma.atendimento.findMany({
         where: {
           id_Estagiario_Executor: user.sub,
+        },
+        include: includeRelations,
+        orderBy: {
+          dataHoraInicio: 'desc',
         },
       });
     }
@@ -159,9 +217,41 @@ export class SessionService {
   }
 
   async findOne(id: UUID, user: TokenDto) {
+    const includeRelations = {
+      ListaEspera: {
+        select: {
+          id_Lista: true,
+          nomeRegistro: true,
+          nomeSocial: true,
+          telefonePessoal: true,
+        },
+      },
+      estagiarioExecutor: {
+        select: {
+          id_User: true,
+          nome: true,
+          email: true,
+        },
+      },
+      supervisorExecutor: {
+        select: {
+          id_User: true,
+          nome: true,
+          email: true,
+        },
+      },
+      status: {
+        select: {
+          id_Status: true,
+          nome: true,
+        },
+      },
+    };
+
     // Verifica se a sessão existe
     const session = await this.prisma.atendimento.findUnique({
       where: { id_Atendimento: id },
+      include: includeRelations,
     });
 
     // Verifica se o usuario tem permissão para ver a sessão
@@ -278,6 +368,41 @@ export class SessionService {
     });
   }
 
+  async updateStatus(id: UUID, status: number, user: TokenDto) {
+
+    // Verifica se o usuário tem permissão para atualizar uma sessão
+    if (user.access > 2) {
+      throw new ForbiddenException(
+        'Você não tem permissão para criar uma sessão.',
+      );
+    }
+
+    // Verifica se a sessão existe
+    const session = await this.prisma.atendimento.findUnique({
+      where: { id_Atendimento: id },
+    });
+
+    if (!session) {
+      throw new NotFoundException(
+        'Sessão não encontrada.'
+      );
+    }
+
+    // Verifica se o status é válido
+    const validStatuses = [2, 3, 4]; // 2: Em andamento, 3: Concluido, 4: Faltou
+    if (!validStatuses.includes(status)) {
+      throw new BadRequestException(
+        'Status inválido.'
+      );
+    }
+
+    // Atualiza o status da sessão
+    return this.prisma.atendimento.update({
+      where: { id_Atendimento: id },
+      data: { id_Status: status }
+    });
+  }
+
   async remove(id: UUID, user: TokenDto) {
     // Verifica se o usuário tem permissão para deletar uma sessão
     if (user.access > 2) {
@@ -302,6 +427,12 @@ export class SessionService {
       data: { id_Status: 5 } // Status "Cancelado"
     });
 
+    await this.prisma.listaEspera.update({
+      where: { id_Lista: session.id_Lista },
+      data: {
+        id_Status: 1, // Status "Em espera"
+      }
+    });
     return { message: `Sessão de UUID ${id} cancelada com sucesso.` };
   }
 }
