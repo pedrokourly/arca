@@ -111,8 +111,8 @@ async function main() {
         { nome: 'Agendado' },
         { nome: 'Em Andamento' },
         { nome: 'Concluído' },
-        { nome: 'Cancelado' },
-        { nome: 'Faltou' }
+        { nome: 'Faltou' },
+        { nome: 'Cancelado' }
       ]
     })
     console.log('✅ Status de atendimento inseridos com sucesso!')

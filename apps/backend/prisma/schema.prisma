@@ -101,8 +101,8 @@ model Atendimento {
   id_Lista               String   @db.Uuid
   id_Estagiario_Executor String   @db.Uuid
   id_Supervisor_Executor String   @db.Uuid
-  id_Status              Int      @db.SmallInt
-  observacoes            String   @db.Text
+  id_Status              Int      @db.SmallInt @default(1)
+  observacoes            String?   @db.Text
 
   ListaEspera        ListaEspera       @relation(fields: [id_Lista], references: [id_Lista], onDelete: Cascade)
   estagiarioExecutor Usuario           @relation("EstagiarioAtendimentos", fields: [id_Estagiario_Executor], references: [id_User])

@@ -6,5 +6,6 @@
   "jest.useDashboardWhenAvailable": false,
   "jest.nodeEnv": {
     "NODE_ENV": "test"
-  }
+  },
+  "postman.settings.dotenv-detection-notification-visibility": false
 }

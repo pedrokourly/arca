@@ -6,6 +6,7 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { WaitlistModule } from './waitlist/waitlist.module';
 import { AuditModule } from './audit/audit.module';
+import { SessionModule } from './session/session.module';
 
 @Module({
   imports: [
@@ -18,7 +19,8 @@ import { AuditModule } from './audit/audit.module';
     AuditModule,
     AuthModule,
     UsersModule,
-    WaitlistModule
+    WaitlistModule,
+    SessionModule
   ],
   controllers: [AppController],
   providers: [AppService],
