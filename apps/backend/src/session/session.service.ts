@@ -407,7 +407,7 @@ export class SessionService {
     // Verifica se o usuário tem permissão para deletar uma sessão
     if (user.access > 2) {
       throw new ForbiddenException(
-        'Você não tem permissão para criar uma sessão.',
+        'Você não tem permissão para cancelar uma sessão.',
       );
     }
 
