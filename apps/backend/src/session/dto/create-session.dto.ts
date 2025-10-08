@@ -1,7 +1,6 @@
 import { IsInt, IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { UUID } from 'node:crypto';
-import { Timestamp } from 'rxjs';
 
 // DTO de criação de uma sessão com base no modelo ATENDIMENTO do Prisma
 export class CreateSessionDto {
