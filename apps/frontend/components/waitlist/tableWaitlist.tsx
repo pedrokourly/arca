@@ -46,11 +46,20 @@ interface WaitlistEntry {
   enderecoEstado: string;
   enderecoCEP: string;
   createdAt: string;
-  isActive: boolean;
+  id_Status: number;
   id_Genero: number;
   id_etnia: number;
   id_Escolaridade: number;
 }
+
+// Mapeamento dos status
+const STATUS_MAP = {
+  1: { label: 'Em Espera', variant: 'secondary' as const },
+  2: { label: 'Em Atendimento', variant: 'default' as const },
+  3: { label: 'Recebeu Alta', variant: 'outline' as const },
+  4: { label: 'Desistente', variant: 'destructive' as const },
+  5: { label: 'Desativado', variant: 'destructive' as const }
+};
 
 export function WaitlistTable() {
   const { data: session, status } = useSession();
@@ -61,7 +70,7 @@ export function WaitlistTable() {
 
   // Estados para filtros e pesquisa
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | "1" | "2" | "3" | "4" | "5">("all");
   const [filteredEntries, setFilteredEntries] = useState<WaitlistEntry[]>([]);
 
   // Estados para deleção de entrada da lista
@@ -229,9 +238,8 @@ export function WaitlistTable() {
 
     // Filtro por status
     if (statusFilter !== "all") {
-      filtered = filtered.filter(entry => 
-        statusFilter === "active" ? entry.isActive : !entry.isActive
-      );
+      const statusId = parseInt(statusFilter);
+      filtered = filtered.filter(entry => entry.id_Status === statusId);
     }
 
     // Filtro por pesquisa
@@ -382,15 +390,18 @@ export function WaitlistTable() {
         </div>
         
         <div className="flex flex-col sm:flex-row gap-2">
-          <Select value={statusFilter} onValueChange={(value: "all" | "active" | "inactive") => setStatusFilter(value)}>
+          <Select value={statusFilter} onValueChange={(value: "all" | "1" | "2" | "3" | "4" | "5") => setStatusFilter(value)}>
             <SelectTrigger className="w-full sm:w-[180px]">
               <Filter className="h-4 w-4 mr-2" />
               <SelectValue placeholder="Filtrar por status" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos os status</SelectItem>
-              <SelectItem value="active">Apenas ativos</SelectItem>
-              <SelectItem value="inactive">Apenas inativos</SelectItem>
+              <SelectItem value="1">Em Espera</SelectItem>
+              <SelectItem value="2">Em Atendimento</SelectItem>
+              <SelectItem value="3">Recebeu Alta</SelectItem>
+              <SelectItem value="4">Desistente</SelectItem>
+              <SelectItem value="5">Desativado</SelectItem>
             </SelectContent>
           </Select>
           
@@ -414,14 +425,23 @@ export function WaitlistTable() {
           Total: <span className="font-medium text-foreground">{waitlistEntries.length}</span>
         </span>
         <span>
-          Ativos: <span className="font-medium text-green-600">{waitlistEntries.filter(e => e.isActive).length}</span>
+          Em Espera: <span className="font-medium text-blue-600">{waitlistEntries.filter(e => e.id_Status === 1).length}</span>
         </span>
         <span>
-          Inativos: <span className="font-medium text-red-600">{waitlistEntries.filter(e => !e.isActive).length}</span>
+          Em Atendimento: <span className="font-medium text-green-600">{waitlistEntries.filter(e => e.id_Status === 2).length}</span>
+        </span>
+        <span>
+          Recebeu Alta: <span className="font-medium text-gray-600">{waitlistEntries.filter(e => e.id_Status === 3).length}</span>
+        </span>
+        <span>
+          Desistente: <span className="font-medium text-orange-600">{waitlistEntries.filter(e => e.id_Status === 4).length}</span>
+        </span>
+        <span>
+          Desativado: <span className="font-medium text-red-600">{waitlistEntries.filter(e => e.id_Status === 5).length}</span>
         </span>
         {filteredEntries.length !== waitlistEntries.length && (
           <span>
-            Exibindo: <span className="font-medium text-blue-600">{filteredEntries.length}</span>
+            Exibindo: <span className="font-medium text-purple-600">{filteredEntries.length}</span>
           </span>
         )}
       </div>
@@ -471,10 +491,10 @@ export function WaitlistTable() {
               <TableCell>{entry.telefonePessoal}</TableCell>
               <TableCell>
                 <Badge 
-                  variant={entry.isActive ? "default" : "destructive"}
+                  variant={STATUS_MAP[entry.id_Status as keyof typeof STATUS_MAP]?.variant || "secondary"}
                   className="text-xs"
                 >
-                  {entry.isActive ? "Ativo" : "Inativo"}
+                  {STATUS_MAP[entry.id_Status as keyof typeof STATUS_MAP]?.label || `Status ${entry.id_Status}`}
                 </Badge>
               </TableCell>
               <TableCell>
@@ -577,10 +597,10 @@ export function WaitlistTable() {
                   <div>
                     <Label className="text-muted-foreground">Status</Label>
                     <Badge 
-                      variant={entryToView.isActive ? "default" : "destructive"}
+                      variant={STATUS_MAP[entryToView.id_Status as keyof typeof STATUS_MAP]?.variant || "secondary"}
                       className="text-xs"
                     >
-                      {entryToView.isActive ? "Ativo" : "Inativo"}
+                      {STATUS_MAP[entryToView.id_Status as keyof typeof STATUS_MAP]?.label || `Status ${entryToView.id_Status}`}
                     </Badge>
                   </div>
                 </div>

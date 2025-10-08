@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "public"."ATENDIMENTOS" ALTER COLUMN "id_Status" SET DEFAULT 1;

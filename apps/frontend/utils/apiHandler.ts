@@ -13,6 +13,9 @@ export const API_ENDPOINTS = {
   
   // Audit endpoints
   audit: `${API_BASE_URL}/audit`,
+  
+  // Session endpoints
+  sessions: `${API_BASE_URL}/session`,
 } as const;
 
 export async function apiRequest(endpoint: string, options: RequestInit = {}) {
@@ -122,5 +125,49 @@ export const apiService = {
   getAuditLogs: (token: string) =>
     apiRequest(API_ENDPOINTS.audit, {
       headers: { Authorization: `Bearer ${token}` },
+    }),
+
+  // Session operations
+  getSessions: (token: string) =>
+    apiRequest(API_ENDPOINTS.sessions, {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
+
+  createSession: (sessionData: any, token: string) =>
+    apiRequest(API_ENDPOINTS.sessions, {
+      method: 'POST',
+      headers: { 
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(sessionData),
+    }),
+
+  updateSession: (sessionId: string, sessionData: any, token: string) =>
+    apiRequest(`${API_ENDPOINTS.sessions}/${sessionId}`, {
+      method: 'PATCH',
+      headers: { 
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(sessionData),
+    }),
+
+  deleteSession: (sessionId: string, token: string) =>
+    apiRequest(`${API_ENDPOINTS.sessions}/${sessionId}`, {
+      method: 'DELETE',
+      headers: { 
+        'Authorization': `Bearer ${token}`
+      },
+    }),
+
+  updateSessionStatus: (sessionId: string, statusId: number, token: string) =>
+    apiRequest(`${API_ENDPOINTS.sessions}/${sessionId}/status`, {
+      method: 'PATCH',
+      headers: { 
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ id_Status: statusId }),
     }),
 };

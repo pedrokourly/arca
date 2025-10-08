@@ -86,6 +86,23 @@ async function main() {
     console.log('ℹ️  Escolaridades já existem no banco de dados.')
   }
 
+  // Inserir status da lista de espera apenas se não existirem
+  const existingStatusListaEspera = await prisma.statusListaEspera.count()
+  if (existingStatusListaEspera === 0) {
+    await prisma.statusListaEspera.createMany({
+      data: [
+        { nome: 'Em Espera' },
+        { nome: 'Em Atendimento' },
+        { nome: 'Recebeu Alta' },
+        { nome: 'Desistente' },
+        { nome: 'Desativado' }
+      ]
+    })
+    console.log('✅ Status da lista de espera inseridos com sucesso!')
+  } else {
+    console.log('ℹ️  Status da lista de espera já existem no banco de dados.')
+  }
+
   // Inserir status de atendimento apenas se não existirem
   const existingStatusAtendimento = await prisma.statusAtendimento.count()
   if (existingStatusAtendimento === 0) {
@@ -94,8 +111,8 @@ async function main() {
         { nome: 'Agendado' },
         { nome: 'Em Andamento' },
         { nome: 'Concluído' },
-        { nome: 'Cancelado' },
-        { nome: 'Faltou' }
+        { nome: 'Faltou' },
+        { nome: 'Cancelado' }
       ]
     })
     console.log('✅ Status de atendimento inseridos com sucesso!')
