@@ -332,7 +332,7 @@ export default function CreateSessionForm() {
               <p className="text-xs text-destructive">{formErrors.id_Lista}</p>
             )}
             <p className="text-xs text-muted-foreground">
-              Apenas pacientes com status "Em Atendimento" são exibidos
+              Apenas pacientes com status "Em Espera" são exibidos
             </p>
           </div>
 
