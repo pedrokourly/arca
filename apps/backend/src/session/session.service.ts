@@ -322,6 +322,9 @@ export class SessionService {
     const overlappingSession = await this.prisma.atendimento.findFirst({
       where: {
         id_Estagiario_Executor: session.id_Estagiario_Executor,
+        NOT: {
+          id_Atendimento: id,
+        },
         OR: [
           {
             dataHoraInicio: {
