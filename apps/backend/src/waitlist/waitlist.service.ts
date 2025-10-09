@@ -15,11 +15,24 @@ export class WaitlistService {
   constructor(private prisma: PrismaService) {}
 
   async create(body: CreateWaitlistDto) {
+
+    // Verifica se há alguma entrada ativa com o mesmo CPF
+    const existingActiveEntry = await this.prisma.listaEspera.findFirst({
+      where: {
+        CPF: body.CPF,
+        id_Status: 1, // Status ativo
+      },
+    });
+
+    console.log(existingActiveEntry);
+    if (existingActiveEntry) throw new BadRequestException('Já existe uma entrada ativa na lista de espera com este CPF. Contate a equipe',);
+
     const newWaitlistEntry = await this.prisma.listaEspera.create({
       data: {
         nomeRegistro: body.nomeRegistro,
         nomeSocial: body.nomeSocial,
         dataNascimento: new Date(body.dataNascimento),
+        CPF: body.CPF,
         telefonePessoal: body.telefonePessoal,
         contatoEmergencia: body.contatoEmergencia,
         enderecoRua: body.enderecoRua,
@@ -29,10 +42,11 @@ export class WaitlistService {
         enderecoEstado: body.enderecoEstado,
         enderecoCEP: body.enderecoCEP,
         id_Genero: body.id_Genero || 1, // Padrão: Masculino
-        id_Etnia: body.id_etnia || 1, // Padrão: Branca
+        id_Etnia: body.id_Etnia || 1, // Padrão: Branca
         id_Escolaridade: body.id_Escolaridade || 1, // Padrão: Ensino Fundamental Incompleto
       },
     });
+    
     return newWaitlistEntry;
   }
 

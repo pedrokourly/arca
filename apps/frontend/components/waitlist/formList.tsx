@@ -59,6 +59,11 @@ const formSchema = z.object({
     })
     .optional()
     .or(z.literal("")),
+  CPF: z
+    .string()
+    .regex(/^\d{11}$/, {
+      message: "CPF deve conter exatamente 11 dígitos.",
+    }),
   dataNascimento: z.date({
     message: "Data de nascimento é obrigatória.",
   }),
@@ -123,7 +128,7 @@ const formSchema = z.object({
     .min(1, {
       message: "Gênero deve ser selecionado.",
     }),
-  id_etnia: z
+  id_Etnia: z
     .number({
       message: "Etnia é obrigatória.",
     })
@@ -148,6 +153,7 @@ export function WaitlistForm() {
     defaultValues: {
       nomeRegistro: "",
       nomeSocial: "",
+      CPF: "",
       telefonePessoal: "",
       contatoEmergencia: "",
       enderecoRua: "",
@@ -157,7 +163,7 @@ export function WaitlistForm() {
       enderecoEstado: "",
       enderecoCEP: "",
       id_Genero: undefined,
-      id_etnia: undefined,
+      id_Etnia: undefined,
       id_Escolaridade: undefined,
     },
   });
@@ -170,6 +176,7 @@ export function WaitlistForm() {
       const payload = {
         nomeRegistro: values.nomeRegistro,
         nomeSocial: values.nomeSocial && values.nomeSocial.trim() !== "" ? values.nomeSocial : undefined,
+        CPF: values.CPF,
         dataNascimento: values.dataNascimento.toISOString().split("T")[0], // Formato YYYY-MM-DD
         telefonePessoal: values.telefonePessoal,
         contatoEmergencia: values.contatoEmergencia,
@@ -180,7 +187,7 @@ export function WaitlistForm() {
         enderecoEstado: values.enderecoEstado.toUpperCase(),
         enderecoCEP: values.enderecoCEP,
         id_Genero: values.id_Genero,
-        id_etnia: values.id_etnia,
+        id_Etnia: values.id_Etnia,
         id_Escolaridade: values.id_Escolaridade,
       };
 
@@ -274,6 +281,32 @@ export function WaitlistForm() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField
                   control={form.control}
+                  name="CPF"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>CPF *</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Digite apenas números"
+                          {...field}
+                          maxLength={11}
+                          onChange={(e) => {
+                            // Remove tudo que não é número
+                            const value = e.target.value.replace(/\D/g, "");
+                            field.onChange(value);
+                          }}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Seu CPF (apenas números, sem pontos ou traços).
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
                   name="dataNascimento"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
@@ -314,7 +347,9 @@ export function WaitlistForm() {
                     </FormItem>
                   )}
                 />
+              </div>
 
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-6">
                   <FormField
                     control={form.control}
@@ -526,7 +561,7 @@ export function WaitlistForm() {
 
                 <FormField
                   control={form.control}
-                  name="id_etnia"
+                  name="id_Etnia"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Etnia *</FormLabel>

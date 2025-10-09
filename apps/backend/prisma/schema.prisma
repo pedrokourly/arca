@@ -27,12 +27,11 @@ model Usuario {
   isActive  Boolean @default(true)
 
   role                      Role               @relation(fields: [roleId], references: [id_Role])
-  documentosUsuario         DocumentoUsuario[] @relation("UsuarioDocumentos")
   logsExecutados            LogAuditoria[]     @relation("UsuarioExecutorLogs")
   atendimentoComoEstagiario Atendimento[]      @relation("EstagiarioAtendimentos")
   atendimentoComoSupervisor Atendimento[]      @relation("SupervisorAtendimentos")
-  relatorioComoEstagiario   RelatorioAlta[]    @relation("EstagiarioRelatorios")
-  relatorioComoSupervisor   RelatorioAlta[]    @relation("SupervisorRelatorios")
+  relatorioComoEstagiario   Prontuario[]    @relation("EstagiarioRelatorios")
+  relatorioComoSupervisor   Prontuario[]    @relation("SupervisorRelatorios")
 
   @@map("USUARIOS")
 }
@@ -50,19 +49,8 @@ model Role {
 // Modelos de Documentos e Logs
 // ===============================================
 
-model DocumentoUsuario {
-  id_Documento   String   @id @default(uuid()) @map("ID_Documento") @db.Uuid
-  id_User        String   @map("ID_User") @db.Uuid
-  nomeArquivo    String   @db.VarChar(100)
-  caminhoArquivo String   @db.VarChar(255)
-  dataUpload     DateTime @default(now())
 
-  usuario Usuario @relation("UsuarioDocumentos", fields: [id_User], references: [id_User], onDelete: Cascade)
-
-  @@map("DOCUMENTOS_USUARIO")
-}
-
-model RelatorioAlta {
+model Prontuario {
   id_Documento  String              @id @default(uuid()) @map("ID_Documento") @db.Uuid
   id_Lista      String              @db.Uuid
   id_Estagiario String              @db.Uuid
@@ -116,6 +104,7 @@ model ListaEspera {
   id_Lista          String   @id @default(uuid()) @map("ID_Lista") @db.Uuid
   nomeRegistro      String   @db.VarChar(150)
   nomeSocial        String?  @db.VarChar(100)
+  CPF               String   @db.Char(11) @default("")
   dataNascimento    DateTime @db.Date
   telefonePessoal   String   @db.VarChar(20)
   contatoEmergencia String   @db.VarChar(20)
@@ -135,7 +124,7 @@ model ListaEspera {
   Etnia         Etnia           @relation(fields: [id_Etnia], references: [id_Etnia])
   escolaridade  Escolaridade    @relation(fields: [id_Escolaridade], references: [id_Escolaridade])
   Status        StatusListaEspera    @relation(fields: [id_Status], references: [id_Status])
-  RelatorioAlta RelatorioAlta[]
+  Prontuario Prontuario[]
   Atendimento   Atendimento[]
 
   @@map("LISTA_ESPERA")

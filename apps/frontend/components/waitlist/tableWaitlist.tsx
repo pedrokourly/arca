@@ -36,6 +36,7 @@ interface WaitlistEntry {
   id_Lista: string;
   nomeRegistro: string;
   nomeSocial?: string;
+  CPF: string;
   dataNascimento: string;
   telefonePessoal: string;
   contatoEmergencia: string;
@@ -48,7 +49,7 @@ interface WaitlistEntry {
   createdAt: string;
   id_Status: number;
   id_Genero: number;
-  id_etnia: number;
+  id_Etnia: number;
   id_Escolaridade: number;
 }
 
@@ -83,6 +84,7 @@ export function WaitlistTable() {
   const [editFormData, setEditFormData] = useState({
     nomeRegistro: "",
     nomeSocial: "",
+    CPF: "",
     telefonePessoal: "",
     contatoEmergencia: "",
     enderecoRua: "",
@@ -104,6 +106,7 @@ export function WaitlistTable() {
     setEditFormData({
       nomeRegistro: entry.nomeRegistro,
       nomeSocial: entry.nomeSocial || "",
+      CPF: entry.CPF,
       telefonePessoal: entry.telefonePessoal,
       contatoEmergencia: entry.contatoEmergencia,
       enderecoRua: entry.enderecoRua,
@@ -126,6 +129,7 @@ export function WaitlistTable() {
       const updateData = {
         nomeRegistro: editFormData.nomeRegistro,
         nomeSocial: editFormData.nomeSocial || undefined,
+        CPF: editFormData.CPF,
         telefonePessoal: editFormData.telefonePessoal,
         contatoEmergencia: editFormData.contatoEmergencia,
         enderecoRua: editFormData.enderecoRua,
@@ -160,6 +164,7 @@ export function WaitlistTable() {
       setEditFormData({
         nomeRegistro: "",
         nomeSocial: "",
+        CPF: "",
         telefonePessoal: "",
         contatoEmergencia: "",
         enderecoRua: "",
@@ -589,6 +594,12 @@ export function WaitlistTable() {
                     </div>
                   )}
                   <div>
+                    <Label className="text-muted-foreground">CPF</Label>
+                    <p className="font-medium font-mono">
+                      {entryToView.CPF.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')}
+                    </p>
+                  </div>
+                  <div>
                     <Label className="text-muted-foreground">Data de Nascimento</Label>
                     <p className="font-medium">
                       {format(new Date(entryToView.dataNascimento), "dd/MM/yyyy", { locale: ptBR })}
@@ -691,6 +702,20 @@ export function WaitlistTable() {
                     placeholder="Opcional"
                   />
                 </div>
+              </div>
+              
+              <div>
+                <Label htmlFor="CPF">CPF</Label>
+                <Input
+                  id="CPF"
+                  value={editFormData.CPF}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, "");
+                    setEditFormData({ ...editFormData, CPF: value });
+                  }}
+                  maxLength={11}
+                  placeholder="Digite apenas números"
+                />
               </div>
             </div>
 

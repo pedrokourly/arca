@@ -42,6 +42,7 @@ interface WaitlistEntry {
   id_Lista: string;
   nomeRegistro: string;
   nomeSocial?: string;
+  CPF: string;
   dataNascimento: string;
   telefonePessoal: string;
   contatoEmergencia: string;
@@ -242,6 +243,12 @@ export function PositionCheck() {
                       <p className="font-medium">{waitlistData.nomeSocial}</p>
                     </div>
                   )}
+                  <div className="p-3 bg-muted/50 rounded-lg">
+                    <span className="text-sm font-medium text-muted-foreground">CPF</span>
+                    <p className="font-medium font-mono">
+                      {waitlistData.CPF.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')}
+                    </p>
+                  </div>
                 </div>
                 <div className="space-y-3">
                   <div className="p-3 bg-muted/50 rounded-lg">
