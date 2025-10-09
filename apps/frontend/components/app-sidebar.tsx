@@ -6,7 +6,8 @@ import {
   ClipboardList,
   ShieldUser,
   Shield,
-  CalendarClock
+  CalendarClock,
+  BookMarked
 } from "lucide-react";
 import { usePermissions } from "@/hooks/usePermissions";
 
@@ -22,7 +23,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { NavSystem } from "./nav-system";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { canAccessUsers, canCreateUsers, canSeeAudit, canSeeNavSystem } = usePermissions();
@@ -62,6 +62,11 @@ const data = {
   },
   navMain: [
     {
+      title: "Agenda",
+      url: "/dashboard/agenda",
+      icon: BookMarked
+    },
+    {
       title: "Lista de Espera",
       url: "#",
       icon: ClipboardList,
@@ -77,15 +82,6 @@ const data = {
         }
       ],
     },
-
-    // Só mostra menu se tiver permissão
-    ...(canAccessUsers() ? [{
-      title: "Usuários",
-      url: "#",
-      icon: ShieldUser,
-      isActive: true,
-      items: getUsersMenuItems(),
-    }] : []),
 
     {
       title: "Atendimentos",
@@ -103,6 +99,14 @@ const data = {
         }
       ],
     },
+
+    ...(canAccessUsers() ? [{
+      title: "Usuários",
+      url: "#",
+      icon: ShieldUser,
+      isActive: true,
+      items: getUsersMenuItems(),
+    }] : []),
   ],
   
   NavSystem: [
@@ -135,12 +139,14 @@ const data = {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
+        {canSeeNavSystem() && (
+          <NavMain 
+            items={data.NavSystem} 
+            label="Sistema"
+            className="group-data-[collapsible=icon]:hidden"
+          />
+        )}
       </SidebarContent>
-      {canSeeNavSystem() && (
-        <SidebarContent>
-          <NavSystem items={data.NavSystem} />
-        </SidebarContent>
-      )}
       <SidebarFooter>
         <NavUser user={data.user} />
       </SidebarFooter>

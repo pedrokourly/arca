@@ -1,0 +1,223 @@
+/* Estilos customizados para react-big-calendar */
+
+/* Customização da toolbar */
+.rbc-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  background-color: #f9fafb;
+  border-radius: 0.5rem 0.5rem 0 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.rbc-toolbar .rbc-toolbar-label {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.rbc-btn-group {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.rbc-btn-group button {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  background-color: white;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.rbc-btn-group button:hover {
+  background-color: #f9fafb;
+}
+
+.rbc-btn-group button:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px #3b82f6;
+}
+
+.rbc-btn-group button.rbc-active {
+  background-color: #2563eb;
+  color: white;
+  border-color: #2563eb;
+}
+
+.rbc-btn-group button.rbc-active:hover {
+  background-color: #1d4ed8;
+}
+
+/* Customização do cabeçalho */
+.rbc-header {
+  padding: 0.75rem 0.5rem;
+  font-weight: 600;
+  color: #374151;
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: center;
+  align-self: center;
+}
+
+/* Customização das células de data */
+.rbc-date-cell {
+  color: #4b5563;
+  font-weight: 500;
+}
+
+.rbc-date-cell.rbc-off-range {
+  color: #9ca3af;
+}
+
+.rbc-date-cell.rbc-now {
+  color: #2563eb;
+  font-weight: 700;
+}
+
+/* Customização dos eventos */
+.rbc-event {
+  border-radius: 0.5rem;
+  border: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease-in-out;
+}
+
+.rbc-event:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.rbc-event.rbc-selected {
+  box-shadow: 0 0 0 2px #3b82f6;
+}
+
+/* Customização do mês */
+.rbc-month-view {
+  border: 1px solid #e5e7eb;
+  border-radius: 0 0 0.5rem 0.5rem;
+  overflow: hidden;
+}
+
+.rbc-month-row {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.rbc-day-bg {
+  transition: background-color 0.2s ease-in-out;
+}
+
+.rbc-day-bg:hover {
+  background-color: #f9fafb;
+}
+
+.rbc-day-bg.rbc-today {
+  background-color: #eff6ff;
+}
+
+.rbc-day-bg.rbc-off-range-bg {
+  background-color: #f3f4f6;
+}
+
+/* Customização da semana e dia */
+.rbc-time-view {
+  border: 1px solid #e5e7eb;
+  border-radius: 0 0 0.5rem 0.5rem;
+  overflow: hidden;
+}
+
+.rbc-time-header {
+  border-bottom: 1px solid #e5e7eb;
+  background-color: #f9fafb;
+}
+
+.rbc-time-content {
+  border-left: 1px solid #e5e7eb;
+}
+
+.rbc-time-slot {
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.rbc-time-slot.rbc-now {
+  background-color: #fefce8;
+}
+
+.rbc-current-time-indicator {
+  background-color: #ef4444;
+}
+
+/* Customização da agenda */
+.rbc-agenda-view {
+  border: 1px solid #e5e7eb;
+  border-radius: 0 0 0.5rem 0.5rem;
+  overflow: hidden;
+}
+
+.rbc-agenda-view table {
+  width: 100%;
+}
+
+.rbc-agenda-view .rbc-agenda-date-cell {
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  color: #374151;
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.rbc-agenda-view .rbc-agenda-time-cell {
+  padding: 0.5rem 1rem;
+  color: #4b5563;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.rbc-agenda-view .rbc-agenda-event-cell {
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+/* Customização do popup */
+.rbc-overlay {
+  background-color: white;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.rbc-overlay-header {
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  color: #1f2937;
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+  border-radius: 0.5rem 0.5rem 0 0;
+}
+
+/* Customização da área selecionável */
+.rbc-slot-selection {
+  background-color: #dbeafe;
+  border: 2px solid #93c5fd;
+  border-radius: 0.25rem;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .rbc-toolbar {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .rbc-toolbar .rbc-toolbar-label {
+    order: -1;
+  }
+  
+  .rbc-btn-group {
+    flex-wrap: wrap;
+  }
+}
