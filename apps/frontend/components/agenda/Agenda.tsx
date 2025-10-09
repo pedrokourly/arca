@@ -605,8 +605,8 @@ const AgendaGeral = () => {
               popup
               step={30}
               timeslots={2}
-              min={new Date(2024, 0, 1, 7, 0, 0)} // 7:00 AM
-              max={new Date(2024, 0, 1, 19, 0, 0)} // 7:00 PM
+              min={new Date(date.getFullYear(), date.getMonth(), date.getDate(), 7, 0, 0)} // 7:00 AM
+              max={new Date(date.getFullYear(), date.getMonth(), date.getDate(), 19, 0, 0)} // 7:00 PM
             />
           </div>
         )}
