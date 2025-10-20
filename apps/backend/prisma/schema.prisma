@@ -26,12 +26,12 @@ model Usuario {
   roleId    Int     @map("ID_Role") @db.SmallInt
   isActive  Boolean @default(true)
 
-  role                      Role               @relation(fields: [roleId], references: [id_Role])
-  logsExecutados            LogAuditoria[]     @relation("UsuarioExecutorLogs")
-  atendimentoComoEstagiario Atendimento[]      @relation("EstagiarioAtendimentos")
-  atendimentoComoSupervisor Atendimento[]      @relation("SupervisorAtendimentos")
-  relatorioComoEstagiario   Prontuario[]    @relation("EstagiarioRelatorios")
-  relatorioComoSupervisor   Prontuario[]    @relation("SupervisorRelatorios")
+  role                      Role           @relation(fields: [roleId], references: [id_Role])
+  logsExecutados            LogAuditoria[] @relation("UsuarioExecutorLogs")
+  atendimentoComoEstagiario Atendimento[]  @relation("EstagiarioAtendimentos")
+  atendimentoComoSupervisor Atendimento[]  @relation("SupervisorAtendimentos")
+  relatorioComoEstagiario   Prontuario[]   @relation("EstagiarioRelatorios")
+  relatorioComoSupervisor   Prontuario[]   @relation("SupervisorRelatorios")
 
   @@map("USUARIOS")
 }
@@ -49,21 +49,22 @@ model Role {
 // Modelos de Documentos e Logs
 // ===============================================
 
-
 model Prontuario {
-  id_Documento  String              @id @default(uuid()) @map("ID_Documento") @db.Uuid
-  id_Lista      String              @db.Uuid
-  id_Estagiario String              @db.Uuid
-  id_Supervisor String              @db.Uuid
-  conteudo      String              @db.Text
-  dataEmissao   DateTime            @default(now())
-  status        StatusRelatorioEnum @default(PENDENTE)
+  id_Registro       String   @id @default(uuid()) @map("ID_Registro") @db.Uuid
+  id_Lista          String   @db.Uuid
+  id_Estagiario     String   @db.Uuid
+  id_Supervisor     String   @db.Uuid
+  conteudo          Json     @db.JsonB
+  dataEmissao       DateTime @default(now())
+  ultimaAtualizacao DateTime @updatedAt
+  id_Status         Int      @default(1) @db.SmallInt
 
-  Lista      ListaEspera @relation(fields: [id_Lista], references: [id_Lista])
-  estagiario Usuario     @relation("EstagiarioRelatorios", fields: [id_Estagiario], references: [id_User])
-  supervisor Usuario     @relation("SupervisorRelatorios", fields: [id_Supervisor], references: [id_User])
+  Lista      ListaEspera      @relation(fields: [id_Lista], references: [id_Lista])
+  estagiario Usuario          @relation("EstagiarioRelatorios", fields: [id_Estagiario], references: [id_User])
+  supervisor Usuario          @relation("SupervisorRelatorios", fields: [id_Supervisor], references: [id_User])
+  status     StatusProntuario @relation(fields: [id_Status], references: [id_Status])
 
-  @@map("RELATORIOS_ALTA")
+  @@map("REGISTRO_CLINICOS")
 }
 
 model LogAuditoria {
@@ -89,8 +90,8 @@ model Atendimento {
   id_Lista               String   @db.Uuid
   id_Estagiario_Executor String   @db.Uuid
   id_Supervisor_Executor String   @db.Uuid
-  id_Status              Int      @db.SmallInt @default(1)
-  observacoes            String?   @db.Text
+  id_Status              Int      @default(1) @db.SmallInt
+  observacoes            String?  @db.Text
 
   ListaEspera        ListaEspera       @relation(fields: [id_Lista], references: [id_Lista], onDelete: Cascade)
   estagiarioExecutor Usuario           @relation("EstagiarioAtendimentos", fields: [id_Estagiario_Executor], references: [id_User])
@@ -104,7 +105,7 @@ model ListaEspera {
   id_Lista          String   @id @default(uuid()) @map("ID_Lista") @db.Uuid
   nomeRegistro      String   @db.VarChar(150)
   nomeSocial        String?  @db.VarChar(100)
-  CPF               String   @db.Char(11) @default("")
+  CPF               String   @default("") @db.Char(11)
   dataNascimento    DateTime @db.Date
   telefonePessoal   String   @db.VarChar(20)
   contatoEmergencia String   @db.VarChar(20)
@@ -120,12 +121,12 @@ model ListaEspera {
   id_Etnia          Int      @db.SmallInt
   id_Escolaridade   Int      @db.SmallInt
 
-  genero        Genero          @relation(fields: [id_Genero], references: [id_Genero])
-  Etnia         Etnia           @relation(fields: [id_Etnia], references: [id_Etnia])
-  escolaridade  Escolaridade    @relation(fields: [id_Escolaridade], references: [id_Escolaridade])
-  Status        StatusListaEspera    @relation(fields: [id_Status], references: [id_Status])
-  Prontuario Prontuario[]
-  Atendimento   Atendimento[]
+  genero       Genero            @relation(fields: [id_Genero], references: [id_Genero])
+  Etnia        Etnia             @relation(fields: [id_Etnia], references: [id_Etnia])
+  escolaridade Escolaridade      @relation(fields: [id_Escolaridade], references: [id_Escolaridade])
+  Status       StatusListaEspera @relation(fields: [id_Status], references: [id_Status])
+  Prontuario   Prontuario[]
+  Atendimento  Atendimento[]
 
   @@map("LISTA_ESPERA")
 }
@@ -162,29 +163,28 @@ model Escolaridade {
 }
 
 model StatusListaEspera {
-  id_Status     Int       @id @default(autoincrement()) @map("ID_Status") @db.SmallInt
-  nome          String    @db.VarChar
+  id_Status Int    @id @default(autoincrement()) @map("ID_Status") @db.SmallInt
+  nome      String @db.VarChar
 
   listaEspera ListaEspera[]
 
   @@map("STATUS_LISTA_ESPERA")
 }
+
 model StatusAtendimento {
-  id_Status    Int           @id @default(autoincrement()) @map("ID_Status") @db.SmallInt
-  nome         String        @db.VarChar
+  id_Status Int    @id @default(autoincrement()) @map("ID_Status") @db.SmallInt
+  nome      String @db.VarChar
 
   atendimentos Atendimento[]
 
   @@map("STATUS_ATENDIMENTO")
 }
 
-// ===============================================
-// Tipos ENUM
-// ===============================================
+model StatusProntuario {
+  id_Status Int    @id @default(autoincrement()) @map("ID_Status") @db.SmallInt
+  nome      String @db.VarChar
 
-enum StatusRelatorioEnum {
-  PENDENTE
-  EMITIDO
-  CANCELADO
-  // Adicione outros status conforme necessário
+  prontuario Prontuario[]
+
+  @@map("STATUS_PRONTUARIO")
 }

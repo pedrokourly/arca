@@ -120,6 +120,23 @@ async function main() {
     console.log('ℹ️  Status de atendimento já existem no banco de dados.')
   }
 
+  // Inserir status de Prontuario apenas se não existirem
+  const existingStatusProntuario = await prisma.statusProntuario.count()
+  if (existingStatusProntuario === 0) {
+    await prisma.statusProntuario.createMany({
+      data: [
+        { nome: 'Pendente' },
+        { nome: 'Anamnese' },
+        { nome: 'Evolucao' },
+        { nome: 'Arquivado' },
+        { nome: 'Alta' }
+      ]
+    })
+    console.log('✅ Status de Prontuario inseridos com sucesso!')
+  } else {
+    console.log('ℹ️  Status de Prontuario já existem no banco de dados.')
+  }
+
   // Inserir usuários padrão para cada tipo de acesso apenas se não existirem
   const usuarios = [
     {
