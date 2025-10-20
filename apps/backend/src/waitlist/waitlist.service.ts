@@ -24,7 +24,6 @@ export class WaitlistService {
       },
     });
 
-    console.log(existingActiveEntry);
     if (existingActiveEntry) throw new BadRequestException('Já existe uma entrada ativa na lista de espera com este CPF. Contate a equipe',);
 
     const newWaitlistEntry = await this.prisma.listaEspera.create({
@@ -67,6 +66,7 @@ export class WaitlistService {
     const waitlistEntry = await this.prisma.listaEspera.findUnique({
       where: { id_Lista: id },
     });
+
     if (!waitlistEntry) {
       throw new NotFoundException('Waitlist entry not found');
     }
