@@ -31,11 +31,6 @@ export class SessionController {
     return this.sessionService.update(id, updateSessionDto, req.user as TokenDto);
   }
 
-  @Patch(':id/status')
-  updateStatus(@Param('id') id: UUID, @Req() req: any, @Body() body: { id_Status: number } ) {
-    return this.sessionService.updateStatus(id, body.id_Status, req.user as TokenDto);
-  }
-
   @Delete(':id')
   remove(@Param('id') id: UUID, @Req() req: any) {
     return this.sessionService.remove(id, req.user as TokenDto);

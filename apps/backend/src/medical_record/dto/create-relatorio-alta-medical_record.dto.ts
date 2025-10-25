@@ -1,10 +1,10 @@
 import { Type } from "class-transformer";
 import { IsNotEmpty,  IsUUID, ValidateNested } from "class-validator";
-import { ConteudoAnamneseDto } from './conteudo-anamnese.dto';
+import { ConteudoEvolucaoDto } from './conteudo-evolucao.dto';
 
 import { UUID } from "node:crypto";
 
-export class CreateProntuarioDto {
+export class CreateEvolucaoProntuarioDto {
   @IsNotEmpty({ message: 'O ID do paciente é obrigatório.' })
   @IsUUID()
   id_Paciente: UUID;
@@ -19,6 +19,6 @@ export class CreateProntuarioDto {
   
   @IsNotEmpty()
   @ValidateNested()
-  @Type(() => ConteudoAnamneseDto)
-  conteudo: ConteudoAnamneseDto;
+  @Type(() => ConteudoEvolucaoDto)
+  conteudo: ConteudoEvolucaoDto;
 }

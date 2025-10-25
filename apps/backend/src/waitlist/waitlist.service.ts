@@ -20,7 +20,7 @@ export class WaitlistService {
     const existingActiveEntry = await this.prisma.listaEspera.findFirst({
       where: {
         CPF: body.CPF,
-        id_Status: 1, // Status ativo
+        id_Status: { in: [1,2,3,4] }, // Em espera, Em triagem, Em psicoterapia
       },
     });
 
@@ -174,7 +174,7 @@ export class WaitlistService {
       const deactivatedEntry = await this.prisma.listaEspera.update({
         where: { id_Lista: id },
         data: {
-          id_Status: 5,
+          id_Status: 6,
         },
       });
 

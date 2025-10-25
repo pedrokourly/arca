@@ -92,9 +92,11 @@ async function main() {
     await prisma.statusListaEspera.createMany({
       data: [
         { nome: 'Em Espera' },
-        { nome: 'Em Atendimento' },
+        { nome: 'Em Triagem' },
+        { nome: 'Triagem aprovada' },
+        { nome: 'Em Psicoterapia' },
         { nome: 'Recebeu Alta' },
-        { nome: 'Desistente' },
+        { nome: 'Encaminhado' },
         { nome: 'Desativado' }
       ]
     })
@@ -111,7 +113,6 @@ async function main() {
         { nome: 'Agendado' },
         { nome: 'Em Andamento' },
         { nome: 'Concluído' },
-        { nome: 'Faltou' },
         { nome: 'Cancelado' }
       ]
     })
@@ -120,21 +121,48 @@ async function main() {
     console.log('ℹ️  Status de atendimento já existem no banco de dados.')
   }
 
+  // Inserir status de atendimento apenas se não existirem
+  const existingTipoAtendimento = await prisma.tipoAtendimento.count()
+  if (existingTipoAtendimento === 0) {
+    await prisma.tipoAtendimento.createMany({
+      data: [
+        { nome: 'Triagem' },
+        { nome: 'Psicoterapia' }
+      ]
+    })
+    console.log('✅ Tipo de atendimento inseridos com sucesso!')
+  } else {
+    console.log('ℹ️  Tipo de atendimento já existem no banco de dados.')
+  }
+
   // Inserir status de Prontuario apenas se não existirem
   const existingStatusProntuario = await prisma.statusProntuario.count()
   if (existingStatusProntuario === 0) {
     await prisma.statusProntuario.createMany({
       data: [
-        { nome: 'Pendente' },
-        { nome: 'Anamnese' },
-        { nome: 'Evolucao' },
-        { nome: 'Arquivado' },
-        { nome: 'Alta' }
+        { nome: 'Em aprovação' },
+        { nome: 'Aprovado' }
       ]
     })
     console.log('✅ Status de Prontuario inseridos com sucesso!')
   } else {
     console.log('ℹ️  Status de Prontuario já existem no banco de dados.')
+  }
+
+  // Inserir Tipo de Prontuario apenas se não existirem
+  const existingTipoProntuario = await prisma.tipoProntuario.count()
+  if (existingTipoProntuario === 0) {
+    await prisma.tipoProntuario.createMany({
+      data: [
+        { nome: 'Triagem' },
+        { nome: 'Evolucao' },
+        { nome: 'Alta' },
+        { nome: 'Encaminhamento' }
+      ]
+    })
+    console.log('✅ Tipos de Prontuario inseridos com sucesso!')
+  } else {
+    console.log('ℹ️  Tipos de Prontuario já existem no banco de dados.')
   }
 
   // Inserir usuários padrão para cada tipo de acesso apenas se não existirem
