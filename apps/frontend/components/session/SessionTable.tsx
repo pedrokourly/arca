@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "../ui/button";
-import { Edit, Trash2, Eye, Search, Filter, X, Calendar, Clock, User, UserCheck, RotateCcw } from "lucide-react";
+import { Edit, Trash2, Eye, Search, Filter, X, Calendar, Clock, User, UserCheck } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -40,12 +40,14 @@ interface SessionEntry {
   id_Estagiario_Executor: string;
   id_Supervisor_Executor: string;
   id_Status: number;
+  id_Tipo_Atendimento: number;
   observacoes?: string;
   ListaEspera?: {
     id_Lista: string;
     nomeRegistro: string;
     nomeSocial?: string;
     telefonePessoal: string;
+    id_Status: number;
   };
   estagiarioExecutor?: {
     id_User: string;
@@ -61,6 +63,10 @@ interface SessionEntry {
     id_Status: number;
     nome: string;
   };
+  tipoAtendimento?: {
+    id_Tipo_Atendimento: number;
+    nome: string;
+  };
 }
 
 // Mapeamento dos status de atendimento
@@ -68,8 +74,13 @@ const STATUS_MAP = {
   1: { label: 'Agendado', variant: 'secondary' as const, color: 'bg-blue-100 text-blue-800' },
   2: { label: 'Em Andamento', variant: 'default' as const, color: 'bg-green-100 text-green-800' },
   3: { label: 'Concluído', variant: 'outline' as const, color: 'bg-gray-100 text-gray-800' },
-  4: { label: 'Faltou', variant: 'destructive' as const, color: 'bg-orange-100 text-orange-800' },
-  5: { label: 'Cancelado', variant: 'destructive' as const, color: 'bg-red-100 text-red-800' }
+  4: { label: 'Cancelado', variant: 'destructive' as const, color: 'bg-red-100 text-red-800' }
+};
+
+// Mapeamento dos tipos de atendimento
+const TIPO_ATENDIMENTO_MAP = {
+  1: { label: 'Triagem', variant: 'default' as const, color: 'bg-blue-100 text-blue-800' },
+  2: { label: 'Psicoterapia', variant: 'secondary' as const, color: 'bg-purple-100 text-purple-800' }
 };
 
 export default function SessionTable() {
@@ -81,7 +92,8 @@ export default function SessionTable() {
 
   // Estados para filtros e pesquisa
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"all" | "1" | "2" | "3" | "4" | "5">("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | "1" | "2" | "3" | "4">("all");
+  const [tipoFilter, setTipoFilter] = useState<"all" | "1" | "2">("all");
   const [dateFilter, setDateFilter] = useState<"all" | "today" | "week" | "month">("all");
   const [filteredEntries, setFilteredEntries] = useState<SessionEntry[]>([]);
 
@@ -102,12 +114,6 @@ export default function SessionTable() {
   // Estados para visualização detalhada
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [sessionToView, setSessionToView] = useState<SessionEntry | null>(null);
-
-  // Estados para mudança de status
-  const [statusDialogOpen, setStatusDialogOpen] = useState(false);
-  const [sessionToUpdateStatus, setSessionToUpdateStatus] = useState<SessionEntry | null>(null);
-  const [newStatus, setNewStatus] = useState<string>("");
-  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   // Função para abrir dialog de edição
   const handleEditClick = (sessionEntry: SessionEntry) => {
@@ -184,59 +190,6 @@ export default function SessionTable() {
     }
   };
 
-  // Função para abrir dialog de mudança de status
-  const handleStatusChangeClick = (sessionEntry: SessionEntry) => {
-    setSessionToUpdateStatus(sessionEntry);
-    setNewStatus(sessionEntry.id_Status.toString());
-    setStatusDialogOpen(true);
-  };
-
-  // Função para atualizar status da sessão
-  const handleUpdateStatus = async () => {
-    if (!sessionToUpdateStatus || !newStatus) return;
-
-    const statusId = parseInt(newStatus);
-    if (statusId === sessionToUpdateStatus.id_Status) {
-      toast.info("Status não foi alterado");
-      setStatusDialogOpen(false);
-      return;
-    }
-
-    setIsUpdatingStatus(true);
-    try {
-      await apiRequest(`${API_ENDPOINTS.sessions}/${sessionToUpdateStatus.id_Atendimento}/status`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session?.token}`,
-        },
-        body: JSON.stringify({ id_Status: statusId }),
-      });
-      
-      // Atualiza a lista local
-      setSessionEntries(entries => 
-        entries.map(entry => 
-          entry.id_Atendimento === sessionToUpdateStatus.id_Atendimento 
-            ? { ...entry, id_Status: statusId } 
-            : entry
-        )
-      );
-      
-      toast.success(`Status alterado para "${STATUS_MAP[statusId as keyof typeof STATUS_MAP]?.label}" com sucesso!`);
-      
-      // Fecha o dialog
-      setStatusDialogOpen(false);
-      setSessionToUpdateStatus(null);
-      setNewStatus("");
-    } catch (error) {
-      console.error("Erro ao atualizar status:", error);
-      const { title, description } = getErrorMessage(error);
-      toast.error(title, { description });
-    } finally {
-      setIsUpdatingStatus(false);
-    }
-  };
-
   // Função para abrir dialog de exclusão
   const handleDeleteClick = (sessionEntry: SessionEntry) => {
     setSessionToDelete(sessionEntry);
@@ -259,7 +212,7 @@ export default function SessionTable() {
       setSessionEntries(entries => 
         entries.map(entry => 
           entry.id_Atendimento === sessionToDelete.id_Atendimento 
-            ? { ...entry, id_Status: 5 } 
+            ? { ...entry, id_Status: 4 } 
             : entry
         )
       );
@@ -297,6 +250,12 @@ export default function SessionTable() {
     if (statusFilter !== "all") {
       const statusId = parseInt(statusFilter);
       filtered = filtered.filter(entry => entry.id_Status === statusId);
+    }
+
+    // Filtro por tipo
+    if (tipoFilter !== "all") {
+      const tipoId = parseInt(tipoFilter);
+      filtered = filtered.filter(entry => entry.id_Tipo_Atendimento === tipoId);
     }
 
     // Filtro por data
@@ -341,6 +300,7 @@ export default function SessionTable() {
   const clearFilters = () => {
     setSearchTerm("");
     setStatusFilter("all");
+    setTipoFilter("all");
     setDateFilter("all");
   };
 
@@ -377,7 +337,7 @@ export default function SessionTable() {
   // useEffect para aplicar filtros quando dados ou filtros mudam
   useEffect(() => {
     filterSessions();
-  }, [sessionEntries, searchTerm, statusFilter, dateFilter]);
+  }, [sessionEntries, searchTerm, statusFilter, tipoFilter, dateFilter]);
 
   // Skeleton para carregamento da sessão
   if (status === "loading") {
@@ -406,6 +366,7 @@ export default function SessionTable() {
           <TableHeader>
             <TableRow>
               <TableHead>Paciente</TableHead>
+              <TableHead>Tipo</TableHead>
               <TableHead>Data e Hora</TableHead>
               <TableHead>Duração</TableHead>
               <TableHead>Estagiário</TableHead>
@@ -418,6 +379,7 @@ export default function SessionTable() {
             {Array.from({ length: 5 }).map((_, index) => (
               <TableRow key={index}>
                 <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                <TableCell><Skeleton className="h-6 w-16 rounded-full" /></TableCell>
                 <TableCell><Skeleton className="h-4 w-24" /></TableCell>
                 <TableCell><Skeleton className="h-4 w-16" /></TableCell>
                 <TableCell><Skeleton className="h-4 w-28" /></TableCell>
@@ -463,7 +425,7 @@ export default function SessionTable() {
         </div>
         
         <div className="flex flex-col sm:flex-row gap-2">
-          <Select value={statusFilter} onValueChange={(value: "all" | "1" | "2" | "3" | "4" | "5") => setStatusFilter(value)}>
+          <Select value={statusFilter} onValueChange={(value: "all" | "1" | "2" | "3" | "4") => setStatusFilter(value)}>
             <SelectTrigger className="w-full sm:w-[160px]">
               <Filter className="h-4 w-4 mr-2" />
               <SelectValue placeholder="Status" />
@@ -473,8 +435,19 @@ export default function SessionTable() {
               <SelectItem value="1">Agendado</SelectItem>
               <SelectItem value="2">Em Andamento</SelectItem>
               <SelectItem value="3">Concluído</SelectItem>
-              <SelectItem value="4">Faltou</SelectItem>
-              <SelectItem value="5">Cancelado</SelectItem>
+              <SelectItem value="4">Cancelado</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <Select value={tipoFilter} onValueChange={(value: "all" | "1" | "2") => setTipoFilter(value)}>
+            <SelectTrigger className="w-full sm:w-[160px]">
+              <Filter className="h-4 w-4 mr-2" />
+              <SelectValue placeholder="Tipo" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os tipos</SelectItem>
+              <SelectItem value="1">Triagem</SelectItem>
+              <SelectItem value="2">Psicoterapia</SelectItem>
             </SelectContent>
           </Select>
           
@@ -491,7 +464,7 @@ export default function SessionTable() {
             </SelectContent>
           </Select>
           
-          {(searchTerm || statusFilter !== "all" || dateFilter !== "all") && (
+          {(searchTerm || statusFilter !== "all" || tipoFilter !== "all" || dateFilter !== "all") && (
             <Button
               variant="outline"
               size="sm"
@@ -520,10 +493,13 @@ export default function SessionTable() {
           Concluído: <span className="font-medium text-gray-600">{sessionEntries.filter(e => e.id_Status === 3).length}</span>
         </span>
         <span>
-          Faltou: <span className="font-medium text-orange-600">{sessionEntries.filter(e => e.id_Status === 4).length}</span>
+          Cancelado: <span className="font-medium text-red-600">{sessionEntries.filter(e => e.id_Status === 4).length}</span>
         </span>
-        <span>
-          Cancelado: <span className="font-medium text-red-600">{sessionEntries.filter(e => e.id_Status === 5).length}</span>
+        <span className="text-blue-600">
+          Triagem: <span className="font-medium">{sessionEntries.filter(e => e.id_Tipo_Atendimento === 1).length}</span>
+        </span>
+        <span className="text-purple-600">
+          Psicoterapia: <span className="font-medium">{sessionEntries.filter(e => e.id_Tipo_Atendimento === 2).length}</span>
         </span>
         {filteredEntries.length !== sessionEntries.length && (
           <span>
@@ -554,7 +530,7 @@ export default function SessionTable() {
         <TableBody>
           {filteredEntries.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+              <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
                 {sessionEntries.length === 0 
                   ? "Nenhuma sessão encontrada."
                   : "Nenhuma sessão encontrada com os filtros aplicados."
@@ -571,6 +547,14 @@ export default function SessionTable() {
                     <p className="text-sm text-muted-foreground">({sessionEntry.ListaEspera.nomeSocial})</p>
                   )}
                 </div>
+              </TableCell>
+              <TableCell>
+                <Badge 
+                  variant={TIPO_ATENDIMENTO_MAP[sessionEntry.id_Tipo_Atendimento as keyof typeof TIPO_ATENDIMENTO_MAP]?.variant || "secondary"}
+                  className="text-xs"
+                >
+                  {TIPO_ATENDIMENTO_MAP[sessionEntry.id_Tipo_Atendimento as keyof typeof TIPO_ATENDIMENTO_MAP]?.label || `Tipo ${sessionEntry.id_Tipo_Atendimento}`}
+                </Badge>
               </TableCell>
               <TableCell>
                 <div className="space-y-1">
@@ -620,7 +604,7 @@ export default function SessionTable() {
                   >
                     <Eye className="h-4 w-4" />
                   </Button>
-                  {sessionEntry.id_Status !== 5 && ( // Não pode editar sessão cancelada
+                  {sessionEntry.id_Status !== 4 && ( // Não pode editar sessão cancelada
                     <Button
                       variant="outline"
                       size="sm"
@@ -629,17 +613,6 @@ export default function SessionTable() {
                       title="Editar"
                     >
                       <Edit className="h-4 w-4" />
-                    </Button>
-                  )}
-                  {(sessionEntry.id_Status === 1 || sessionEntry.id_Status === 2) && ( // Pode alterar status se agendado ou em andamento
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleStatusChangeClick(sessionEntry)}
-                      className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                      title="Alterar Status"
-                    >
-                      <RotateCcw className="h-4 w-4" />
                     </Button>
                   )}
                   {sessionEntry.id_Status === 1 && ( // Só pode cancelar sessão agendada
@@ -714,6 +687,17 @@ export default function SessionTable() {
                         className="text-xs"
                       >
                         {STATUS_MAP[sessionToView.id_Status as keyof typeof STATUS_MAP]?.label || `Status ${sessionToView.id_Status}`}
+                      </Badge>
+                    </div>
+                  </div>
+                  <div>
+                    <Label className="text-muted-foreground">Tipo de Atendimento</Label>
+                    <div>
+                      <Badge 
+                        variant={TIPO_ATENDIMENTO_MAP[sessionToView.id_Tipo_Atendimento as keyof typeof TIPO_ATENDIMENTO_MAP]?.variant || "secondary"}
+                        className="text-xs"
+                      >
+                        {TIPO_ATENDIMENTO_MAP[sessionToView.id_Tipo_Atendimento as keyof typeof TIPO_ATENDIMENTO_MAP]?.label || `Tipo ${sessionToView.id_Tipo_Atendimento}`}
                       </Badge>
                     </div>
                   </div>
@@ -857,86 +841,6 @@ export default function SessionTable() {
               disabled={isUpdating || !editFormData.dataHoraInicio || !editFormData.dataHoraFim}
             >
               {isUpdating ? "Salvando..." : "Salvar Alterações"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Dialog de mudança de status */}
-      <Dialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
-        <DialogContent className="sm:max-w-[400px]">
-          <DialogHeader>
-            <DialogTitle>Alterar Status da Sessão</DialogTitle>
-            <DialogDescription>
-              Selecione o novo status para a sessão com <strong>{sessionToUpdateStatus?.ListaEspera?.nomeRegistro}</strong>.
-            </DialogDescription>
-          </DialogHeader>
-          {sessionToUpdateStatus && (
-            <div className="space-y-4">
-              <div className="p-3 bg-muted/50 rounded-lg">
-                <h4 className="font-medium text-sm mb-2">Informações da Sessão:</h4>
-                <div className="space-y-1 text-sm text-muted-foreground">
-                  <p>• <strong>Data:</strong> {format(new Date(sessionToUpdateStatus.dataHoraInicio), "dd/MM/yyyy", { locale: ptBR })}</p>
-                  <p>• <strong>Horário:</strong> {format(new Date(sessionToUpdateStatus.dataHoraInicio), "HH:mm", { locale: ptBR })} às {format(new Date(sessionToUpdateStatus.dataHoraFim), "HH:mm", { locale: ptBR })}</p>
-                  <p>• <strong>Status Atual:</strong> 
-                    <Badge className="ml-2" variant={STATUS_MAP[sessionToUpdateStatus.id_Status as keyof typeof STATUS_MAP]?.variant || "secondary"}>
-                      {STATUS_MAP[sessionToUpdateStatus.id_Status as keyof typeof STATUS_MAP]?.label || `Status ${sessionToUpdateStatus.id_Status}`}
-                    </Badge>
-                  </p>
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="newStatus">Novo Status</Label>
-                <Select
-                  value={newStatus}
-                  onValueChange={setNewStatus}
-                  disabled={isUpdatingStatus}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o novo status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="2">Em Andamento</SelectItem>
-                    <SelectItem value="3">Concluído</SelectItem>
-                    <SelectItem value="4">Faltou</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              {newStatus && parseInt(newStatus) !== sessionToUpdateStatus.id_Status && (
-                <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                  <p className="text-sm text-blue-800">
-                    <strong>Alteração:</strong> {STATUS_MAP[sessionToUpdateStatus.id_Status as keyof typeof STATUS_MAP]?.label} → {STATUS_MAP[parseInt(newStatus) as keyof typeof STATUS_MAP]?.label}
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-          <DialogFooter>
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setStatusDialogOpen(false);
-                setSessionToUpdateStatus(null);
-                setNewStatus("");
-              }}
-              disabled={isUpdatingStatus}
-            >
-              Cancelar
-            </Button>
-            <Button 
-              onClick={handleUpdateStatus}
-              disabled={isUpdatingStatus || !newStatus || parseInt(newStatus) === sessionToUpdateStatus?.id_Status}
-            >
-              {isUpdatingStatus ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Atualizando...
-                </>
-              ) : (
-                "Alterar Status"
-              )}
             </Button>
           </DialogFooter>
         </DialogContent>

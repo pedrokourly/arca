@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, CalendarIcon, Clock, User, UserCheck, Users } from "lucide-react";
+import { Badge, Calendar, CalendarIcon, Clock, User, UserCheck, Users } from "lucide-react";
 import { toast } from "sonner";
 import { usePermissions } from "@/hooks/usePermissions";
 import { API_ENDPOINTS, apiRequest } from "@/utils/apiHandler";
@@ -30,6 +30,10 @@ const createSessionSchema = z.object({
     .string()
     .uuid("ID da lista deve ser um UUID válido")
     .min(1, "Paciente é obrigatório"),
+  id_Tipo_Atendimento: z
+    .number()
+    .min(1, "Tipo de atendimento é obrigatório")
+    .max(2, "Tipo de atendimento inválido"),
   id_Estagiario_Executor: z
     .string()
     .uuid("ID do estagiário deve ser um UUID válido")
@@ -53,6 +57,7 @@ interface CreateSessionData {
   dataHoraInicio: Date | null;
   dataHoraFim: Date | null;
   id_Lista: string;
+  id_Tipo_Atendimento: number;
   id_Estagiario_Executor: string;
   id_Supervisor_Executor: string;
   observacoes: string;
@@ -78,6 +83,23 @@ type CreateSessionFormErrors = {
   [K in keyof CreateSessionData]?: string;
 };
 
+// Mapeamento dos tipos de atendimento
+const TIPO_ATENDIMENTO_MAP = {
+  1: { label: 'Triagem', variant: 'default' as const, color: 'bg-blue-100 text-blue-800' },
+  2: { label: 'Psicoterapia', variant: 'secondary' as const, color: 'bg-purple-100 text-purple-800' }
+};
+
+// Mapeamento dos status da lista de espera
+const STATUS_MAP_WAITLIST = {
+  1: { label: 'Em Espera', variant: 'secondary' as const },
+  2: { label: 'Em Triagem', variant: 'default' as const },
+  3: { label: 'Triagem Aprovada', variant: 'default' as const },
+  4: { label: 'Em Psicoterapia', variant: 'default' as const },
+  5: { label: 'Recebeu Alta', variant: 'outline' as const },
+  6: { label: 'Encaminhado', variant: 'outline' as const },
+  7: { label: 'Desativado', variant: 'destructive' as const }
+};
+
 export default function CreateSessionForm() {
   const router = useRouter();
   const { data: session } = useSession();
@@ -88,6 +110,7 @@ export default function CreateSessionForm() {
     dataHoraInicio: null,
     dataHoraFim: null,
     id_Lista: "",
+    id_Tipo_Atendimento: 1, // Default para triagem
     id_Estagiario_Executor: "",
     id_Supervisor_Executor: "",
     observacoes: ""
@@ -114,7 +137,7 @@ export default function CreateSessionForm() {
       
       setIsLoadingData(true);
       try {
-        // Carregar lista de espera (apenas status "Em Atendimento")
+        // Carregar lista de espera (filtrada por status baseado no tipo de atendimento)
         const waitlistPromise = apiRequest(API_ENDPOINTS.waitlist, {
           headers: { Authorization: `Bearer ${session.token}` },
         });
@@ -126,9 +149,8 @@ export default function CreateSessionForm() {
 
         const [waitlistData, usersData] = await Promise.all([waitlistPromise, usersPromise]);
 
-        // Filtrar lista de espera para mostrar apenas pacientes "Em Atendimento" (status 2)
-        const filteredWaitlist = waitlistData.filter((entry: WaitlistEntry) => entry.id_Status === 1);
-        setWaitlistEntries(filteredWaitlist);
+        // Definir lista completa de espera para filtrar posteriormente baseado no tipo
+        setWaitlistEntries(waitlistData);
 
         // Separar usuários por função
         setEstagiarios(usersData.filter((user: User) => user.roleId === 4)); // Estagiários
@@ -146,6 +168,21 @@ export default function CreateSessionForm() {
     loadData();
   }, [session]);
 
+  // Filtrar pacientes baseado no tipo de atendimento selecionado
+  const getFilteredWaitlist = () => {
+    if (!waitlistEntries) return [];
+    
+    if (formData.id_Tipo_Atendimento === 1) {
+      // Triagem: apenas pacientes "Em Espera" (status 1)
+      return waitlistEntries.filter(entry => entry.id_Status === 1);
+    } else if (formData.id_Tipo_Atendimento === 2) {
+      // Psicoterapia: pacientes com "Triagem aprovada" (status 3) ou "Em Psicoterapia" (status 4)
+      return waitlistEntries.filter(entry => entry.id_Status === 3 || entry.id_Status === 4);
+    }
+    
+    return [];
+  };
+
   const handleInputChange = (field: keyof CreateSessionData, value: any) => {
     setFormData(prev => ({
       ...prev,
@@ -158,6 +195,16 @@ export default function CreateSessionForm() {
         ...prev,
         [field]: undefined
       }));
+    }
+
+    // Se mudou o tipo de atendimento, limpar seleção de paciente
+    if (field === 'id_Tipo_Atendimento') {
+      setFormData(prev => ({
+        ...prev,
+        id_Lista: "", // Reset paciente quando muda o tipo
+        [field]: value
+      }));
+      return;
     }
 
     // Se mudou a data/hora de início, ajustar automaticamente o fim para 1 hora depois
@@ -214,6 +261,7 @@ export default function CreateSessionForm() {
         dataHoraInicio: formData.dataHoraInicio!.toISOString(),
         dataHoraFim: formData.dataHoraFim!.toISOString(),
         id_Lista: formData.id_Lista,
+        id_Tipo_Atendimento: formData.id_Tipo_Atendimento,
         id_Estagiario_Executor: formData.id_Estagiario_Executor,
         id_Supervisor_Executor: formData.id_Supervisor_Executor,
         observacoes: formData.observacoes || undefined,
@@ -228,8 +276,11 @@ export default function CreateSessionForm() {
         body: JSON.stringify(sessionData),
       });
       
-      toast.success("Sessão agendada com sucesso!");
-      router.push("/dashboard/sessoes"); // Ajustar para a rota correta
+      toast.success("Sessão agendada com sucesso!", {
+        description: `${TIPO_ATENDIMENTO_MAP[formData.id_Tipo_Atendimento as keyof typeof TIPO_ATENDIMENTO_MAP]?.label} agendada para ${format(formData.dataHoraInicio!, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`,
+      });
+      
+      router.push("/dashboard/atendimento"); // Ajustar para a rota correta
       
     } catch (error: any) {
       console.error("Erro ao criar sessão:", error);
@@ -293,6 +344,36 @@ export default function CreateSessionForm() {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Seleção do Tipo de Atendimento */}
+          <div className="space-y-2">
+            <Label htmlFor="id_Tipo_Atendimento" className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              Tipo de Atendimento <span className="text-destructive">*</span>
+            </Label>
+            <Select
+              value={formData.id_Tipo_Atendimento.toString()}
+              onValueChange={(value) => handleInputChange("id_Tipo_Atendimento", parseInt(value))}
+              disabled={isLoading}
+            >
+              <SelectTrigger className={formErrors.id_Tipo_Atendimento ? "border-destructive" : ""}>
+                <SelectValue placeholder="Selecione o tipo de atendimento" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">Triagem</SelectItem>
+                <SelectItem value="2">Psicoterapia</SelectItem>
+              </SelectContent>
+            </Select>
+            {formErrors.id_Tipo_Atendimento && (
+              <p className="text-xs text-destructive">{formErrors.id_Tipo_Atendimento}</p>
+            )}
+            <p className="text-xs text-muted-foreground">
+              {formData.id_Tipo_Atendimento === 1 
+                ? "Triagem: primeira avaliação para pacientes em espera"
+                : "Psicoterapia: sessões de acompanhamento para pacientes com triagem aprovada"
+              }
+            </p>
+          </div>
+
           {/* Seleção do Paciente */}
           <div className="space-y-2">
             <Label htmlFor="id_Lista" className="flex items-center gap-2">
@@ -308,20 +389,28 @@ export default function CreateSessionForm() {
                 <SelectValue placeholder="Selecione um paciente" />
               </SelectTrigger>
               <SelectContent>
-                {waitlistEntries.length === 0 ? (
+                {getFilteredWaitlist().length === 0 ? (
                   <SelectItem value="no-patients" disabled>
-                    Nenhum paciente disponível
+                    {formData.id_Tipo_Atendimento === 1
+                      ? "Nenhum paciente em espera disponível para triagem"
+                      : "Nenhum paciente com triagem aprovada disponível para psicoterapia"
+                    }
                   </SelectItem>
                 ) : (
-                  waitlistEntries.map((patient) => (
+                  getFilteredWaitlist().map((patient) => (
                     <SelectItem key={patient.id_Lista} value={patient.id_Lista}>
-                      <div className="flex flex-col">
-                        <span>{patient.nomeRegistro}</span>
-                        {patient.nomeSocial && (
-                          <span className="text-xs text-muted-foreground">
-                            ({patient.nomeSocial})
-                          </span>
-                        )}
+                      <div className="flex items-center gap-2">
+                        <div className="flex flex-col">
+                          <span>{patient.nomeRegistro}</span>
+                          {patient.nomeSocial && (
+                            <span className="text-xs text-muted-foreground">
+                              ({patient.nomeSocial})
+                            </span>
+                          )}
+                        </div>
+                        <Badge className="text-xs">
+                          {STATUS_MAP_WAITLIST[patient.id_Status as keyof typeof STATUS_MAP_WAITLIST]?.label}
+                        </Badge>
                       </div>
                     </SelectItem>
                   ))
@@ -332,7 +421,10 @@ export default function CreateSessionForm() {
               <p className="text-xs text-destructive">{formErrors.id_Lista}</p>
             )}
             <p className="text-xs text-muted-foreground">
-              Apenas pacientes com status "Em Espera" são exibidos
+              {formData.id_Tipo_Atendimento === 1
+                ? "Apenas pacientes em espera são exibidos para triagem"
+                : "Apenas pacientes com triagem aprovada ou em psicoterapia são exibidos"
+              }
             </p>
           </div>
 
@@ -576,7 +668,10 @@ export default function CreateSessionForm() {
                 <p>• <strong>Horário:</strong> {format(formData.dataHoraInicio, "HH:mm", { locale: ptBR })} às {format(formData.dataHoraFim, "HH:mm", { locale: ptBR })}</p>
                 <p>• <strong>Duração:</strong> {getDuration()}</p>
                 {formData.id_Lista && (
-                  <p>• <strong>Paciente:</strong> {waitlistEntries.find(p => p.id_Lista === formData.id_Lista)?.nomeRegistro || "Selecionado"}</p>
+                  <p>• <strong>Paciente:</strong> {getFilteredWaitlist().find(p => p.id_Lista === formData.id_Lista)?.nomeRegistro || "Selecionado"}</p>
+                )}
+                {formData.id_Tipo_Atendimento && (
+                  <p>• <strong>Tipo:</strong> {TIPO_ATENDIMENTO_MAP[formData.id_Tipo_Atendimento as keyof typeof TIPO_ATENDIMENTO_MAP]?.label}</p>
                 )}
                 {formData.id_Estagiario_Executor && (
                   <p>• <strong>Estagiário:</strong> {estagiarios.find(e => e.id_User === formData.id_Estagiario_Executor)?.nome || "Selecionado"}</p>
@@ -600,7 +695,7 @@ export default function CreateSessionForm() {
             </Button>
             <Button
               type="submit"
-              disabled={isLoading || waitlistEntries.length === 0 || estagiarios.length === 0 || supervisores.length === 0}
+              disabled={isLoading || getFilteredWaitlist().length === 0 || estagiarios.length === 0 || supervisores.length === 0}
               className="flex items-center gap-2"
             >
               {isLoading ? (

@@ -160,14 +160,4 @@ export const apiService = {
         'Authorization': `Bearer ${token}`
       },
     }),
-
-  updateSessionStatus: (sessionId: string, statusId: number, token: string) =>
-    apiRequest(`${API_ENDPOINTS.sessions}/${sessionId}/status`, {
-      method: 'PATCH',
-      headers: { 
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ id_Status: statusId }),
-    }),
 };
