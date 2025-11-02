@@ -7,7 +7,8 @@ import {
   ShieldUser,
   Shield,
   CalendarClock,
-  BookMarked
+  BookMarked,
+  ArrowUpNarrowWide
 } from "lucide-react";
 import { usePermissions } from "@/hooks/usePermissions";
 
@@ -65,6 +66,11 @@ const data = {
       title: "Agenda",
       url: "/dashboard/agenda",
       icon: BookMarked
+    },
+    {
+      title: "Fluxo de Atendimento",
+      url: "/dashboard/fluxo-atendimento",
+      icon: ArrowUpNarrowWide
     },
     {
       title: "Lista de Espera",

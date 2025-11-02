@@ -15,16 +15,18 @@ export class WaitlistService {
   constructor(private prisma: PrismaService) {}
 
   async create(body: CreateWaitlistDto) {
-
     // Verifica se há alguma entrada ativa com o mesmo CPF
     const existingActiveEntry = await this.prisma.listaEspera.findFirst({
       where: {
         CPF: body.CPF,
-        id_Status: { in: [1,2,3,4] }, // Em espera, Em triagem, Em psicoterapia
+        id_Status: { in: [1, 2, 3, 4] }, // Em espera, Em triagem, Em psicoterapia
       },
     });
 
-    if (existingActiveEntry) throw new BadRequestException('Já existe uma entrada ativa na lista de espera com este CPF. Contate a equipe',);
+    if (existingActiveEntry)
+      throw new BadRequestException(
+        'Já existe uma entrada ativa na lista de espera com este CPF. Contate a equipe',
+      );
 
     const newWaitlistEntry = await this.prisma.listaEspera.create({
       data: {
@@ -45,7 +47,7 @@ export class WaitlistService {
         id_Escolaridade: body.id_Escolaridade || 1, // Padrão: Ensino Fundamental Incompleto
       },
     });
-    
+
     return newWaitlistEntry;
   }
 
@@ -60,7 +62,7 @@ export class WaitlistService {
 
   async findOne(id: UUID) {
     if (!isUUID(id)) {
-      throw new BadRequestException('Invalid UUID format');
+      throw new BadRequestException('Formato de UUID inválido.');
     }
 
     const waitlistEntry = await this.prisma.listaEspera.findUnique({
@@ -68,7 +70,7 @@ export class WaitlistService {
     });
 
     if (!waitlistEntry) {
-      throw new NotFoundException('Waitlist entry not found');
+      throw new NotFoundException('Paciente não encontrado na lista de espera.');
     }
 
     // Calcular a posição na lista
@@ -78,7 +80,7 @@ export class WaitlistService {
         createdAt: {
           lt: waitlistEntry.createdAt, // Criadas antes desta entrada
         },
-        id_Status: 1,                  // Apenas pessoas ativas
+        id_Status: 1, // Apenas pessoas ativas
       },
     });
 
@@ -126,7 +128,7 @@ export class WaitlistService {
 
   async update(id: UUID, body: UpdateWaitlistDto) {
     if (!isUUID(id)) {
-      throw new BadRequestException('Invalid UUID format');
+      throw new BadRequestException('Formato de UUID inválido.');
     }
 
     const waitlistEntry = await this.prisma.listaEspera.findUnique({
@@ -134,7 +136,7 @@ export class WaitlistService {
     });
 
     if (!waitlistEntry) {
-      throw new NotFoundException('Waitlist entry not found');
+      throw new NotFoundException('Paciente não encontrado na lista de espera.');
     }
 
     try {
@@ -151,7 +153,7 @@ export class WaitlistService {
       return updatedWaitlistEntry;
     } catch (error) {
       throw new InternalServerErrorException(
-        'Error updating waitlist entry',
+        'Erro ao atualizar os dados do paciente.',
         error.message,
       );
     }
@@ -159,7 +161,7 @@ export class WaitlistService {
 
   async remove(id: UUID) {
     if (!isUUID(id)) {
-      throw new BadRequestException('Invalid UUID format');
+      throw new BadRequestException('Formato de UUID inválido.');
     }
 
     const waitlistEntry = await this.prisma.listaEspera.findUnique({
@@ -167,21 +169,51 @@ export class WaitlistService {
     });
 
     if (!waitlistEntry) {
-      throw new NotFoundException('Waitlist entry not found');
+      throw new NotFoundException('Paciente não encontrado na lista de espera.');
+    }
+    if (waitlistEntry.id_Status === 7) {
+      throw new BadRequestException(
+        'Paciente já está desativado na lista de espera.',
+      );
+    }
+    if (waitlistEntry.id_Status === 5 || waitlistEntry.id_Status === 6) {
+      throw new BadRequestException(
+        'Não é possível desativar um paciente que já recebeu alta ou foi encaminhado.',
+      );
+    }
+    if (waitlistEntry.id_Status === 4) {
+      throw new BadRequestException(
+        'Não é possível desativar um paciente que está em psicoterapia.',
+      );
+    }
+    if (waitlistEntry.id_Status === 3) {
+      throw new BadRequestException(
+        'Não é possível desativar um paciente que está em triagem.',
+      );
+    }
+    if (waitlistEntry.id_Status === 2) {
+      throw new BadRequestException(
+        'Não é possível desativar um paciente que está em atendimento.',
+      );
+    }
+    if (waitlistEntry.id_Status !== 1) {
+      throw new BadRequestException(
+        'Apenas pacientes com status "Em espera" podem ser desativados.',
+      );
     }
 
     try {
       const deactivatedEntry = await this.prisma.listaEspera.update({
         where: { id_Lista: id },
         data: {
-          id_Status: 6,
+          id_Status: 7, // Desativado
         },
       });
 
       return deactivatedEntry;
     } catch (error) {
       throw new InternalServerErrorException(
-        'Error deactivating waitlist entry',
+        'Erro ao desativar o paciente da lista de espera.',
         error.message,
       );
     }

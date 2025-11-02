@@ -8,6 +8,7 @@ import { WaitlistModule } from './waitlist/waitlist.module';
 import { AuditModule } from './audit/audit.module';
 import { SessionModule } from './session/session.module';
 import { MedicalRecordModule } from './medical_record/medical_record.module';
+import { PdfModule } from './pdf/pdf.module';
 
 @Module({
   imports: [
@@ -22,7 +23,8 @@ import { MedicalRecordModule } from './medical_record/medical_record.module';
     UsersModule,
     WaitlistModule,
     SessionModule,
-    MedicalRecordModule
+    MedicalRecordModule,
+    PdfModule
   ],
   controllers: [AppController],
   providers: [AppService],
