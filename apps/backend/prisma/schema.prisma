@@ -24,6 +24,7 @@ model Usuario {
   email     String  @unique @db.VarChar(100)
   senhaHash String  @map("SenhaHash") @db.VarChar(255)
   roleId    Int     @map("ID_Role") @db.SmallInt
+  CRP       String? @db.VarChar(9)
   isActive  Boolean @default(true)
 
   role                      Role           @relation(fields: [roleId], references: [id_Role])
