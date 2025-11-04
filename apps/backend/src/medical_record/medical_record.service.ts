@@ -104,7 +104,7 @@ export class MedicalRecordService {
       throw new UnauthorizedException('Apenas o supervisor responsável pode editar essa triagem.');
 
     if (user.access === 4 && user.sub !== prontuario.atendimento.id_Estagiario_Executor)
-      throw new UnauthorizedException('Apenas o supervisor responsável pode editar essa triagem.');
+      throw new UnauthorizedException('Apenas o estagiario responsável pode editar essa triagem.');
 
     return await this.prisma.prontuario.update({
       where: { id_Registro: id },
@@ -301,7 +301,7 @@ export class MedicalRecordService {
       throw new UnauthorizedException('Apenas o supervisor responsável pode editar esse registro de evolução.');
 
     if (user.access === 4 && user.sub !== prontuario.atendimento.id_Estagiario_Executor)
-      throw new UnauthorizedException('Apenas o supervisor responsável pode editar esse registro de evolução.');
+      throw new UnauthorizedException('Apenas o estagiario responsável pode editar esse registro de evolução.');
 
     return await this.prisma.prontuario.update({
       where: { id_Registro: id },
