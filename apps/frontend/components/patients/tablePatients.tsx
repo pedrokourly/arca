@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "../ui/button";
-import { Edit, Trash2, Eye, Search, X } from "lucide-react";
+import { Edit, Trash2, Eye, Search, Filter, X } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -26,12 +26,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { API_ENDPOINTS, apiRequest } from "@/utils/apiHandler";
 import { getErrorMessage } from "@/utils/toastErrorHandler";
 
-interface WaitlistEntry {
+interface PatientEntry {
   id_Lista: string;
   nomeRegistro: string;
   nomeSocial?: string;
@@ -63,24 +64,25 @@ const STATUS_MAP = {
   7: { label: 'Desativado', variant: 'destructive' as const, description: 'Removido da lista' }
 };
 
-export function WaitlistTable() {
+export function PatientsTable() {
   const { data: session, status } = useSession();
 
-  const [waitlistEntries, setWaitlistEntries] = useState<WaitlistEntry[]>([]);
+  const [patientEntries, setPatientEntries] = useState<PatientEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Estados para filtros e pesquisa
   const [searchTerm, setSearchTerm] = useState("");
-  const [filteredEntries, setFilteredEntries] = useState<WaitlistEntry[]>([]);
+  const [statusFilter, setStatusFilter] = useState<"all" | "1" | "2" | "3" | "4" | "5" | "6" | "7">("all");
+  const [filteredEntries, setFilteredEntries] = useState<PatientEntry[]>([]);
 
-  // Estados para deleção de entrada da lista
+  // Estados para deleção de entrada
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [entryToDelete, setEntryToDelete] = useState<WaitlistEntry | null>(null);
+  const [entryToDelete, setEntryToDelete] = useState<PatientEntry | null>(null);
   
-  // Estados para edição de entrada da lista
+  // Estados para edição de entrada
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [entryToEdit, setEntryToEdit] = useState<WaitlistEntry | null>(null);
+  const [entryToEdit, setEntryToEdit] = useState<PatientEntry | null>(null);
   const [editFormData, setEditFormData] = useState({
     nomeRegistro: "",
     nomeSocial: "",
@@ -98,10 +100,10 @@ export function WaitlistTable() {
 
   // Estados para visualização detalhada
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
-  const [entryToView, setEntryToView] = useState<WaitlistEntry | null>(null);
+  const [entryToView, setEntryToView] = useState<PatientEntry | null>(null);
 
   // Função para abrir dialog de edição
-  const handleEditClick = (entry: WaitlistEntry) => {
+  const handleEditClick = (entry: PatientEntry) => {
     setEntryToEdit(entry);
     setEditFormData({
       nomeRegistro: entry.nomeRegistro,
@@ -119,7 +121,7 @@ export function WaitlistTable() {
     setEditDialogOpen(true);
   };
 
-  // Função para atualizar entrada da lista de espera
+  // Função para atualizar entrada
   const handleUpdateEntry = async () => {
     if (!entryToEdit) return;
 
@@ -150,13 +152,13 @@ export function WaitlistTable() {
       });
       
       // Atualiza a lista local
-      setWaitlistEntries(entries => 
+      setPatientEntries(entries => 
         entries.map(entry => 
           entry.id_Lista === entryToEdit.id_Lista ? updatedEntry : entry
         )
       );
       
-      toast.success("Entrada da lista de espera atualizada com sucesso!");
+      toast.success("Dados do paciente atualizados com sucesso!");
       
       // Fecha o dialog
       setEditDialogOpen(false);
@@ -175,7 +177,7 @@ export function WaitlistTable() {
         enderecoCEP: ""
       });
     } catch (error) {
-      console.error("Erro ao atualizar entrada da lista de espera:", error);
+      console.error("Erro ao atualizar dados do paciente:", error);
       const { title, description } = getErrorMessage(error);
       toast.error(title, { description });
     } finally {
@@ -201,12 +203,12 @@ export function WaitlistTable() {
   };
 
   // Função para abrir dialog de exclusão
-  const handleDeleteClick = (entry: WaitlistEntry) => {
+  const handleDeleteClick = (entry: PatientEntry) => {
     setEntryToDelete(entry);
     setDeleteDialogOpen(true);
   };
 
-  // Função para excluir entrada da lista de espera
+  // Função para excluir entrada
   const handleDelete = async () => {
     if (!entryToDelete) return;
     
@@ -218,28 +220,34 @@ export function WaitlistTable() {
         },
       });
 
-      setWaitlistEntries(entries => 
+      setPatientEntries(entries => 
         entries.filter(entry => entry.id_Lista !== entryToDelete.id_Lista)
       );
-      toast.success("Entrada da lista de espera excluída com sucesso!");
+      toast.success("Paciente excluído com sucesso!");
       
       setDeleteDialogOpen(false);
       setEntryToDelete(null);
     } catch (error) {
-      console.error("Erro ao excluir entrada da lista de espera:", error);
+      console.error("Erro ao excluir paciente:", error);
       const { title, description } = getErrorMessage(error);
       toast.error(title, { description });
     }
   };
 
   // Função para formatar endereço completo
-  const formatAddress = (entry: WaitlistEntry) => {
+  const formatAddress = (entry: PatientEntry) => {
     return `${entry.enderecoRua}, ${entry.enderecoNumero} - ${entry.enderecoBairro}, ${entry.enderecoCidade}/${entry.enderecoEstado}`;
   };
 
   // Função para filtrar entradas
   const filterEntries = () => {
-    let filtered = waitlistEntries;
+    let filtered = patientEntries;
+
+    // Filtro por status
+    if (statusFilter !== "all") {
+      const statusId = parseInt(statusFilter);
+      filtered = filtered.filter(entry => entry.id_Status === statusId);
+    }
 
     // Filtro por pesquisa
     if (searchTerm) {
@@ -259,10 +267,11 @@ export function WaitlistTable() {
   // Função para limpar filtros
   const clearFilters = () => {
     setSearchTerm("");
+    setStatusFilter("all");
   };
 
   useEffect(() => {
-    const fetchWaitlistEntries = async () => {
+    const fetchPatientEntries = async () => {
       if (!session || !session.token) {
         setError("Sessão ou token não disponível");
         setLoading(false);
@@ -276,11 +285,9 @@ export function WaitlistTable() {
             Authorization: `Bearer ${session.token}`,
           },
         });
-        // Filtrar apenas pessoas em espera (id_Status === 1)
-        const waitingOnly = data.filter((entry: WaitlistEntry) => entry.id_Status === 1);
-        setWaitlistEntries(waitingOnly);
+        setPatientEntries(data);
       } catch (err) {
-        console.error("Erro ao buscar lista de espera:", err);
+        console.error("Erro ao buscar pacientes:", err);
         const { title, description } = getErrorMessage(err);
         setError(description);
       } finally {
@@ -289,14 +296,14 @@ export function WaitlistTable() {
     };
 
     if (status === "authenticated") {
-      fetchWaitlistEntries();
+      fetchPatientEntries();
     }
   }, [session, status]);
 
   // useEffect para aplicar filtros quando dados ou filtros mudam
   useEffect(() => {
     filterEntries();
-  }, [waitlistEntries, searchTerm]);
+  }, [patientEntries, searchTerm, statusFilter]);
 
   // Skeleton para carregamento da sessão
   if (status === "loading") {
@@ -328,7 +335,7 @@ export function WaitlistTable() {
               <TableHead>Data de Nascimento</TableHead>
               <TableHead>Telefone</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Data de Inscrição</TableHead>
+              <TableHead>Data de Cadastro</TableHead>
               <TableHead className="text-center">Ações</TableHead>
             </TableRow>
           </TableHeader>
@@ -368,7 +375,7 @@ export function WaitlistTable() {
   if (error) {
     return (
       <div className="w-full text-center py-8">
-        <p className="text-red-600">Erro ao carregar lista de espera: {error}</p>
+        <p className="text-red-600">Erro ao carregar pacientes: {error}</p>
       </div>
     );
   }
@@ -389,25 +396,65 @@ export function WaitlistTable() {
           </div>
         </div>
         
-        {searchTerm && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={clearFilters}
-            className="shrink-0"
-          >
-            <X className="h-4 w-4 mr-2" />
-            Limpar
-          </Button>
-        )}
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Select value={statusFilter} onValueChange={(value: "all" | "1" | "2" | "3" | "4" | "5" | "6" | "7") => setStatusFilter(value)}>
+            <SelectTrigger className="w-full sm:w-[200px]">
+              <Filter className="h-4 w-4 mr-2" />
+              <SelectValue placeholder="Filtrar por status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos os status</SelectItem>
+              <SelectItem value="1">Em Espera</SelectItem>
+              <SelectItem value="2">Em Atendimento</SelectItem>
+              <SelectItem value="3">Em Triagem</SelectItem>
+              <SelectItem value="4">Em Psicoterapia</SelectItem>
+              <SelectItem value="5">Recebeu Alta</SelectItem>
+              <SelectItem value="6">Encaminhado</SelectItem>
+              <SelectItem value="7">Desativado</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          {(searchTerm || statusFilter !== "all") && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={clearFilters}
+              className="shrink-0"
+            >
+              <X className="h-4 w-4 mr-2" />
+              Limpar
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Estatísticas */}
       <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
         <span>
-          Total em Espera: <span className="font-medium text-blue-600">{waitlistEntries.length}</span>
+          Total: <span className="font-medium text-foreground">{patientEntries.length}</span>
         </span>
-        {filteredEntries.length !== waitlistEntries.length && (
+        <span>
+          Em Espera: <span className="font-medium text-blue-600">{patientEntries.filter(e => e.id_Status === 1).length}</span>
+        </span>
+        <span>
+          Em Atendimento: <span className="font-medium text-green-600">{patientEntries.filter(e => e.id_Status === 2).length}</span>
+        </span>
+        <span>
+          Em Triagem: <span className="font-medium text-yellow-600">{patientEntries.filter(e => e.id_Status === 3).length}</span>
+        </span>
+        <span>
+          Em Psicoterapia: <span className="font-medium text-purple-600">{patientEntries.filter(e => e.id_Status === 4).length}</span>
+        </span>
+        <span>
+          Recebeu Alta: <span className="font-medium text-gray-600">{patientEntries.filter(e => e.id_Status === 5).length}</span>
+        </span>
+        <span>
+          Encaminhado: <span className="font-medium text-indigo-600">{patientEntries.filter(e => e.id_Status === 6).length}</span>
+        </span>
+        <span>
+          Desativado: <span className="font-medium text-red-600">{patientEntries.filter(e => e.id_Status === 7).length}</span>
+        </span>
+        {filteredEntries.length !== patientEntries.length && (
           <span>
             Exibindo: <span className="font-medium text-orange-600">{filteredEntries.length}</span>
           </span>
@@ -416,10 +463,10 @@ export function WaitlistTable() {
 
       <Table>
         <TableCaption>
-          Lista de espera do ARCA 
-          {filteredEntries.length !== waitlistEntries.length 
-            ? `(${filteredEntries.length} de ${waitlistEntries.length} ${waitlistEntries.length === 1 ? 'pessoa' : 'pessoas'})`
-            : `(${waitlistEntries.length} ${waitlistEntries.length === 1 ? 'pessoa' : 'pessoas'})`
+          Lista de pacientes do ARCA 
+          {filteredEntries.length !== patientEntries.length 
+            ? `(${filteredEntries.length} de ${patientEntries.length} ${patientEntries.length === 1 ? 'paciente' : 'pacientes'})`
+            : `(${patientEntries.length} ${patientEntries.length === 1 ? 'paciente' : 'pacientes'})`
           }
         </TableCaption>
         <TableHeader>
@@ -428,7 +475,7 @@ export function WaitlistTable() {
             <TableHead>Data de Nascimento</TableHead>
             <TableHead>Telefone</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead>Data de Inscrição</TableHead>
+            <TableHead>Data de Cadastro</TableHead>
             <TableHead className="text-center">Ações</TableHead>
           </TableRow>
         </TableHeader>
@@ -436,9 +483,9 @@ export function WaitlistTable() {
           {filteredEntries.length === 0 ? (
             <TableRow>
               <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                {waitlistEntries.length === 0 
-                  ? "Nenhuma entrada na lista de espera encontrada."
-                  : "Nenhuma entrada encontrada com os filtros aplicados."
+                {patientEntries.length === 0 
+                  ? "Nenhum paciente encontrado."
+                  : "Nenhum paciente encontrado com os filtros aplicados."
                 }
               </TableCell>
             </TableRow>
@@ -511,7 +558,7 @@ export function WaitlistTable() {
           <DialogHeader>
             <DialogTitle>Confirmar exclusão</DialogTitle>
             <DialogDescription>
-              Tem certeza que deseja excluir a entrada de <strong>{entryToDelete?.nomeRegistro}</strong> da lista de espera?
+              Tem certeza que deseja excluir <strong>{entryToDelete?.nomeRegistro}</strong>?
               Esta ação não pode ser desfeita.
             </DialogDescription>
           </DialogHeader>
@@ -536,9 +583,9 @@ export function WaitlistTable() {
       <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
         <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Detalhes da Inscrição</DialogTitle>
+            <DialogTitle>Detalhes do Paciente</DialogTitle>
             <DialogDescription>
-              Informações completas da entrada na lista de espera
+              Informações completas do paciente
             </DialogDescription>
           </DialogHeader>
           {entryToView && (
@@ -611,11 +658,11 @@ export function WaitlistTable() {
                 <h4 className="font-semibold text-sm text-primary">Informações do Sistema</h4>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <Label className="text-muted-foreground">ID da Lista</Label>
+                    <Label className="text-muted-foreground">ID</Label>
                     <p className="font-mono text-xs break-all">{entryToView.id_Lista}</p>
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">Data de Inscrição</Label>
+                    <Label className="text-muted-foreground">Data de Cadastro</Label>
                     <p className="font-medium">
                       {format(new Date(entryToView.createdAt), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                     </p>
@@ -653,9 +700,9 @@ export function WaitlistTable() {
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Editar entrada da lista de espera</DialogTitle>
+            <DialogTitle>Editar dados do paciente</DialogTitle>
             <DialogDescription>
-              Faça as alterações necessárias nos dados da pessoa.
+              Faça as alterações necessárias nos dados do paciente.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">

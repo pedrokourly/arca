@@ -34,18 +34,18 @@ interface WaitlistItem {
 // Mapeamento dos status da lista de espera
 const STATUS_MAP = {
   2: { 
-    label: 'Em Triagem', 
+    label: 'Em Atendimento', 
     variant: 'default' as const, 
     color: 'bg-blue-100 text-blue-800',
     icon: Clock,
-    description: 'Paciente está passando pela triagem inicial'
+    description: 'Paciente está em atendimento'
   },
   3: { 
-    label: 'Triagem Aprovada', 
+    label: 'Em Triagem', 
     variant: 'default' as const, 
-    color: 'bg-green-100 text-green-800',
+    color: 'bg-yellow-100 text-yellow-800',
     icon: CheckCircle,
-    description: 'Triagem aprovada, aguardando início da psicoterapia'
+    description: 'Paciente em processo de triagem'
   },
   4: { 
     label: 'Em Psicoterapia', 
