@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Prontuário ARCA</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            color: #333;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        .header h1 {
+            margin: 0;
+            color: #0056b3;
+        }
+        .section {
+            margin-top: 25px;
+            page-break-inside: avoid;
+        }
+        .section h2 {
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+            color: #0056b3;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .prontuario-entry {
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 10px 15px;
+            margin-top: 15px;
+            page-break-inside: avoid;
+        }
+        .prontuario-entry h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .prontuario-entry h4 {
+            color: #555;
+            border-bottom: 1px dotted #ddd;
+            padding-bottom: 3px;
+        }
+
+        .prontuario-entry.entry-alta {
+            background-color: #f0fff4; 
+            border-left: 5px solid #28a745; 
+        }
+        
+        .prontuario-entry.entry-encaminhamento {
+            background-color: #f1f8ff; 
+            border-left: 5px solid #007bff; 
+        }
+        
+        .entry-alta h3,
+        .entry-encaminhamento h3 {
+            color: #004085; 
+        }
+
+        p {
+            line-height: 1.5;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>ARCA - Prontuário Eletrônico</h1>
+        <p>Relatório Completo do Paciente</p>
+    </div>
+
+    <div class="section">
+        <h2>Dados do Paciente</h2>
+        <div class="info-grid">
+            <div><strong>Nome:</strong> {{paciente.nome}}</div>
+            <div><strong>Nome Social:</strong> {{paciente.nomeSocial}}</div>
+            <div><strong>CPF:</strong> {{paciente.cpf}}</div>
+            <div><strong>Data Nasc:</strong> {{paciente.dataNascimento}}</div>
+            <div><strong>Status Atual:</strong> {{paciente.status}}</div>
+        </div>
+    </div>
+
+    {{#each atendimentos}}
+    <div class="section">
+        <h2>Atendimento (Data: {{this.data}})</h2>
+        <div class="info-grid">
+            <div><strong>Supervisor:</strong> {{this.supervisor}} (CRP: {{this.supervisorCRP}})</div>
+            <div><strong>Estagiário:</strong> {{this.estagiario}}</div>
+        </div>
+
+        {{#each this.prontuarios}}
+        <div class="prontuario-entry 
+            {{#if (eq this.id_Tipo 3)}}entry-alta{{/if}}
+            {{#if (eq this.id_Tipo 4)}}entry-encaminhamento{{/if}}
+        ">
+            <h3>Registro: {{this.tipo}} ({{this.dataEmissao}})</h3>
+            <p><strong>Status:</strong> {{this.status}}</p>
+
+            {{#if (or (eq this.id_Tipo 1) (eq this.id_Tipo 2))}}
+            <div>
+                <h4>Relatório da Sessão</h4>
+                <p><strong>Presente na Sessão:</strong> {{#if this.conteudo.presente}}Sim{{else}}Não{{/if}}</p>
+                <p><strong>Relatório:</strong> {{this.conteudo.relatorioDaSessao}}</p>
+            </div>
+            {{/if}}
+
+            {{#if (eq this.id_Tipo 3)}}
+            <div>
+                <h4>Relatório de Alta</h4>
+                <p><strong>Finalidade:</strong> {{this.conteudo.finalidade}}</p>
+            </div>
+            {{/if}}
+
+            {{#if (eq this.id_Tipo 4)}}
+            <div>
+                <h4>Relatório de Encaminhamento</h4>
+                <p><strong>Instituição:</strong> {{this.conteudo.instituicaoEncaminhada}}</p>
+                <p><strong>Motivo:</strong> {{this.conteudo.motivoEncaminhamento}}</p>
+            </div>
+            {{/if}}
+        </div>
+        {{/each}}
+    </div>
+    {{/each}}
+
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Declaração de Encaminhamento</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 50px;
+            color: #333;
+            line-height: 1.6;
+        }
+        .container {
+            width: 80%;
+            margin: 0 auto;
+            border: 1px solid #ddd;
+            padding: 40px;
+        }
+        h2 {
+            text-align: center;
+            text-transform: uppercase;
+            color: #000;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 10px;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        .section-title {
+            font-weight: bold;
+            color: #555;
+            font-size: 1.1em;
+        }
+        .info-list {
+            list-style-type: none;
+            padding-left: 10px;
+        }
+        .info-list li {
+            margin-bottom: 5px;
+        }
+        .declaration {
+            text-align: justify;
+            margin-top: 30px;
+            margin-bottom: 30px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+        }
+        .signature-line {
+            width: 60%;
+            border-bottom: 1px solid #555;
+            margin: 60px auto 10px auto;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h2>Declaração de Encaminhamento Psicológico</h2>
+
+        <div class="section">
+            <p class="section-title">Remetente:</p>
+            <ul class="info-list">
+                <li><strong>Instituição:</strong> Núcleo de Estudos e Aplicação em Psicologia (NEAP) - UEMG, Ituiutaba</li>
+                <li>{{supervisorNome}} - {{supervisorCRP}}</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <p class="section-title">Destinatário:</p>
+            <ul class="info-list">
+                <li><strong>Instituição:</strong> {{instituicaoNome}}</li>
+            </ul>
+        </div>
+
+        <hr style="border: 0; border-top: 1px dashed #ccc; margin: 30px 0;">
+
+        <p class="declaration">
+            O presente documento tem por objetivo formalizar o encaminhamento de <strong>{{pacienteNome}}</strong> à(ao) <strong>{{instituicaoNome}}</strong> para <strong>{{motivoEncaminhamento}}</strong>.
+        </p>
+
+        <p class="declaration">
+            Essa recomendação é resultante de um processo de triagem no Núcleo de Ensino e Aplicação em Psicologia (NEAP), da Universidade do Estado de Minas Gerais (UEMG) - Unidade Ituiutaba, conduzida durante os períodos de <strong>{{dataInicioTriagem}}</strong> e <strong>{{dataFimTriagem}}</strong>, sob supervisão de <strong>{{supervisorNome}}</strong> - <strong>{{supervisorCRP}}</strong>.
+        </p>
+
+        <p class="declaration">
+            O NEAP se coloca à disposição para o fornecimento de quaisquer informações adicionais que se fizerem necessárias por meio do número de telefone (34) 98424-6977 e do e-mail neap.ituiutaba@uemg.br.
+        </p>
+
+        <div class="footer">
+            <p>Ituiutaba, {{dataDocumento}}.</p>
+
+            <div class="signature-line"></div>
+            <p>
+                <strong>{{supervisorNome}}</strong><br>
+                <strong>{{supervisorCRP}}</strong>
+            </p>
+        </div>
+
+    </div>
+
+</body>
+</html>

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, UseGuards, Req, ParseUUIDPipe, Put } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, UseGuards, Req, ParseUUIDPipe, Put, Res } from '@nestjs/common';
 import { MedicalRecordService } from './medical_record.service';
 import { CreateTriagemProntuarioDto } from './dto/create-triagem-medical_record.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
@@ -10,7 +10,7 @@ import { ConteudoEvolucaoDto } from './dto/conteudo-evolucao.dto';
 import { CreateEncaminhamentoDto } from './dto/create-encaminhamento.dto';
 import { CreateAltaDto } from './dto/create-alta.dtos';
 
-@Controller('medical-record')
+@Controller('arquivos')
 @UseGuards(JwtAuthGuard)
 export class MedicalRecordController {
   constructor(private readonly medicalRecordService: MedicalRecordService) {}
@@ -45,12 +45,27 @@ export class MedicalRecordController {
     return this.medicalRecordService.approveEvolucao(id, CreateAltaDto, req.user as TokenDto);
   }
 
+  @Get('prontuarios/pdf/:id')
+  generatePdf(@Param('id', ParseUUIDPipe) id: UUID, @Req() req: any, @Res() res: any) {
+    return this.medicalRecordService.generatePdf(id, req.user as TokenDto, res);
+  }
+
+  @Get('prontuarios/alta/pdf/:id')
+  generateAltaPdf(@Param('id', ParseUUIDPipe) id: UUID, @Req() req: any, @Res() res: any) {
+    return this.medicalRecordService.generateAltaPdf(id, req.user as TokenDto, res);
+  }
+
+  @Get('prontuarios/encaminhamento/pdf/:id')
+  generateEncaminhamentoPdf(@Param('id', ParseUUIDPipe) id: UUID, @Req() req: any, @Res() res: any) {
+    return this.medicalRecordService.generateEncaminhamentoPdf(id, req.user as TokenDto, res);
+  }
+
   @Get('prontuarios')
   findAll(@Req() req: any) {
     return this.medicalRecordService.findAll(req.user as TokenDto);
   }
 
-  @Get(':id')
+  @Get('prontuarios/:id')
   findOne(@Param('id') id: UUID, @Req() req: any) {
     return this.medicalRecordService.findOne(id, req.user as TokenDto);
   }

@@ -15,10 +15,14 @@ import { ConteudoTriagemDto } from './dto/conteudo-triagem.dto';
 import { ConteudoEvolucaoDto } from './dto/conteudo-evolucao.dto';
 import { CreateEncaminhamentoDto } from './dto/create-encaminhamento.dto';
 import { CreateAltaDto } from './dto/create-alta.dtos';
+import { PdfService } from 'src/pdf/pdf.service';
 
 @Injectable()
 export class MedicalRecordService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private pdfService: PdfService,
+  ) {}
 
   async createTriagem(CreateTriagemProntuarioDto: CreateTriagemProntuarioDto, user: TokenDto) {
     const atendimento = await this.prisma.atendimento.findFirst({
@@ -331,7 +335,6 @@ export class MedicalRecordService {
     if (user.access === 3 && user.sub !== prontuario.atendimento.id_Supervisor_Executor)
       throw new UnauthorizedException('Apenas o supervisor responsável pode aprovar este registro de psicoterapia.');
 
-
     const transactionPromises: Prisma.PrismaPromise<any>[] = [];
     let altaCriada = false;
     let encaminhamentoCriado = false;
@@ -353,7 +356,6 @@ export class MedicalRecordService {
         },
       }),
     );
-
 
     if (createAltaDto.recebeuAlta) {
       const { finalidade } = createAltaDto;
@@ -383,7 +385,6 @@ export class MedicalRecordService {
       );
     }
 
-
     if (createAltaDto.encaminhado) {
       const { instituicaoEncaminhada, motivoEncaminhamento } = createAltaDto;
       if (!instituicaoEncaminhada || instituicaoEncaminhada.trim() === '') {
@@ -403,7 +404,7 @@ export class MedicalRecordService {
               instituicaoEncaminhada: instituicaoEncaminhada,
               motivoEncaminhamento: motivoEncaminhamento,
             },
-            id_Status: 2, 
+            id_Status: 2,
             id_Tipo: 4, // Encaminhamento
           },
         }),
@@ -411,11 +412,8 @@ export class MedicalRecordService {
       encaminhamentoCriado = true;
     }
 
-
-
     try {
       await this.prisma.$transaction(transactionPromises);
-
 
       if (altaCriada && encaminhamentoCriado) {
         return 'Evolução aprovada. Alta e Encaminhamento gerados com sucesso.';
@@ -429,6 +427,211 @@ export class MedicalRecordService {
     } catch (error) {
       throw new InternalServerErrorException('Erro no banco de dados. Falha ao aprovar a evolução. Tente novamente.');
     }
+  }
+
+  async generatePdf(id: UUID, user: TokenDto, res: any) {
+
+    const paciente = await this.findOne(id, user);
+
+    const dataForPdf = {
+      paciente: {
+        nome: paciente.nomeRegistro,
+        nomeSocial: paciente.nomeSocial,
+        cpf: paciente.CPF || 'N/A',
+        dataNascimento: new Date(paciente.dataNascimento).toLocaleDateString(
+          'pt-BR',
+        ),
+        status: paciente.Status.nome,
+      },
+      atendimentos: paciente.Atendimento.map((atd) => ({
+        data: new Date(atd.dataHoraInicio).toLocaleDateString('pt-BR'),
+        supervisor: atd.supervisorExecutor?.nome || 'N/A',
+        estagiario: atd.estagiarioExecutor?.nome || 'N/A',
+        supervisorCRP: atd.supervisorExecutor?.CRP || 'N/A',
+        prontuarios: atd.Prontuario.map((p) => {
+          return {
+            id_Registro: p.id_Registro,
+            conteudo: p.conteudo, 
+            dataEmissao: new Date(p.dataEmissao).toLocaleDateString('pt-BR'),
+            id_Status: p.id_Status,
+            id_Tipo: p.id_Tipo,
+            // @ts-ignore 
+            tipo: p.TipoProntuario.nome,
+            // @ts-ignore 
+            status: p.status.nome,
+          };
+        }),
+      })),
+    };
+
+    const pdfBuffer = await this.pdfService.generatePdfFromTemplate(
+      'prontuario', 
+      dataForPdf,
+    );
+
+    if (!pdfBuffer) throw new InternalServerErrorException('Erro ao gerar o PDF.');
+
+    const filename = `prontuario-arca-${paciente.nomeRegistro.replace(
+      /\s+/g,
+      '_',
+    )}.pdf`;
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename=${filename}`,
+    );
+
+    res.send(pdfBuffer);
+  }
+
+  async generateAltaPdf(id: UUID, user: TokenDto, res: any) {
+
+    const paciente = await this.findOne(id, user);
+
+    let altaRecord: any = null;
+    let supervisorNome = 'N/A';
+    let supervisorCRP = 'N/A';
+
+    for (const atd of paciente.Atendimento) {
+      // @ts-ignore
+      const found = atd.Prontuario.find((p) => p.id_Tipo === 3); // 3 = Alta
+      if (found) {
+        altaRecord = found;
+        supervisorNome = atd.supervisorExecutor?.nome || 'N/A';
+        supervisorCRP = atd.supervisorExecutor?.CRP || 'N/A';
+        break;
+      }
+    }
+
+    if (!altaRecord) {
+      throw new NotFoundException(
+        'Registro de Alta (Tipo 3) não encontrado para este paciente.',
+      );
+    }
+
+    const datasAtendimento = paciente.Atendimento.map((atd) =>
+      new Date(atd.dataHoraInicio).getTime(),
+    );
+    const dataInicio = new Date(
+      Math.min(...datasAtendimento),
+    ).toLocaleDateString('pt-BR');
+    const dataFim = new Date(Math.max(...datasAtendimento)).toLocaleDateString(
+      'pt-BR',
+    );
+
+    const dataForPdf = {
+      pacienteNome: paciente.nomeRegistro,
+      supervisorNome: supervisorNome,
+      supervisorCRP: supervisorCRP,
+
+      solicitanteNome: 'O próprio paciente',
+      finalidade: 'Comprovação de acompanhamento psicológico',
+
+      dataInicio: dataInicio,
+      dataFim: dataFim,
+      motivoAlta: altaRecord.conteudo.finalidade, 
+      dataAlta: new Date(altaRecord.dataEmissao).toLocaleDateString('pt-BR'),
+      dataDocumento: new Date().toLocaleDateString('pt-BR'),
+    };
+
+    const pdfBuffer = await this.pdfService.generatePdfFromTemplate(
+      'alta', 
+      dataForPdf,
+    );
+
+    if (!pdfBuffer) throw new InternalServerErrorException('Erro ao gerar o PDF.');
+
+    const filename = `alta-arca-${paciente.nomeRegistro.replace(
+      /\s+/g,
+      '_',
+    )}.pdf`;
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename=${filename}`,
+    );
+
+    res.send(pdfBuffer);
+  }
+
+  async generateEncaminhamentoPdf(id: UUID, user: TokenDto, res: any) {
+
+    const paciente = await this.findOne(id, user);
+
+    let encaminhamentoRecord: any = null;
+    let triagemRecord: any = null;
+    let supervisorNome = 'N/A';
+    let supervisorCRP = 'N/A';
+
+    for (const atd of paciente.Atendimento) {
+      // @ts-ignore
+      const foundEncaminhamento = atd.Prontuario.find((p) => p.id_Tipo === 4);
+      if (foundEncaminhamento) {
+        encaminhamentoRecord = foundEncaminhamento;
+      }
+
+      // @ts-ignore
+      const foundTriagem = atd.Prontuario.find((p) => p.id_Tipo === 1);
+      if (foundTriagem) {
+        triagemRecord = foundTriagem;
+        supervisorNome = atd.supervisorExecutor?.nome || 'N/A';
+        supervisorCRP = atd.supervisorExecutor?.CRP || 'N/A';
+      }
+    }
+
+    if (!encaminhamentoRecord) {
+      throw new NotFoundException(
+        'Registro de Encaminhamento (Tipo 4) não encontrado para este paciente.',
+      );
+    }
+    if (!triagemRecord) {
+      throw new NotFoundException(
+        'Registro de Triagem (Tipo 1) não encontrado. Não é possível gerar o encaminhamento.',
+      );
+    }
+
+    const dataForPdf = {
+      pacienteNome: paciente.nomeRegistro,
+      supervisorNome: supervisorNome,
+      supervisorCRP: supervisorCRP,
+
+      instituicaoNome: encaminhamentoRecord.conteudo.instituicaoEncaminhada,
+      motivoEncaminhamento: encaminhamentoRecord.conteudo.motivoEncaminhamento,
+
+      dataInicioTriagem: new Date(triagemRecord.dataEmissao).toLocaleDateString(
+        'pt-BR',
+      ),
+      dataFimTriagem: new Date(triagemRecord.dataEmissao).toLocaleDateString(
+        'pt-BR',
+      ),
+
+      dataDocumento: new Date().toLocaleDateString('pt-BR'),
+    };
+
+    const pdfBuffer = await this.pdfService.generatePdfFromTemplate(
+      'encaminhamento',
+      dataForPdf,
+    );
+
+    if (!pdfBuffer)
+      throw new InternalServerErrorException(
+        'Erro ao gerar o PDF de encaminhamento.',
+      );
+
+    const filename = `declaracao-encaminhamento-${paciente.nomeRegistro.replace(
+      /\s+/g,
+      '_',
+    )}.pdf`;
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename=${filename}`,
+    );
+
+    res.send(pdfBuffer);
   }
 
   async findAll(user: TokenDto) {
@@ -526,54 +729,57 @@ export class MedicalRecordService {
       },
     };
 
-    let includeAtendimentos: Prisma.AtendimentoFindManyArgs = {
-      where: {
-        Prontuario: {
-          some: {},
-        },
+    const includeAtendimentosWhere: Prisma.AtendimentoWhereInput = {
+      Prontuario: {
+        some: {},
       },
-      select: {
-        Prontuario: {
-          select: {
-            id_Registro: true,
-            conteudo: true,
-            dataEmissao: true,
-            id_Status: true,
-            id_Tipo: true,
-            ultimaAtualizacao: true,
-          },
-          orderBy: {
-            dataEmissao: 'asc',
-          },
+    };
+
+    const includeAtendimentosSelect: Prisma.AtendimentoSelect = {
+      dataHoraInicio: true,
+      supervisorExecutor: { select: { nome: true, CRP: true } },
+      estagiarioExecutor: { select: { nome: true } },
+      Prontuario: {
+        select: {
+          id_Registro: true,
+          conteudo: true,
+          dataEmissao: true,
+          id_Status: true,
+          id_Tipo: true,
+          ultimaAtualizacao: true,
+          status: { select: { nome: true } },
+          TipoProntuario: { select: { nome: true } },
+        },
+        orderBy: {
+          dataEmissao: 'asc',
         },
       },
     };
 
+    const includeAtendimentosOrderBy: Prisma.AtendimentoOrderByWithRelationInput[] =
+      [{ dataHoraInicio: 'asc' }];
+
     if (user.access === 3) {
-      // Supervisor
+
       if (whereCondition.Atendimento?.some) {
         whereCondition.Atendimento.some.id_Supervisor_Executor = user.sub;
       }
-      if (includeAtendimentos.where) {
-        includeAtendimentos.where.id_Supervisor_Executor = user.sub;
-      }
+
+      includeAtendimentosWhere.id_Supervisor_Executor = user.sub;
     } else if (user.access === 4) {
       // Estagiário
       if (whereCondition.Atendimento?.some) {
         whereCondition.Atendimento.some.id_Estagiario_Executor = user.sub;
       }
-      if (includeAtendimentos.where) {
-        includeAtendimentos.where.id_Estagiario_Executor = user.sub;
-      }
+
+      includeAtendimentosWhere.id_Estagiario_Executor = user.sub;
     } else if (user.access > 4) {
-      // Nível de acesso inválido não pode encontrar ninguém
       throw new NotFoundException(`Paciente com ID ${id} não encontrado.`);
     }
 
     const paciente = await this.prisma.listaEspera.findFirst({
       where: whereCondition,
       select: {
-        // Dados do Paciente (mesmo 'select' do findAll)
         id_Lista: true,
         nomeRegistro: true,
         nomeSocial: true,
@@ -581,8 +787,15 @@ export class MedicalRecordService {
         Status: {
           select: { nome: true },
         },
-        // Atendimentos filtrados
-        Atendimento: includeAtendimentos,
+        CPF: true,
+        telefonePessoal: true,
+        dataNascimento: true,
+ 
+        Atendimento: {
+          where: includeAtendimentosWhere,
+          select: includeAtendimentosSelect,
+          orderBy: includeAtendimentosOrderBy,
+        },
       },
     });
 
@@ -590,6 +803,20 @@ export class MedicalRecordService {
       throw new NotFoundException(`Paciente com ID ${id} não encontrado.`);
     }
 
-    return paciente;
+    const pacienteComConteudoParseado = {
+      ...paciente,
+      Atendimento: paciente.Atendimento.map((atd) => ({
+        ...atd,
+        Prontuario: atd.Prontuario.map((p) => ({
+          ...p,
+          conteudo:
+            typeof p.conteudo === 'string'
+              ? JSON.parse(p.conteudo) 
+              : p.conteudo, 
+        })),
+      })),
+    };
+
+    return pacienteComConteudoParseado;
   }
 }
