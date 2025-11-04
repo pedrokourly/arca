@@ -186,6 +186,7 @@ async function main() {
       email: 'supervisor@arca.com',
       senha: 'Supervisor123!',
       roleId: 3, // SUPERVISOR
+      CRP: 'CRP-123456',
       description: 'Usuário supervisor'
     },
     {
@@ -213,6 +214,7 @@ async function main() {
           nome: usuario.nome,
           email: usuario.email,
           senhaHash: hashedPassword,
+          CRP: usuario.CRP || null,
           roleId: usuario.roleId
         }
       })

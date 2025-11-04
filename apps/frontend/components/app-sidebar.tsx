@@ -9,7 +9,8 @@ import {
   CalendarClock,
   BookMarked,
   ArrowUpNarrowWide,
-  Users
+  Users,
+  FileText
 } from "lucide-react";
 import { usePermissions } from "@/hooks/usePermissions";
 
@@ -67,6 +68,11 @@ const data = {
       title: "Agenda",
       url: "/dashboard/agenda",
       icon: BookMarked
+    },
+    {
+      title: "Relatórios",
+      url: "/dashboard/relatorios",
+      icon: FileText
     },
     {
       title: "Fluxo de Atendimento",

@@ -16,6 +16,11 @@ export const API_ENDPOINTS = {
   
   // Session endpoints
   sessions: `${API_BASE_URL}/session`,
+  
+  // Medical Record endpoints
+  medicalRecord: `${API_BASE_URL}/medical-record`,
+  medicalRecordTriagem: `${API_BASE_URL}/medical-record/triagem`,
+  medicalRecordPsicoterapia: `${API_BASE_URL}/medical-record/psicoterapia`,
 } as const;
 
 export async function apiRequest(endpoint: string, options: RequestInit = {}) {
@@ -159,5 +164,46 @@ export const apiService = {
       headers: { 
         'Authorization': `Bearer ${token}`
       },
+    }),
+
+  // Medical Record operations
+  createMedicalRecordTriagem: (data: any, token: string) =>
+    apiRequest(API_ENDPOINTS.medicalRecordTriagem, {
+      method: 'POST',
+      headers: { 
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data),
+    }),
+
+  updateMedicalRecordTriagem: (recordId: string, data: any, token: string) =>
+    apiRequest(`${API_ENDPOINTS.medicalRecordTriagem}/${recordId}`, {
+      method: 'PUT',
+      headers: { 
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data),
+    }),
+
+  createMedicalRecordPsicoterapia: (data: any, token: string) =>
+    apiRequest(API_ENDPOINTS.medicalRecordPsicoterapia, {
+      method: 'POST',
+      headers: { 
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data),
+    }),
+
+  updateMedicalRecordPsicoterapia: (recordId: string, data: any, token: string) =>
+    apiRequest(`${API_ENDPOINTS.medicalRecordPsicoterapia}/${recordId}`, {
+      method: 'PUT',
+      headers: { 
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data),
     }),
 };

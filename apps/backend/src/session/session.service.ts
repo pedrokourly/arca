@@ -223,6 +223,15 @@ export class SessionService {
           nome: true,
         },
       },
+      Prontuario: {
+        select: {
+          id_Registro: true,
+          id_Status: true,
+          id_Tipo: true,
+          dataEmissao: true,
+          conteudo: true,
+        },
+      },
     };
 
     // Se o usuário for secretario ou admin, lista todas as sessões
@@ -293,6 +302,15 @@ export class SessionService {
         select: {
           id_Status: true,
           nome: true,
+        },
+      },
+      Prontuario: {
+        select: {
+          id_Registro: true,
+          id_Status: true,
+          id_Tipo: true,
+          dataEmissao: true,
+          conteudo: true,
         },
       },
     };
