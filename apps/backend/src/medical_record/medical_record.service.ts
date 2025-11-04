@@ -522,6 +522,7 @@ export class MedicalRecordService {
 
     const dataForPdf = {
       pacienteNome: paciente.nomeRegistro,
+      cpf: paciente.CPF || 'N/A',
       supervisorNome: supervisorNome,
       supervisorCRP: supervisorCRP,
 
@@ -594,6 +595,7 @@ export class MedicalRecordService {
 
     const dataForPdf = {
       pacienteNome: paciente.nomeRegistro,
+      cpf: paciente.CPF || 'N/A',
       supervisorNome: supervisorNome,
       supervisorCRP: supervisorCRP,
 
