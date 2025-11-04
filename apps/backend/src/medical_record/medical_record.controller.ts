@@ -10,7 +10,7 @@ import { ConteudoEvolucaoDto } from './dto/conteudo-evolucao.dto';
 import { CreateEncaminhamentoDto } from './dto/create-encaminhamento.dto';
 import { CreateAltaDto } from './dto/create-alta.dtos';
 
-@Controller('arquivos')
+@Controller('medical-record')
 @UseGuards(JwtAuthGuard)
 export class MedicalRecordController {
   constructor(private readonly medicalRecordService: MedicalRecordService) {}
