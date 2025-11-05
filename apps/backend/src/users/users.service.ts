@@ -22,7 +22,6 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto, creator: TokenDto) {
-    // Verifica se o criador tem permissão para criar usuários
     if (
       // 1. A regra geral: proíbe se o novo usuário tiver acesso igual ou superior
       createUserDto.roleId <= creator.access &&
@@ -34,13 +33,12 @@ export class UsersService {
       );
     }
 
-    // Verifica se o email já existe
     const existingUser = await this.prisma.usuario.findFirst({
-      where: { 
+      where: {
         email: createUserDto.email,
       },
     });
-    
+
     if (existingUser) {
       // Se o usuário existe e está ativo, não pode criar
       if (existingUser.isActive) {
@@ -48,19 +46,23 @@ export class UsersService {
       }
 
       // Se o usuário existe mas está inativo, verifica se tem permissão para ver a opção de reativar
-      const canReactivate = 
-        creator.access < existingUser.roleId ||
-        (creator.access === 1 && existingUser.roleId === 1);
-      
+      const canReactivate = creator.access < existingUser.roleId || (creator.access === 1 && existingUser.roleId === 1);
+
       if (canReactivate) {
         throw new ConflictException({
           message: `Este e-mail pertence a um usuário desativado (${existingUser.nome}). Deseja reativar este usuário em vez de criar um novo?`,
           userId: existingUser.id_User,
-          userName: existingUser.nome
+          userName: existingUser.nome,
         });
       } else {
         // Se não tem permissão para reativar, apenas informa que o email já está em uso
         throw new BadRequestException('E-mail já cadastrado.');
+      }
+    }
+
+    if (createUserDto.roleId === 3) {
+      if (!createUserDto.crp) {
+        throw new BadRequestException('CRP é obrigatório para psicólogos supervisores.');
       }
     }
 
@@ -72,6 +74,7 @@ export class UsersService {
         email: createUserDto.email,
         senhaHash: passwordHash,
         roleId: createUserDto.roleId,
+        CRP: createUserDto.crp || null,
       },
       select: {
         id_User: true,
@@ -135,16 +138,14 @@ export class UsersService {
       },
     });
     if (!user) {
-      throw new NotFoundException(
-        `Usuário não encontrado ou acesso não permitido.`,
-      );
+      throw new NotFoundException(`Usuário não encontrado ou acesso não permitido.`);
     }
 
     return user;
   }
 
   async update(id: UUID, updateUserDto: UpdateUserDto, creator: TokenDto) {
-    const user = await this.prisma.usuario.findFirst({
+    const user = await this.prisma.usuario.findUnique({
       where: { id_User: id },
     });
 
@@ -152,18 +153,10 @@ export class UsersService {
       throw new NotFoundException(`Usuário não encontrado.`);
     }
 
-    // REGRA 1: Você não pode editar um usuário com nível igual ou superior ao seu
-    const canEditUser =
-      creator.access < user.roleId ||
-      (creator.access === 1 && user.roleId === 1);
-
-    if (!canEditUser) {
-      throw new ForbiddenException(
-        'Você não tem permissão para editar um usuário com nível de acesso igual ou superior ao seu.',
-      );
+    if (creator.access > 2){
+      if (user.id_User !== creator.sub) throw new ForbiddenException('Você não tem permissão para editar este usuário.');
     }
 
-    // Verifica se o email já existe
     if (updateUserDto.email && updateUserDto.email !== user.email) {
       const existingUser = await this.prisma.usuario.findFirst({
         where: {
@@ -173,53 +166,53 @@ export class UsersService {
       });
 
       if (existingUser) {
-        // Se o usuário existe e está ativo, não pode usar o email
         if (existingUser.isActive) {
-          throw new BadRequestException(
-            'O e-mail informado já está em uso por outro usuário.',
-          );
+          throw new BadRequestException('O e-mail informado já está em uso por outro usuário.');
         }
-        
-        // Se o usuário existe mas está inativo, verifica se tem permissão para ver a opção de reativar
-        const canReactivate = 
-          creator.access < existingUser.roleId ||
-          (creator.access === 1 && existingUser.roleId === 1);
-        
+
+        const canReactivate =
+          creator.access < existingUser.roleId || (creator.access === 1 && existingUser.roleId === 1);
+
         if (canReactivate) {
           throw new ConflictException({
             message: `Este e-mail pertence a um usuário desativado (${existingUser.nome}). Deseja reativar este usuário em vez de alterar o e-mail?`,
             userId: existingUser.id_User,
-            userName: existingUser.nome
+            userName: existingUser.nome,
           });
         } else {
-          // Se não tem permissão para reativar, apenas informa que o email já está em uso
-          throw new BadRequestException(
-            'O e-mail informado já está em uso por outro usuário.',
-          );
+          throw new BadRequestException('O e-mail informado já está em uso por outro usuário.');
         }
       }
     }
 
-    // Preparar dados para atualização - excluir roleId
     const dataToUpdate: Prisma.UsuarioUpdateInput = {
       nome: updateUserDto.nome,
       email: updateUserDto.email,
     };
 
+    if (updateUserDto.crp !== undefined) {
+      if (user.roleId !== 3) {
+        throw new BadRequestException(
+          'O campo CRP (Conselho Regional de Psicologia) só pode ser definido para usuários do tipo Supervisor.',
+        );
+      }
+
+      dataToUpdate.CRP = updateUserDto.crp;
+    }
+
     if (updateUserDto.senha) {
-      dataToUpdate.senhaHash = await this.HashingService.hash(
-        updateUserDto.senha,
-      );
+      dataToUpdate.senhaHash = await this.HashingService.hash(updateUserDto.senha);
     }
 
     return this.prisma.usuario.update({
       where: { id_User: id },
-      data: dataToUpdate, // Passa o objeto de dados já preparado
+      data: dataToUpdate,
       select: {
         id_User: true,
         nome: true,
         email: true,
         roleId: true,
+        CRP: true,
       },
     });
   }
@@ -240,9 +233,7 @@ export class UsersService {
     }
 
     // Você não pode deletar um usuário com nível de acesso igual ou superior.
-    const canDelete =
-      creator.access < user.roleId ||
-      (creator.access === 1 && user.roleId === 1);
+    const canDelete = creator.access < user.roleId || (creator.access === 1 && user.roleId === 1);
 
     if (!canDelete) {
       throw new ForbiddenException(
@@ -275,9 +266,7 @@ export class UsersService {
     }
 
     // Verifica se tem permissão para reativar
-    const canReactivate =
-      creator.access < user.roleId ||
-      (creator.access === 1 && user.roleId === 1);
+    const canReactivate = creator.access < user.roleId || (creator.access === 1 && user.roleId === 1);
 
     if (!canReactivate) {
       throw new ForbiddenException(

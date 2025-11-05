@@ -24,15 +24,13 @@ model Usuario {
   email     String  @unique @db.VarChar(100)
   senhaHash String  @map("SenhaHash") @db.VarChar(255)
   roleId    Int     @map("ID_Role") @db.SmallInt
+  CRP       String? @db.VarChar(9)
   isActive  Boolean @default(true)
 
-  role                      Role               @relation(fields: [roleId], references: [id_Role])
-  documentosUsuario         DocumentoUsuario[] @relation("UsuarioDocumentos")
-  logsExecutados            LogAuditoria[]     @relation("UsuarioExecutorLogs")
-  atendimentoComoEstagiario Atendimento[]      @relation("EstagiarioAtendimentos")
-  atendimentoComoSupervisor Atendimento[]      @relation("SupervisorAtendimentos")
-  relatorioComoEstagiario   RelatorioAlta[]    @relation("EstagiarioRelatorios")
-  relatorioComoSupervisor   RelatorioAlta[]    @relation("SupervisorRelatorios")
+  role                      Role           @relation(fields: [roleId], references: [id_Role])
+  logsExecutados            LogAuditoria[] @relation("UsuarioExecutorLogs")
+  atendimentoComoEstagiario Atendimento[]  @relation("EstagiarioAtendimentos")
+  atendimentoComoSupervisor Atendimento[]  @relation("SupervisorAtendimentos")
 
   @@map("USUARIOS")
 }
@@ -50,32 +48,20 @@ model Role {
 // Modelos de Documentos e Logs
 // ===============================================
 
-model DocumentoUsuario {
-  id_Documento   String   @id @default(uuid()) @map("ID_Documento") @db.Uuid
-  id_User        String   @map("ID_User") @db.Uuid
-  nomeArquivo    String   @db.VarChar(100)
-  caminhoArquivo String   @db.VarChar(255)
-  dataUpload     DateTime @default(now())
+model Prontuario {
+  id_Registro       String   @id @default(uuid()) @map("ID_Registro") @db.Uuid
+  id_Atendimento    String   @db.Uuid
+  conteudo          Json     @db.JsonB
+  dataEmissao       DateTime @default(now())
+  ultimaAtualizacao DateTime @updatedAt
+  id_Status         Int      @default(1) @db.SmallInt
+  id_Tipo           Int      @default(1) @db.SmallInt
 
-  usuario Usuario @relation("UsuarioDocumentos", fields: [id_User], references: [id_User], onDelete: Cascade)
+  atendimento           Atendimento      @relation(fields: [id_Atendimento], references: [id_Atendimento])
+  status                StatusProntuario @relation(fields: [id_Status], references: [id_Status])
+  TipoProntuario        TipoProntuario  @relation(fields: [id_Tipo], references: [id_Tipo])
 
-  @@map("DOCUMENTOS_USUARIO")
-}
-
-model RelatorioAlta {
-  id_Documento  String              @id @default(uuid()) @map("ID_Documento") @db.Uuid
-  id_Lista      String              @db.Uuid
-  id_Estagiario String              @db.Uuid
-  id_Supervisor String              @db.Uuid
-  conteudo      String              @db.Text
-  dataEmissao   DateTime            @default(now())
-  status        StatusRelatorioEnum @default(PENDENTE)
-
-  Lista      ListaEspera @relation(fields: [id_Lista], references: [id_Lista])
-  estagiario Usuario     @relation("EstagiarioRelatorios", fields: [id_Estagiario], references: [id_User])
-  supervisor Usuario     @relation("SupervisorRelatorios", fields: [id_Supervisor], references: [id_User])
-
-  @@map("RELATORIOS_ALTA")
+  @@map("REGISTRO_CLINICOS")
 }
 
 model LogAuditoria {
@@ -101,13 +87,16 @@ model Atendimento {
   id_Lista               String   @db.Uuid
   id_Estagiario_Executor String   @db.Uuid
   id_Supervisor_Executor String   @db.Uuid
-  id_Status              Int      @db.SmallInt @default(1)
-  observacoes            String?   @db.Text
+  id_Status              Int      @default(1) @db.SmallInt
+  id_Tipo_Atendimento    Int      @db.SmallInt
+  observacoes            String?  @db.Text
 
   ListaEspera        ListaEspera       @relation(fields: [id_Lista], references: [id_Lista], onDelete: Cascade)
   estagiarioExecutor Usuario           @relation("EstagiarioAtendimentos", fields: [id_Estagiario_Executor], references: [id_User])
   supervisorExecutor Usuario           @relation("SupervisorAtendimentos", fields: [id_Supervisor_Executor], references: [id_User])
   status             StatusAtendimento @relation(fields: [id_Status], references: [id_Status])
+  Prontuario         Prontuario[]
+  tipoAtendimento    TipoAtendimento   @relation(fields: [id_Tipo_Atendimento], references: [id_Tipo_Atendimento])
 
   @@map("ATENDIMENTOS")
 }
@@ -116,6 +105,7 @@ model ListaEspera {
   id_Lista          String   @id @default(uuid()) @map("ID_Lista") @db.Uuid
   nomeRegistro      String   @db.VarChar(150)
   nomeSocial        String?  @db.VarChar(100)
+  CPF               String   @default("") @db.Char(11)
   dataNascimento    DateTime @db.Date
   telefonePessoal   String   @db.VarChar(20)
   contatoEmergencia String   @db.VarChar(20)
@@ -131,12 +121,11 @@ model ListaEspera {
   id_Etnia          Int      @db.SmallInt
   id_Escolaridade   Int      @db.SmallInt
 
-  genero        Genero          @relation(fields: [id_Genero], references: [id_Genero])
-  Etnia         Etnia           @relation(fields: [id_Etnia], references: [id_Etnia])
-  escolaridade  Escolaridade    @relation(fields: [id_Escolaridade], references: [id_Escolaridade])
-  Status        StatusListaEspera    @relation(fields: [id_Status], references: [id_Status])
-  RelatorioAlta RelatorioAlta[]
-  Atendimento   Atendimento[]
+  genero       Genero            @relation(fields: [id_Genero], references: [id_Genero])
+  Etnia        Etnia             @relation(fields: [id_Etnia], references: [id_Etnia])
+  escolaridade Escolaridade      @relation(fields: [id_Escolaridade], references: [id_Escolaridade])
+  Status       StatusListaEspera @relation(fields: [id_Status], references: [id_Status])
+  Atendimento  Atendimento[]
 
   @@map("LISTA_ESPERA")
 }
@@ -173,29 +162,46 @@ model Escolaridade {
 }
 
 model StatusListaEspera {
-  id_Status     Int       @id @default(autoincrement()) @map("ID_Status") @db.SmallInt
-  nome          String    @db.VarChar
+  id_Status Int    @id @default(autoincrement()) @map("ID_Status") @db.SmallInt
+  nome      String @db.VarChar
 
   listaEspera ListaEspera[]
 
   @@map("STATUS_LISTA_ESPERA")
 }
+
 model StatusAtendimento {
-  id_Status    Int           @id @default(autoincrement()) @map("ID_Status") @db.SmallInt
-  nome         String        @db.VarChar
+  id_Status Int    @id @default(autoincrement()) @map("ID_Status") @db.SmallInt
+  nome      String @db.VarChar
 
   atendimentos Atendimento[]
 
   @@map("STATUS_ATENDIMENTO")
 }
 
-// ===============================================
-// Tipos ENUM
-// ===============================================
+model TipoAtendimento {
+  id_Tipo_Atendimento Int    @id @default(autoincrement()) @map("ID_Tipo_Atendimento") @db.SmallInt
+  nome                String @db.VarChar
 
-enum StatusRelatorioEnum {
-  PENDENTE
-  EMITIDO
-  CANCELADO
-  // Adicione outros status conforme necessário
+  atendimentos Atendimento[]
+
+  @@map("TIPO_ATENDIMENTO")
+}
+
+model StatusProntuario {
+  id_Status Int    @id @default(autoincrement()) @map("ID_Status") @db.SmallInt
+  nome      String @db.VarChar
+
+  prontuario Prontuario[]
+
+  @@map("STATUS_PRONTUARIO")
+}
+
+model TipoProntuario {
+  id_Tipo Int    @id @default(autoincrement()) @map("ID_Tipo") @db.SmallInt
+  nome    String @db.VarChar
+
+  prontuario Prontuario[]
+
+  @@map("TIPO_PRONTUARIO")
 }

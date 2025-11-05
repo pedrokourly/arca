@@ -40,6 +40,13 @@ import {
   AlertDescription,
   AlertTitle,
 } from "@/components/ui/alert";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { API_ENDPOINTS, apiRequest } from "@/utils/apiHandler";
 import { getErrorMessage } from "@/utils/toastErrorHandler";
 
@@ -59,6 +66,11 @@ const formSchema = z.object({
     })
     .optional()
     .or(z.literal("")),
+  CPF: z
+    .string()
+    .regex(/^\d{11}$/, {
+      message: "CPF deve conter exatamente 11 dígitos.",
+    }),
   dataNascimento: z.date({
     message: "Data de nascimento é obrigatória.",
   }),
@@ -123,7 +135,7 @@ const formSchema = z.object({
     .min(1, {
       message: "Gênero deve ser selecionado.",
     }),
-  id_etnia: z
+  id_Etnia: z
     .number({
       message: "Etnia é obrigatória.",
     })
@@ -142,12 +154,14 @@ const formSchema = z.object({
 export function WaitlistForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [waitlistId, setWaitlistId] = useState<string | null>(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       nomeRegistro: "",
       nomeSocial: "",
+      CPF: "",
       telefonePessoal: "",
       contatoEmergencia: "",
       enderecoRua: "",
@@ -157,7 +171,7 @@ export function WaitlistForm() {
       enderecoEstado: "",
       enderecoCEP: "",
       id_Genero: undefined,
-      id_etnia: undefined,
+      id_Etnia: undefined,
       id_Escolaridade: undefined,
     },
   });
@@ -170,6 +184,7 @@ export function WaitlistForm() {
       const payload = {
         nomeRegistro: values.nomeRegistro,
         nomeSocial: values.nomeSocial && values.nomeSocial.trim() !== "" ? values.nomeSocial : undefined,
+        CPF: values.CPF,
         dataNascimento: values.dataNascimento.toISOString().split("T")[0], // Formato YYYY-MM-DD
         telefonePessoal: values.telefonePessoal,
         contatoEmergencia: values.contatoEmergencia,
@@ -180,7 +195,7 @@ export function WaitlistForm() {
         enderecoEstado: values.enderecoEstado.toUpperCase(),
         enderecoCEP: values.enderecoCEP,
         id_Genero: values.id_Genero,
-        id_etnia: values.id_etnia,
+        id_Etnia: values.id_Etnia,
         id_Escolaridade: values.id_Escolaridade,
       };
 
@@ -192,6 +207,7 @@ export function WaitlistForm() {
       // Capturar o ID da lista de espera retornado pela API
       const { id_Lista } = result;
       setWaitlistId(id_Lista);
+      setShowSuccessModal(true);
 
       // Sucesso - mostrar toast e resetar formulário
       toast.success("Inscrição realizada com sucesso!", {
@@ -274,6 +290,32 @@ export function WaitlistForm() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField
                   control={form.control}
+                  name="CPF"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>CPF *</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Digite apenas números"
+                          {...field}
+                          maxLength={11}
+                          onChange={(e) => {
+                            // Remove tudo que não é número
+                            const value = e.target.value.replace(/\D/g, "");
+                            field.onChange(value);
+                          }}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Seu CPF (apenas números, sem pontos ou traços).
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
                   name="dataNascimento"
                   render={({ field }) => (
                     <FormItem className="flex flex-col">
@@ -314,7 +356,9 @@ export function WaitlistForm() {
                     </FormItem>
                   )}
                 />
+              </div>
 
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-6">
                   <FormField
                     control={form.control}
@@ -526,7 +570,7 @@ export function WaitlistForm() {
 
                 <FormField
                   control={form.control}
-                  name="id_etnia"
+                  name="id_Etnia"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Etnia *</FormLabel>
@@ -610,27 +654,61 @@ export function WaitlistForm() {
         </form>
       </Form>
 
-      {/* Alert com ID da lista de espera */}
-      {waitlistId && (
-        <Alert className="border-green-200 bg-green-50 text-green-900">
-          <InfoIcon className="h-4 w-4" />
-          <AlertTitle>Inscrição realizada com sucesso!</AlertTitle>
-          <AlertDescription>
+      {/* Modal de Sucesso com ID da lista de espera */}
+      <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
+        <DialogContent 
+          className="sm:max-w-md"
+          onInteractOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-green-700">
+              <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                <InfoIcon className="h-5 w-5 text-green-600" />
+              </div>
+              Inscrição Realizada com Sucesso!
+            </DialogTitle>
+            <DialogDescription className="sr-only">
+              Informações sobre o ID da lista de espera
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 py-4">
             <div className="space-y-3">
-              <p>
-                <strong>Seu ID da lista de espera é:</strong>{" "}
-                <code className="bg-green-100 border border-green-200 px-3 py-1 rounded text-sm font-mono font-semibold">
-                  {waitlistId}
-                </code>
-              </p>
-              <p className="text-sm">
-                <strong>IMPORTANTE:</strong> Guarde este número! Você pode utilizá-lo no futuro para verificar 
-                sua posição na lista de espera e acompanhar o status da sua inscrição.
-              </p>
+              <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4">
+                <p className="text-sm text-gray-700 mb-2 font-medium">
+                  Seu código de inscrição é:
+                </p>
+                <div className="flex items-center justify-center">
+                  <code className="bg-white border-2 border-green-300 px-6 py-3 rounded-lg text-lg font-mono font-bold text-green-700 tracking-wider shadow-sm">
+                    {waitlistId}
+                  </code>
+                </div>
+              </div>
+              
+              <Alert className="border-amber-200 bg-amber-50">
+                <InfoIcon className="h-4 w-4 text-amber-600" />
+                <AlertTitle className="text-amber-900 font-semibold">
+                  ⚠️ IMPORTANTE - Guarde este código!
+                </AlertTitle>
+                <AlertDescription className="text-amber-800 space-y-2">
+                  <p className="font-medium">
+                    Você precisará deste código para:
+                  </p>
+                  <ul className="list-disc list-inside space-y-1 text-sm">
+                    <li>Verificar sua posição na lista de espera</li>
+                    <li>Acompanhar o status da sua inscrição</li>
+                    <li>Consultas futuras sobre seu atendimento</li>
+                  </ul>
+                  <p className="text-sm mt-3 font-semibold">
+                    💡 Dica: Tire uma foto ou anote em um lugar seguro!
+                  </p>
+                </AlertDescription>
+              </Alert>
             </div>
-          </AlertDescription>
-        </Alert>
-      )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -16,25 +16,41 @@ export default function CreateSessionPage() {
               Agendar Nova Sessão
             </h1>
             <p className="text-muted-foreground text-lg">
-              Agende uma sessão de atendimento psicológico para pacientes em atendimento
+              Agende triagens ou sessões de psicoterapia conforme o status do paciente
             </p>
           </div>
         </div>
 
-        {/* Cards informativos */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        {/* Cards informativos atualizados */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <Card className="border-blue-200 bg-blue-50/50">
             <CardHeader className="pb-3">
               <div className="flex items-center gap-2">
                 <Clock className="w-5 h-5 text-blue-600" />
                 <CardTitle className="text-sm font-medium text-blue-900">
-                  Agendamento Flexível
+                  Triagem
                 </CardTitle>
               </div>
             </CardHeader>
             <CardContent className="pt-0">
               <CardDescription className="text-blue-700">
-                Escolha data, horário e duração conforme disponibilidade
+                Primeira avaliação para pacientes em espera
+              </CardDescription>
+            </CardContent>
+          </Card>
+
+          <Card className="border-purple-200 bg-purple-50/50">
+            <CardHeader className="pb-3">
+              <div className="flex items-center gap-2">
+                <UserCheck className="w-5 h-5 text-purple-600" />
+                <CardTitle className="text-sm font-medium text-purple-900">
+                  Psicoterapia
+                </CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <CardDescription className="text-purple-700">
+                Sessões de acompanhamento para pacientes aprovados na triagem
               </CardDescription>
             </CardContent>
           </Card>
@@ -50,23 +66,23 @@ export default function CreateSessionPage() {
             </CardHeader>
             <CardContent className="pt-0">
               <CardDescription className="text-green-700">
-                Sistema verifica conflitos de horário e disponibilidade
+                Sistema verifica status do paciente e tipo de atendimento permitido
               </CardDescription>
             </CardContent>
           </Card>
 
-          <Card className="border-purple-200 bg-purple-50/50">
+          <Card className="border-orange-200 bg-orange-50/50">
             <CardHeader className="pb-3">
               <div className="flex items-center gap-2">
-                <UserCheck className="w-5 h-5 text-purple-600" />
-                <CardTitle className="text-sm font-medium text-purple-900">
-                  Supervisão
+                <UserCheck className="w-5 h-5 text-orange-600" />
+                <CardTitle className="text-sm font-medium text-orange-900">
+                  Fluxo Controlado
                 </CardTitle>
               </div>
             </CardHeader>
             <CardContent className="pt-0">
-              <CardDescription className="text-purple-700">
-                Toda sessão conta com acompanhamento de supervisor qualificado
+              <CardDescription className="text-orange-700">
+                Triagem → Aprovação → Psicoterapia seguindo protocolo clínico
               </CardDescription>
             </CardContent>
           </Card>

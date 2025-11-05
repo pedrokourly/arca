@@ -34,7 +34,11 @@ const createUserSchema = z.object({
   roleId: z
     .number()
     .min(1, "Função é obrigatória")
-    .int("Função deve ser um número inteiro")
+    .int("Função deve ser um número inteiro"),
+  crp: z
+    .string()
+    .regex(/^\d{2}\/\d{5,6}$/, "O CRP é inválido. O formato esperado é XX/XXXXX ou XX/XXXXXX (ex: 06/12345)")
+    .optional()
 });
 
 interface CreateUserData {
@@ -42,6 +46,7 @@ interface CreateUserData {
   email: string;
   senha: string;
   roleId: number;
+  crp?: string;
 }
 
 type CreateUserFormErrors = {
@@ -65,7 +70,8 @@ export default function CreateUserForm() {
     nome: "",
     email: "",
     senha: "",
-    roleId: 4 // Estagiário por padrão (número)
+    roleId: 4, 
+    crp: ""
   });
   
   const [isLoading, setIsLoading] = useState(false);
@@ -112,6 +118,26 @@ export default function CreateUserForm() {
         roleId: Number(formData.roleId)
       };
       
+      // Validação customizada para CRP
+      if (dataToValidate.roleId === 3) {
+        // Se for supervisor, CRP é obrigatório
+        if (!dataToValidate.crp || dataToValidate.crp.trim() === '') {
+          setFormErrors({ crp: 'O CRP é obrigatório para Supervisores' });
+          return false;
+        }
+        // Validar formato do CRP
+        const crpRegex = /^\d{2}\/\d{5,6}$/;
+        if (!crpRegex.test(dataToValidate.crp)) {
+          setFormErrors({ crp: 'O CRP é inválido. O formato esperado é XX/XXXXX ou XX/XXXXXX (ex: 06/12345)' });
+          return false;
+        }
+      }
+      
+      // Se não for supervisor, remover CRP da validação
+      if (dataToValidate.roleId !== 3) {
+        delete dataToValidate.crp;
+      }
+      
       createUserSchema.parse(dataToValidate);
       setFormErrors({});
       
@@ -139,7 +165,20 @@ export default function CreateUserForm() {
     setIsLoading(true);
     
     try {
-      const newUser = await apiService.createUser(formData, session!.token);
+      // Preparar dados para envio
+      const dataToSend: any = {
+        nome: formData.nome,
+        email: formData.email,
+        senha: formData.senha,
+        roleId: formData.roleId,
+      };
+
+      // Adicionar CRP apenas se for supervisor E tiver valor
+      if (formData.roleId === 3 && formData.crp && formData.crp.trim() !== '') {
+        dataToSend.crp = formData.crp;
+      }
+      
+      const newUser = await apiService.createUser(dataToSend, session!.token);
       
       toast.success("Usuário criado com sucesso!");
       router.push("/dashboard/usuarios");
@@ -384,6 +423,37 @@ export default function CreateUserForm() {
                   </p>
                 </div>
               </div>
+
+              {/* Campo CRP - Apenas para Supervisores */}
+              {formData.roleId === 3 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="crp">
+                      CRP (Conselho Regional de Psicologia) <span className="text-destructive">*</span>
+                    </Label>
+                    <Input
+                      id="crp"
+                      type="text"
+                      value={formData.crp || ""}
+                      onChange={(e) => handleInputChange("crp", e.target.value)}
+                      placeholder="Ex: 06/12345"
+                      maxLength={9}
+                      disabled={isLoading}
+                      required
+                      className={formErrors.crp ? "border-destructive" : ""}
+                    />
+                    {formErrors.crp && (
+                      <p className="text-xs text-destructive">{formErrors.crp}</p>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      Formato: XX/XXXXX ou XX/XXXXXX (ex: 06/12345)
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    {/* Espaço vazio para manter o grid alinhado */}
+                  </div>
+                </div>
+              )}
 
               {/* Informações importantes */}
               <div className="p-4 bg-muted/50 rounded-lg">

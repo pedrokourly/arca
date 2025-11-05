@@ -7,7 +7,10 @@ import {
   ShieldUser,
   Shield,
   CalendarClock,
-  BookMarked
+  BookMarked,
+  ArrowUpNarrowWide,
+  Users,
+  FileText
 } from "lucide-react";
 import { usePermissions } from "@/hooks/usePermissions";
 
@@ -25,7 +28,7 @@ import {
 } from "@/components/ui/sidebar";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { canAccessUsers, canCreateUsers, canSeeAudit, canSeeNavSystem } = usePermissions();
+  const { canAccessUsers, canCreateUsers, canSeeAudit, canSeeNavSystem, canAccessFluxoAtendimento } = usePermissions();
 
   // Filtrar itens do menu de usuários baseado nas permissões
   const getUsersMenuItems = () => {
@@ -65,6 +68,21 @@ const data = {
       title: "Agenda",
       url: "/dashboard/agenda",
       icon: BookMarked
+    },
+    {
+      title: "Relatórios",
+      url: "/dashboard/relatorios",
+      icon: FileText
+    },
+    ...(canAccessFluxoAtendimento() ? [{
+      title: "Fluxo de Atendimento",
+      url: "/dashboard/fluxo-atendimento",
+      icon: ArrowUpNarrowWide
+    }] : []),
+    {
+      title: "Pacientes",
+      url: "/dashboard/pacientes",
+      icon: Users
     },
     {
       title: "Lista de Espera",

@@ -7,6 +7,8 @@ import { AuthModule } from './auth/auth.module';
 import { WaitlistModule } from './waitlist/waitlist.module';
 import { AuditModule } from './audit/audit.module';
 import { SessionModule } from './session/session.module';
+import { MedicalRecordModule } from './medical_record/medical_record.module';
+import { PdfModule } from './pdf/pdf.module';
 
 @Module({
   imports: [
@@ -20,7 +22,9 @@ import { SessionModule } from './session/session.module';
     AuthModule,
     UsersModule,
     WaitlistModule,
-    SessionModule
+    SessionModule,
+    MedicalRecordModule,
+    PdfModule
   ],
   controllers: [AppController],
   providers: [AppService],

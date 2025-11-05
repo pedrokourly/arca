@@ -31,6 +31,31 @@ import {
 import { API_ENDPOINTS, apiRequest } from "@/utils/apiHandler";
 import { getErrorMessage } from "@/utils/toastErrorHandler";
 
+// Mapeamento dos status
+const STATUS_MAP = {
+  1: { label: 'Em Espera', variant: 'secondary' as const, isActive: true },
+  2: { label: 'Em Atendimento', variant: 'default' as const, isActive: false },
+  3: { label: 'Recebeu Alta', variant: 'outline' as const, isActive: false },
+  4: { label: 'Desistente', variant: 'destructive' as const, isActive: false },
+  5: { label: 'Desativado', variant: 'destructive' as const, isActive: false }
+};
+
+// Função para obter descrição detalhada do status
+const getStatusDescription = (status: number) => {
+  switch (status) {
+    case 2:
+      return "Você está sendo atendido";
+    case 3:
+      return "Você recebeu alta do atendimento";
+    case 4:
+      return "Você desistiu da lista de espera";
+    case 5:
+      return "Sua inscrição foi desativada";
+    default:
+      return "Sua inscrição não está ativa na lista";
+  }
+};
+
 const consultaSchema = z.object({
   idLista: z
     .string()
@@ -42,6 +67,7 @@ interface WaitlistEntry {
   id_Lista: string;
   nomeRegistro: string;
   nomeSocial?: string;
+  CPF: string;
   dataNascimento: string;
   telefonePessoal: string;
   contatoEmergencia: string;
@@ -52,7 +78,7 @@ interface WaitlistEntry {
   enderecoEstado: string;
   enderecoCEP: string;
   createdAt: string;
-  isActive: boolean;
+  id_Status: number;
   posicaoNaLista: number;
   situacao: string;
 }
@@ -181,41 +207,54 @@ export function PositionCheck() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-4xl font-bold text-primary mb-2">
-                    #{waitlistData.posicaoNaLista}
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Posição atual na fila de espera
-                  </p>
+                  {waitlistData.id_Status === 1 ? (
+                    <>
+                      <div className="text-4xl font-bold text-primary mb-2">
+                        #{waitlistData.posicaoNaLista}
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Posição atual na fila de espera
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <div className="text-2xl font-bold text-muted-foreground mb-2">
+                        -
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Não está na fila de espera
+                      </p>
+                    </>
+                  )}
                 </CardContent>
               </Card>
 
               <Card className={`border-opacity-20 ${
-                waitlistData.isActive 
+                STATUS_MAP[waitlistData.id_Status as keyof typeof STATUS_MAP]?.isActive 
                   ? "border-green-500 bg-green-50/50" 
                   : "border-red-500 bg-red-50/50"
               }`}>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-lg flex items-center gap-2">
                     <SearchIcon className={`h-5 w-5 ${
-                      waitlistData.isActive ? "text-green-600" : "text-red-600"
+                      STATUS_MAP[waitlistData.id_Status as keyof typeof STATUS_MAP]?.isActive ? "text-green-600" : "text-red-600"
                     }`} />
                     Status
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <Badge 
-                    variant={waitlistData.isActive ? "default" : "destructive"}
+                    variant={STATUS_MAP[waitlistData.id_Status as keyof typeof STATUS_MAP]?.variant || "secondary"}
                     className="text-sm mb-2"
                   >
-                    {waitlistData.situacao}
+                    {STATUS_MAP[waitlistData.id_Status as keyof typeof STATUS_MAP]?.label || `Status ${waitlistData.id_Status}`}
                   </Badge>
                   <p className={`text-sm ${
-                    waitlistData.isActive ? "text-green-700" : "text-red-700"
+                    STATUS_MAP[waitlistData.id_Status as keyof typeof STATUS_MAP]?.isActive ? "text-green-700" : "text-red-700"
                   }`}>
-                    {waitlistData.isActive 
+                    {STATUS_MAP[waitlistData.id_Status as keyof typeof STATUS_MAP]?.isActive 
                       ? "Sua inscrição está ativa na lista" 
-                      : "Sua inscrição foi desativada"
+                      : getStatusDescription(waitlistData.id_Status)
                     }
                   </p>
                 </CardContent>
@@ -242,6 +281,12 @@ export function PositionCheck() {
                       <p className="font-medium">{waitlistData.nomeSocial}</p>
                     </div>
                   )}
+                  <div className="p-3 bg-muted/50 rounded-lg">
+                    <span className="text-sm font-medium text-muted-foreground">CPF</span>
+                    <p className="font-medium font-mono">
+                      {waitlistData.CPF.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')}
+                    </p>
+                  </div>
                 </div>
                 <div className="space-y-3">
                   <div className="p-3 bg-muted/50 rounded-lg">
@@ -293,7 +338,7 @@ export function PositionCheck() {
                 </p>
               </div>
 
-              <Alert className={waitlistData.isActive ? "border-blue-200 bg-blue-50" : "border-red-200 bg-red-50"}>
+              <Alert className={STATUS_MAP[waitlistData.id_Status as keyof typeof STATUS_MAP]?.isActive ? "border-blue-200 bg-blue-50" : "border-red-200 bg-red-50"}>
                 <UserIcon className="h-4 w-4" />
                 <AlertTitle>Informações Importantes</AlertTitle>
                 <AlertDescription>
@@ -301,9 +346,9 @@ export function PositionCheck() {
                     <li>Guarde seu ID da lista de espera para consultas futuras</li>
                     <li>Entraremos em contato quando chegar sua vez</li>
                     <li>Mantenha seus dados de contato sempre atualizados</li>
-                    {!waitlistData.isActive && (
+                    {!STATUS_MAP[waitlistData.id_Status as keyof typeof STATUS_MAP]?.isActive && (
                       <li className="text-red-700 font-medium">
-                        Sua inscrição está inativa - entre em contato conosco para mais informações
+                        {getStatusDescription(waitlistData.id_Status)} - entre em contato conosco para mais informações
                       </li>
                     )}
                   </ul>

@@ -24,6 +24,10 @@ export class CreateSessionDto {
     @IsNotEmpty()
     id_Supervisor_Executor: UUID;
 
+    @IsInt()
+    @IsNotEmpty()
+    id_Tipo_Atendimento: number;
+    
     @IsString()
     @IsOptional()
     observacoes: string;

@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "public"."USUARIOS" ADD COLUMN     "CRP" VARCHAR(9);

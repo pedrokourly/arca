@@ -12,7 +12,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "../ui/button";
-import { Edit, Trash2, Eye, Search, Filter, X } from "lucide-react";
+import { Edit, Trash2, Eye, Search, X } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -26,7 +26,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { API_ENDPOINTS, apiRequest } from "@/utils/apiHandler";
@@ -36,6 +35,7 @@ interface WaitlistEntry {
   id_Lista: string;
   nomeRegistro: string;
   nomeSocial?: string;
+  CPF: string;
   dataNascimento: string;
   telefonePessoal: string;
   contatoEmergencia: string;
@@ -48,17 +48,19 @@ interface WaitlistEntry {
   createdAt: string;
   id_Status: number;
   id_Genero: number;
-  id_etnia: number;
+  id_Etnia: number;
   id_Escolaridade: number;
 }
 
 // Mapeamento dos status
 const STATUS_MAP = {
-  1: { label: 'Em Espera', variant: 'secondary' as const },
-  2: { label: 'Em Atendimento', variant: 'default' as const },
-  3: { label: 'Recebeu Alta', variant: 'outline' as const },
-  4: { label: 'Desistente', variant: 'destructive' as const },
-  5: { label: 'Desativado', variant: 'destructive' as const }
+  1: { label: 'Em Espera', variant: 'secondary' as const, description: 'Aguardando atendimento' },
+  2: { label: 'Em Atendimento', variant: 'default' as const, description: 'Atualmente em atendimento' },
+  3: { label: 'Em Triagem', variant: 'default' as const, description: 'Em processo de triagem' },
+  4: { label: 'Em Psicoterapia', variant: 'default' as const, description: 'Em sessões de psicoterapia' },
+  5: { label: 'Recebeu Alta', variant: 'outline' as const, description: 'Atendimento finalizado' },
+  6: { label: 'Encaminhado', variant: 'outline' as const, description: 'Encaminhado para outro serviço' },
+  7: { label: 'Desativado', variant: 'destructive' as const, description: 'Removido da lista' }
 };
 
 export function WaitlistTable() {
@@ -70,7 +72,6 @@ export function WaitlistTable() {
 
   // Estados para filtros e pesquisa
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"all" | "1" | "2" | "3" | "4" | "5">("all");
   const [filteredEntries, setFilteredEntries] = useState<WaitlistEntry[]>([]);
 
   // Estados para deleção de entrada da lista
@@ -83,6 +84,7 @@ export function WaitlistTable() {
   const [editFormData, setEditFormData] = useState({
     nomeRegistro: "",
     nomeSocial: "",
+    CPF: "",
     telefonePessoal: "",
     contatoEmergencia: "",
     enderecoRua: "",
@@ -104,6 +106,7 @@ export function WaitlistTable() {
     setEditFormData({
       nomeRegistro: entry.nomeRegistro,
       nomeSocial: entry.nomeSocial || "",
+      CPF: entry.CPF,
       telefonePessoal: entry.telefonePessoal,
       contatoEmergencia: entry.contatoEmergencia,
       enderecoRua: entry.enderecoRua,
@@ -126,6 +129,7 @@ export function WaitlistTable() {
       const updateData = {
         nomeRegistro: editFormData.nomeRegistro,
         nomeSocial: editFormData.nomeSocial || undefined,
+        CPF: editFormData.CPF,
         telefonePessoal: editFormData.telefonePessoal,
         contatoEmergencia: editFormData.contatoEmergencia,
         enderecoRua: editFormData.enderecoRua,
@@ -160,6 +164,7 @@ export function WaitlistTable() {
       setEditFormData({
         nomeRegistro: "",
         nomeSocial: "",
+        CPF: "",
         telefonePessoal: "",
         contatoEmergencia: "",
         enderecoRua: "",
@@ -236,12 +241,6 @@ export function WaitlistTable() {
   const filterEntries = () => {
     let filtered = waitlistEntries;
 
-    // Filtro por status
-    if (statusFilter !== "all") {
-      const statusId = parseInt(statusFilter);
-      filtered = filtered.filter(entry => entry.id_Status === statusId);
-    }
-
     // Filtro por pesquisa
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
@@ -260,7 +259,6 @@ export function WaitlistTable() {
   // Função para limpar filtros
   const clearFilters = () => {
     setSearchTerm("");
-    setStatusFilter("all");
   };
 
   useEffect(() => {
@@ -278,7 +276,9 @@ export function WaitlistTable() {
             Authorization: `Bearer ${session.token}`,
           },
         });
-        setWaitlistEntries(data);
+        // Filtrar apenas pessoas em espera (id_Status === 1)
+        const waitingOnly = data.filter((entry: WaitlistEntry) => entry.id_Status === 1);
+        setWaitlistEntries(waitingOnly);
       } catch (err) {
         console.error("Erro ao buscar lista de espera:", err);
         const { title, description } = getErrorMessage(err);
@@ -296,7 +296,7 @@ export function WaitlistTable() {
   // useEffect para aplicar filtros quando dados ou filtros mudam
   useEffect(() => {
     filterEntries();
-  }, [waitlistEntries, searchTerm, statusFilter]);
+  }, [waitlistEntries, searchTerm]);
 
   // Skeleton para carregamento da sessão
   if (status === "loading") {
@@ -389,59 +389,27 @@ export function WaitlistTable() {
           </div>
         </div>
         
-        <div className="flex flex-col sm:flex-row gap-2">
-          <Select value={statusFilter} onValueChange={(value: "all" | "1" | "2" | "3" | "4" | "5") => setStatusFilter(value)}>
-            <SelectTrigger className="w-full sm:w-[180px]">
-              <Filter className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Filtrar por status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os status</SelectItem>
-              <SelectItem value="1">Em Espera</SelectItem>
-              <SelectItem value="2">Em Atendimento</SelectItem>
-              <SelectItem value="3">Recebeu Alta</SelectItem>
-              <SelectItem value="4">Desistente</SelectItem>
-              <SelectItem value="5">Desativado</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          {(searchTerm || statusFilter !== "all") && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={clearFilters}
-              className="shrink-0"
-            >
-              <X className="h-4 w-4 mr-2" />
-              Limpar
-            </Button>
-          )}
-        </div>
+        {searchTerm && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={clearFilters}
+            className="shrink-0"
+          >
+            <X className="h-4 w-4 mr-2" />
+            Limpar
+          </Button>
+        )}
       </div>
 
       {/* Estatísticas */}
       <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
         <span>
-          Total: <span className="font-medium text-foreground">{waitlistEntries.length}</span>
-        </span>
-        <span>
-          Em Espera: <span className="font-medium text-blue-600">{waitlistEntries.filter(e => e.id_Status === 1).length}</span>
-        </span>
-        <span>
-          Em Atendimento: <span className="font-medium text-green-600">{waitlistEntries.filter(e => e.id_Status === 2).length}</span>
-        </span>
-        <span>
-          Recebeu Alta: <span className="font-medium text-gray-600">{waitlistEntries.filter(e => e.id_Status === 3).length}</span>
-        </span>
-        <span>
-          Desistente: <span className="font-medium text-orange-600">{waitlistEntries.filter(e => e.id_Status === 4).length}</span>
-        </span>
-        <span>
-          Desativado: <span className="font-medium text-red-600">{waitlistEntries.filter(e => e.id_Status === 5).length}</span>
+          Total em Espera: <span className="font-medium text-blue-600">{waitlistEntries.length}</span>
         </span>
         {filteredEntries.length !== waitlistEntries.length && (
           <span>
-            Exibindo: <span className="font-medium text-purple-600">{filteredEntries.length}</span>
+            Exibindo: <span className="font-medium text-orange-600">{filteredEntries.length}</span>
           </span>
         )}
       </div>
@@ -493,6 +461,7 @@ export function WaitlistTable() {
                 <Badge 
                   variant={STATUS_MAP[entry.id_Status as keyof typeof STATUS_MAP]?.variant || "secondary"}
                   className="text-xs"
+                  title={STATUS_MAP[entry.id_Status as keyof typeof STATUS_MAP]?.description}
                 >
                   {STATUS_MAP[entry.id_Status as keyof typeof STATUS_MAP]?.label || `Status ${entry.id_Status}`}
                 </Badge>
@@ -589,6 +558,12 @@ export function WaitlistTable() {
                     </div>
                   )}
                   <div>
+                    <Label className="text-muted-foreground">CPF</Label>
+                    <p className="font-medium font-mono">
+                      {entryToView.CPF.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')}
+                    </p>
+                  </div>
+                  <div>
                     <Label className="text-muted-foreground">Data de Nascimento</Label>
                     <p className="font-medium">
                       {format(new Date(entryToView.dataNascimento), "dd/MM/yyyy", { locale: ptBR })}
@@ -645,6 +620,20 @@ export function WaitlistTable() {
                       {format(new Date(entryToView.createdAt), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                     </p>
                   </div>
+                  <div className="col-span-2">
+                    <Label className="text-muted-foreground">Status Atual</Label>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Badge 
+                        variant={STATUS_MAP[entryToView.id_Status as keyof typeof STATUS_MAP]?.variant || "secondary"}
+                        className="text-xs"
+                      >
+                        {STATUS_MAP[entryToView.id_Status as keyof typeof STATUS_MAP]?.label || `Status ${entryToView.id_Status}`}
+                      </Badge>
+                      <p className="text-xs text-muted-foreground">
+                        {STATUS_MAP[entryToView.id_Status as keyof typeof STATUS_MAP]?.description}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -691,6 +680,20 @@ export function WaitlistTable() {
                     placeholder="Opcional"
                   />
                 </div>
+              </div>
+              
+              <div>
+                <Label htmlFor="CPF">CPF</Label>
+                <Input
+                  id="CPF"
+                  value={editFormData.CPF}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/g, "");
+                    setEditFormData({ ...editFormData, CPF: value });
+                  }}
+                  maxLength={11}
+                  placeholder="Digite apenas números"
+                />
               </div>
             </div>
 

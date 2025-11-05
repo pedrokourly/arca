@@ -380,27 +380,6 @@ const AgendaGeral = () => {
     // Por exemplo: setModalNovoEventoAberto(true); setNovoEventoData({ start, end });
   };
 
-  const handleEditarEvento = (evento: EventoAgenda) => {
-    // TODO: Implementar modal de edição ou navegar para página de edição
-    setModalDetalhesAberto(false);
-    // Aqui você pode abrir um modal de edição ou navegar para uma página
-    // Por exemplo: router.push(`/agenda/editar/${evento.id}`);
-  };
-
-  const handleExcluirEvento = async (eventoId: string) => {
-    if (confirm('Tem certeza que deseja excluir este agendamento?')) {
-      try {
-        await api.delete(`/session/${eventoId}`);
-        // Atualizar a lista de eventos após exclusão
-        await buscarEventos();
-        setModalDetalhesAberto(false);
-      } catch (error) {
-        console.error('Erro ao excluir evento:', error);
-        alert('Erro ao excluir agendamento. Tente novamente.');
-      }
-    }
-  };
-
   const handleNovoAgendamento = () => {
     // TODO: Implementar modal de criação ou navegar para página de criação
     // Por exemplo: router.push('/agenda/novo');
@@ -617,8 +596,6 @@ const AgendaGeral = () => {
         evento={eventoSelecionado}
         open={modalDetalhesAberto}
         onOpenChange={setModalDetalhesAberto}
-        onEdit={handleEditarEvento}
-        onDelete={handleExcluirEvento}
       />
     </div>
   );

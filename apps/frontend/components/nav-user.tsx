@@ -1,6 +1,7 @@
 "use client"
 
 import { useSession, signOut } from "next-auth/react"
+import { useRouter } from "next/navigation"
 
 import {
   BadgeCheck,
@@ -41,6 +42,7 @@ export function NavUser({
 }) {
   const { data : session } = useSession()
   const { isMobile } = useSidebar()
+  const router = useRouter()
 
   return (
     <SidebarMenu>
@@ -86,7 +88,7 @@ export function NavUser({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push('/dashboard/perfil')}>
                 <BadgeCheck />
                 Conta
               </DropdownMenuItem>

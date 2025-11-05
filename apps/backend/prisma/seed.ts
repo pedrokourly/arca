@@ -59,7 +59,8 @@ async function main() {
         { nome: 'Preta' },
         { nome: 'Parda' },
         { nome: 'Amarela' },
-        { nome: 'Indígena' }
+        { nome: 'Indígena' },
+        { nome: 'Prefiro não informar' }
       ]
     })
     console.log('✅ Etnias inseridas com sucesso!')
@@ -78,7 +79,9 @@ async function main() {
         { nome: 'Ensino Médio Completo' },
         { nome: 'Ensino Superior Incompleto' },
         { nome: 'Ensino Superior Completo' },
-        { nome: 'Pós-graduação' }
+        { nome: 'Pós-graduação' },
+        { nome: 'Mestrado' },
+        { nome: 'Doutorado' }
       ]
     })
     console.log('✅ Escolaridades inseridas com sucesso!')
@@ -92,9 +95,11 @@ async function main() {
     await prisma.statusListaEspera.createMany({
       data: [
         { nome: 'Em Espera' },
-        { nome: 'Em Atendimento' },
+        { nome: 'Em Triagem' },
+        { nome: 'Triagem aprovada' },
+        { nome: 'Em Psicoterapia' },
         { nome: 'Recebeu Alta' },
-        { nome: 'Desistente' },
+        { nome: 'Encaminhado' },
         { nome: 'Desativado' }
       ]
     })
@@ -111,13 +116,56 @@ async function main() {
         { nome: 'Agendado' },
         { nome: 'Em Andamento' },
         { nome: 'Concluído' },
-        { nome: 'Faltou' },
         { nome: 'Cancelado' }
       ]
     })
     console.log('✅ Status de atendimento inseridos com sucesso!')
   } else {
     console.log('ℹ️  Status de atendimento já existem no banco de dados.')
+  }
+
+  // Inserir status de atendimento apenas se não existirem
+  const existingTipoAtendimento = await prisma.tipoAtendimento.count()
+  if (existingTipoAtendimento === 0) {
+    await prisma.tipoAtendimento.createMany({
+      data: [
+        { nome: 'Triagem' },
+        { nome: 'Psicoterapia' }
+      ]
+    })
+    console.log('✅ Tipo de atendimento inseridos com sucesso!')
+  } else {
+    console.log('ℹ️  Tipo de atendimento já existem no banco de dados.')
+  }
+
+  // Inserir status de Prontuario apenas se não existirem
+  const existingStatusProntuario = await prisma.statusProntuario.count()
+  if (existingStatusProntuario === 0) {
+    await prisma.statusProntuario.createMany({
+      data: [
+        { nome: 'Em aprovação' },
+        { nome: 'Aprovado' }
+      ]
+    })
+    console.log('✅ Status de Prontuario inseridos com sucesso!')
+  } else {
+    console.log('ℹ️  Status de Prontuario já existem no banco de dados.')
+  }
+
+  // Inserir Tipo de Prontuario apenas se não existirem
+  const existingTipoProntuario = await prisma.tipoProntuario.count()
+  if (existingTipoProntuario === 0) {
+    await prisma.tipoProntuario.createMany({
+      data: [
+        { nome: 'Triagem' },
+        { nome: 'Evolucao' },
+        { nome: 'Alta' },
+        { nome: 'Encaminhamento' }
+      ]
+    })
+    console.log('✅ Tipos de Prontuario inseridos com sucesso!')
+  } else {
+    console.log('ℹ️  Tipos de Prontuario já existem no banco de dados.')
   }
 
   // Inserir usuários padrão para cada tipo de acesso apenas se não existirem
@@ -141,6 +189,7 @@ async function main() {
       email: 'supervisor@arca.com',
       senha: 'Supervisor123!',
       roleId: 3, // SUPERVISOR
+      CRP: 'CRP-123456',
       description: 'Usuário supervisor'
     },
     {
@@ -168,6 +217,7 @@ async function main() {
           nome: usuario.nome,
           email: usuario.email,
           senhaHash: hashedPassword,
+          CRP: usuario.CRP || null,
           roleId: usuario.roleId
         }
       })

@@ -61,7 +61,7 @@ export default function UsuariosPage() {
               </div>
             </div>
             <Button
-              onClick={() => router.push('/dashboard/usuarios/criar')}
+              onClick={() => router.push('/dashboard/usuarios/cadastro')}
               className="flex items-center gap-2"
             >
               <Plus className="h-4 w-4" />
