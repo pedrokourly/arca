@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -102,6 +102,7 @@ const STATUS_MAP_WAITLIST = {
 
 export default function CreateSessionForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { data: session } = useSession();
   const { canCreateUsers } = usePermissions(); // Usando a mesma lógica de permissão
 
@@ -167,6 +168,39 @@ export default function CreateSessionForm() {
 
     loadData();
   }, [session]);
+
+  // Pré-selecionar paciente se vier da URL
+  useEffect(() => {
+    const patientId = searchParams.get('patientId');
+    if (patientId && waitlistEntries.length > 0) {
+      // Encontrar o paciente na lista
+      const patient = waitlistEntries.find(entry => entry.id_Lista === patientId);
+      
+      if (patient) {
+        // Determinar o tipo de atendimento baseado no status do paciente
+        let tipoAtendimento = 1; // Default: Triagem
+        
+        if (patient.id_Status === 3 || patient.id_Status === 4) {
+          // Status 3 (Triagem Aprovada) ou 4 (Em Psicoterapia) = Psicoterapia
+          tipoAtendimento = 2;
+        } else if (patient.id_Status === 1) {
+          // Status 1 (Em Espera) = Triagem
+          tipoAtendimento = 1;
+        }
+        
+        // Atualizar formulário com o paciente selecionado
+        setFormData(prev => ({
+          ...prev,
+          id_Lista: patientId,
+          id_Tipo_Atendimento: tipoAtendimento
+        }));
+
+        toast.success("Paciente selecionado", {
+          description: `${patient.nomeRegistro} foi pré-selecionado para agendamento.`
+        });
+      }
+    }
+  }, [searchParams, waitlistEntries]);
 
   // Filtrar pacientes baseado no tipo de atendimento selecionado
   const getFilteredWaitlist = () => {

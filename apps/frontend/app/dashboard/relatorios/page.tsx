@@ -163,6 +163,9 @@ export default function RelatoriosPage() {
     const isSupervisor = userRole === 3;
     const hasProntuario = session.Prontuario && session.Prontuario.length > 0;
     const prontuarioPendente = session.Prontuario?.find(p => p.id_Status === 1);
+    
+    // Determina o tipo de relatório baseado no tipo de atendimento
+    const reportType = session.id_Tipo_Atendimento === 1 ? 'triagem' : 'psicoterapia';
 
     return (
       <Card className="mb-4 hover:shadow-md transition-shadow">
@@ -222,7 +225,7 @@ export default function RelatoriosPage() {
                       size="sm" 
                       variant="outline"
                       className="flex-1"
-                      onClick={() => router.push(`/dashboard/relatorios/triagem/${session.id_Atendimento}/edit`)}
+                      onClick={() => router.push(`/dashboard/relatorios/${reportType}/${session.id_Atendimento}/edit`)}
                     >
                       Editar Relatório
                     </Button>
@@ -235,7 +238,7 @@ export default function RelatoriosPage() {
                         size="sm" 
                         variant="outline" 
                         className="flex-1"
-                        onClick={() => router.push(`/dashboard/relatorios/triagem/${session.id_Atendimento}/edit`)}
+                        onClick={() => router.push(`/dashboard/relatorios/${reportType}/${session.id_Atendimento}/edit`)}
                       >
                         Editar Relatório
                       </Button>
@@ -243,7 +246,7 @@ export default function RelatoriosPage() {
                         size="sm" 
                         variant="default" 
                         className="flex-1"
-                        onClick={() => router.push(`/dashboard/relatorios/triagem/aprovar/${session.id_Atendimento}`)}
+                        onClick={() => router.push(`/dashboard/relatorios/${reportType}/aprovar/${session.id_Atendimento}`)}
                       >
                         Prosseguir para Aprovação
                       </Button>
@@ -257,7 +260,7 @@ export default function RelatoriosPage() {
                         size="sm" 
                         variant="outline" 
                         className="flex-1"
-                        onClick={() => router.push(`/dashboard/relatorios/triagem/${session.id_Atendimento}/edit`)}
+                        onClick={() => router.push(`/dashboard/relatorios/${reportType}/${session.id_Atendimento}/edit`)}
                       >
                         Editar
                       </Button>
@@ -265,7 +268,7 @@ export default function RelatoriosPage() {
                         size="sm" 
                         variant="default" 
                         className="flex-1"
-                        onClick={() => router.push(`/dashboard/relatorios/triagem/aprovar/${session.id_Atendimento}`)}
+                        onClick={() => router.push(`/dashboard/relatorios/${reportType}/aprovar/${session.id_Atendimento}`)}
                       >
                         Prosseguir para Aprovação
                       </Button>
@@ -279,7 +282,7 @@ export default function RelatoriosPage() {
                     <Button 
                       size="sm" 
                       className="flex-1"
-                      onClick={() => router.push(`/dashboard/relatorios/triagem/${session.id_Atendimento}${hasProntuario ? '/edit' : ''}`)}
+                      onClick={() => router.push(`/dashboard/relatorios/${reportType}/${session.id_Atendimento}${hasProntuario ? '/edit' : ''}`)}
                     >
                       {hasProntuario ? "Editar Relatório" : "Preencher Relatório"}
                     </Button>
@@ -293,50 +296,28 @@ export default function RelatoriosPage() {
                     </div>
                   )}
 
-                  {/* Supervisor pode editar ou aprovar */}
+                  {/* Supervisor pode aprovar se há prontuário pendente */}
                   {isSupervisor && prontuarioPendente && (
-                    <>
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        className="flex-1"
-                        onClick={() => router.push(`/dashboard/relatorios/triagem/${session.id_Atendimento}/edit`)}
-                      >
-                        Editar Relatório
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="default" 
-                        className="flex-1"
-                        onClick={() => router.push(`/dashboard/relatorios/triagem/aprovar/${session.id_Atendimento}`)}
-                      >
-                        Prosseguir para Aprovação
-                      </Button>
-                    </>
+                    <Button 
+                      size="sm" 
+                      variant="default" 
+                      className="flex-1"
+                      onClick={() => router.push(`/dashboard/relatorios/${reportType}/aprovar/${session.id_Atendimento}`)}
+                    >
+                      Prosseguir para Aprovação
+                    </Button>
                   )}
 
-                  {/* Admin/Secretário podem ver ambas ações */}
-                  {userRole && userRole <= 2 && (
-                    <>
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        className="flex-1"
-                        onClick={() => router.push(`/dashboard/relatorios/triagem/${session.id_Atendimento}/edit`)}
-                      >
-                        Editar
-                      </Button>
-                      {prontuarioPendente && (
-                        <Button 
-                          size="sm" 
-                          variant="default" 
-                          className="flex-1"
-                          onClick={() => router.push(`/dashboard/relatorios/triagem/aprovar/${session.id_Atendimento}`)}
-                        >
-                          Prosseguir para Aprovação
-                        </Button>
-                      )}
-                    </>
+                  {/* Admin/Secretário podem aprovar se há prontuário pendente */}
+                  {userRole && userRole <= 2 && prontuarioPendente && (
+                    <Button 
+                      size="sm" 
+                      variant="default" 
+                      className="flex-1"
+                      onClick={() => router.push(`/dashboard/relatorios/${reportType}/aprovar/${session.id_Atendimento}`)}
+                    >
+                      Prosseguir para Aprovação
+                    </Button>
                   )}
                 </>
               )}

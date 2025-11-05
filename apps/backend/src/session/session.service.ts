@@ -342,6 +342,36 @@ export class SessionService {
     return session;
   }
 
+  async findAllWithNoSession(user: TokenDto) {
+    if (user.access > 2) throw new ForbiddenException('Você não tem permissão para ver essa lista.');
+
+    return this.prisma.listaEspera.findMany({
+    where: {
+      id_Status: {
+        in: [3, 4], // Status 3 = "Triagem Aprovada", Status 4 = "Psicoterapia em andamento"
+      },
+
+
+      NOT: {
+        Atendimento: {
+          some: {
+            id_Tipo_Atendimento: 2, // Tipo 2 = Psicoterapia
+            id_Status: 1,           // Status 1 = Ativo
+          },
+        },
+      },
+    },
+    select: {
+      id_Lista: true,
+      nomeRegistro: true,
+      nomeSocial: true,
+      Status: {
+        select: { nome: true },
+      },
+    },
+  });
+  }
+
   async update(id: UUID, updateSessionDto: UpdateSessionDto, user: TokenDto) {
     // Verifica se o usuário tem permissão para atualizar uma sessão
     if (user.access > 2) {

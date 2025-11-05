@@ -59,7 +59,8 @@ async function main() {
         { nome: 'Preta' },
         { nome: 'Parda' },
         { nome: 'Amarela' },
-        { nome: 'Indígena' }
+        { nome: 'Indígena' },
+        { nome: 'Prefiro não informar' }
       ]
     })
     console.log('✅ Etnias inseridas com sucesso!')
@@ -78,7 +79,9 @@ async function main() {
         { nome: 'Ensino Médio Completo' },
         { nome: 'Ensino Superior Incompleto' },
         { nome: 'Ensino Superior Completo' },
-        { nome: 'Pós-graduação' }
+        { nome: 'Pós-graduação' },
+        { nome: 'Mestrado' },
+        { nome: 'Doutorado' }
       ]
     })
     console.log('✅ Escolaridades inseridas com sucesso!')
