@@ -13,9 +13,7 @@ import {
   UserCheck, 
   UserCog,
   Calendar as CalendarIcon,
-  FileText,
-  Edit,
-  Trash2 
+  FileText
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -37,16 +35,12 @@ interface EventoDetalhesProps {
   } | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onEdit?: (evento: any) => void;
-  onDelete?: (eventoId: string) => void;
 }
 
 const EventoDetalhes = ({ 
   evento, 
   open, 
-  onOpenChange, 
-  onEdit, 
-  onDelete 
+  onOpenChange
 }: EventoDetalhesProps) => {
   if (!evento) return null;
 
@@ -179,28 +173,6 @@ const EventoDetalhes = ({
               </p>
             </div>
           )}
-
-          {/* Ações */}
-          <div className="flex gap-2 pt-4">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => onEdit?.(evento)}
-              className="flex-1"
-            >
-              <Edit className="h-4 w-4 mr-2" />
-              Editar
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => onDelete?.(evento.id)}
-              className="flex-1 text-red-600 hover:text-red-700 hover:bg-red-50"
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Excluir
-            </Button>
-          </div>
         </div>
       </DialogContent>
     </Dialog>
