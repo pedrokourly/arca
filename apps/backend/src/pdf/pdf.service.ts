@@ -8,7 +8,7 @@ import * as Handlebars from 'handlebars';
 // --- Registra os 'helpers' lógicos para o Handlebars ---
 Handlebars.registerHelper('eq', (a, b) => a === b);
 Handlebars.registerHelper('or', (...args) => {
-  const options = args.pop();
+  args.pop();
   return args.some(Boolean);
 });
 // --- Fim dos helpers ---
