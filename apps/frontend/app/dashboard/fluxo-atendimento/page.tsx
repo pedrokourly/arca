@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { usePermissions } from "@/hooks/usePermissions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -90,11 +91,22 @@ const STATUS_MAP = {
 export default function FluxoAtendimento() {
   const { data: session } = useSession();
   const router = useRouter();
+  const { canAccessFluxoAtendimento } = usePermissions();
   const [waitlistData, setWaitlistData] = useState<WaitlistItem[]>([]);
   const [sessionsData, setSessionsData] = useState<SessionData[]>([]);
   const [patientsWithoutSessions, setPatientsWithoutSessions] = useState<PatientWithoutSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("2");
+
+  // Verificar permissões
+  useEffect(() => {
+    if (session && !canAccessFluxoAtendimento()) {
+      toast.error("Acesso negado", {
+        description: "Você não tem permissão para acessar esta página.",
+      });
+      router.push("/dashboard");
+    }
+  }, [session, canAccessFluxoAtendimento, router]);
 
   // Função para buscar dados da lista de espera
   const fetchWaitlistData = async () => {

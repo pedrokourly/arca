@@ -12,8 +12,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "../ui/button";
-import { Edit, Trash2, Eye, Search, Filter, X } from "lucide-react";
+import { Edit, Trash2, Eye, Search, Filter, X, FileText } from "lucide-react";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 import {
   Dialog,
   DialogContent,
@@ -66,6 +67,7 @@ const STATUS_MAP = {
 
 export function PatientsTable() {
   const { data: session, status } = useSession();
+  const router = useRouter();
 
   const [patientEntries, setPatientEntries] = useState<PatientEntry[]>([]);
   const [loading, setLoading] = useState(true);
@@ -518,6 +520,15 @@ export function PatientsTable() {
               </TableCell>
               <TableCell className="text-center">
                 <div className="flex justify-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => router.push(`/dashboard/pacientes/${entry.id_Lista}`)}
+                    className="h-8 w-8 p-0"
+                    title="Ver prontuário"
+                  >
+                    <FileText className="h-4 w-4" />
+                  </Button>
                   <Button
                     variant="outline"
                     size="sm"

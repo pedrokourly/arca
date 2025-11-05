@@ -349,6 +349,8 @@ export default function CreateSessionForm() {
         <CardContent className="pt-6">
           <p className="text-center text-muted-foreground">
             Você não tem permissão para agendar sessões.
+
+            Contate um secretário
           </p>
         </CardContent>
       </Card>

@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   NotFoundException,
@@ -558,40 +559,87 @@ export class MedicalRecordService {
   }
 
   async generateEncaminhamentoPdf(id: UUID, user: TokenDto, res: any) {
-
-    const paciente = await this.findOne(id, user);
-
-    let encaminhamentoRecord: any = null;
-    let triagemRecord: any = null;
-    let supervisorNome = 'N/A';
-    let supervisorCRP = 'N/A';
-
-    for (const atd of paciente.Atendimento) {
-      // @ts-ignore
-      const foundEncaminhamento = atd.Prontuario.find((p) => p.id_Tipo === 4);
-      if (foundEncaminhamento) {
-        encaminhamentoRecord = foundEncaminhamento;
-      }
-
-      // @ts-ignore
-      const foundTriagem = atd.Prontuario.find((p) => p.id_Tipo === 1);
-      if (foundTriagem) {
-        triagemRecord = foundTriagem;
-        supervisorNome = atd.supervisorExecutor?.nome || 'N/A';
-        supervisorCRP = atd.supervisorExecutor?.CRP || 'N/A';
-      }
-    }
+    // Buscar o prontuário específico de encaminhamento pelo ID do registro
+    const encaminhamentoRecord = await this.prisma.prontuario.findUnique({
+      where: { id_Registro: id },
+      include: {
+        TipoProntuario: true,
+        atendimento: {
+          include: {
+            ListaEspera: true,
+            supervisorExecutor: true,
+          },
+        },
+      },
+    });
 
     if (!encaminhamentoRecord) {
       throw new NotFoundException(
-        'Registro de Encaminhamento (Tipo 4) não encontrado para este paciente.',
+        'Registro de Encaminhamento não encontrado.',
       );
     }
+
+    if (encaminhamentoRecord.id_Tipo !== 4) {
+      throw new BadRequestException(
+        'O registro fornecido não é do tipo Encaminhamento.',
+      );
+    }
+
+    if (user.access === 3) {
+      if (encaminhamentoRecord.atendimento.id_Supervisor_Executor !== user.sub) {
+        throw new ForbiddenException(
+          'Você não tem permissão para acessar este registro.',
+        );
+      }
+    }
+
+    if (user.access === 4) {
+      if (encaminhamentoRecord.atendimento.id_Estagiario_Executor !== user.sub) {
+        throw new ForbiddenException(
+          'Você não tem permissão para acessar este registro.',
+        );
+      }
+    }
+
+    
+    const paciente = encaminhamentoRecord.atendimento.ListaEspera;
+    const supervisorNome = encaminhamentoRecord.atendimento.supervisorExecutor?.nome || 'N/A';
+    const supervisorCRP = encaminhamentoRecord.atendimento.supervisorExecutor?.CRP || 'N/A';
+
+    // Buscar a triagem do paciente para complementar informações
+    const pacienteCompleto = await this.prisma.listaEspera.findUnique({
+      where: { id_Lista: paciente.id_Lista },
+      include: {
+        Atendimento: {
+          include: {
+            Prontuario: {
+              where: { id_Tipo: 1 }, // Triagem
+            },
+          },
+        },
+      },
+    });
+
+    if (!pacienteCompleto) {
+      throw new NotFoundException('Paciente não encontrado.');
+    }
+
+    let triagemRecord: any = null;
+    for (const atd of pacienteCompleto.Atendimento) {
+      if (atd.Prontuario.length > 0) {
+        triagemRecord = atd.Prontuario[0];
+        break;
+      }
+    }
+
     if (!triagemRecord) {
       throw new NotFoundException(
         'Registro de Triagem (Tipo 1) não encontrado. Não é possível gerar o encaminhamento.',
       );
     }
+
+    // Cast do conteúdo para acessar as propriedades
+    const conteudoEncaminhamento = encaminhamentoRecord.conteudo as any;
 
     const dataForPdf = {
       pacienteNome: paciente.nomeRegistro,
@@ -599,8 +647,8 @@ export class MedicalRecordService {
       supervisorNome: supervisorNome,
       supervisorCRP: supervisorCRP,
 
-      instituicaoNome: encaminhamentoRecord.conteudo.instituicaoEncaminhada,
-      motivoEncaminhamento: encaminhamentoRecord.conteudo.motivoEncaminhamento,
+      instituicaoNome: conteudoEncaminhamento.instituicaoEncaminhada,
+      motivoEncaminhamento: conteudoEncaminhamento.motivoEncaminhamento,
 
       dataInicioTriagem: new Date(triagemRecord.dataEmissao).toLocaleDateString(
         'pt-BR',

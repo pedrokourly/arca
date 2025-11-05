@@ -12,6 +12,7 @@ export const usePermissions = () => {
   const canCreateUsers = () => hasPermission(2) // Admin ou Secretário
   const canSeeAudit = () => hasPermission(1)    // Admin
   const canSeeNavSystem = () => hasPermission(1) // Admin
+  const canAccessFluxoAtendimento = () => hasPermission(2) // Admin ou Secretário
 
   const getRoleLabel = (roleId: number) => {
     const roles = {
@@ -29,6 +30,7 @@ export const usePermissions = () => {
     canCreateUsers,
     canSeeAudit,
     canSeeNavSystem,
+    canAccessFluxoAtendimento,
     getRoleLabel,
     userRole: session?.user?.roleId,
     isAdmin: hasPermission(1),
