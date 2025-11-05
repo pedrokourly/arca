@@ -1,5 +1,5 @@
 import { Type } from "class-transformer";
-import { IsBoolean, IsInt, IsNotEmpty,  IsUUID, ValidateNested } from "class-validator";
+import { IsNotEmpty, IsUUID, ValidateNested } from "class-validator";
 import { ConteudoTriagemDto } from './conteudo-triagem.dto';
 
 import { UUID } from "node:crypto";
