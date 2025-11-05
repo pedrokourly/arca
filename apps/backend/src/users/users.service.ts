@@ -153,12 +153,8 @@ export class UsersService {
       throw new NotFoundException(`Usuário não encontrado.`);
     }
 
-    const canEditUser = creator.access < user.roleId || (creator.access === 1 && user.roleId === 1);
-
-    if (!canEditUser) {
-      throw new ForbiddenException(
-        'Você não tem permissão para editar um usuário com nível de acesso igual ou superior ao seu.',
-      );
+    if (creator.access > 2){
+      if (user.id_User !== creator.sub) throw new ForbiddenException('Você não tem permissão para editar este usuário.');
     }
 
     if (updateUserDto.email && updateUserDto.email !== user.email) {

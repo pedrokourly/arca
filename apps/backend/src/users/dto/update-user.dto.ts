@@ -17,6 +17,7 @@ export class UpdateUserDto {
   @MaxLength(255)
   senha?: string;
 
+  @IsOptional()
   @IsString({ message: 'O CRP deve ser um texto.' })
   @IsNotEmpty({ message: 'O campo CRP não pode ser vazio.' })
   @Matches(/^\d{2}\/\d{5,6}$/, {

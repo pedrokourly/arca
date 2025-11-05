@@ -1,4 +1,4 @@
-import { IsEmail, IsInt, IsNotEmpty, IsString, Matches, MaxLength, Min, MinLength } from 'class-validator';
+import { IsEmail, IsInt, IsNotEmpty, IsOptional, IsString, Matches, MaxLength, Min, MinLength } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 // DTO de criação de usuário com base no modelo Usuario do Prisma
@@ -25,6 +25,7 @@ export class CreateUserDto {
   @Transform(({ value }) => parseInt(value))
   roleId: number;
 
+  @IsOptional()
   @IsString({ message: 'O CRP deve ser um texto.' })
   @IsNotEmpty({ message: 'O campo CRP não pode ser vazio.' })
   @Matches(/^\d{2}\/\d{5,6}$/, {

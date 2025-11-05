@@ -34,6 +34,7 @@ interface User {
   nome: string;
   email: string;
   roleId: number; // Mudança: number ao invés de string para coincidir com o backend
+  CRP?: string; // Adicionado campo CRP
   role?: {
     id_Role: string;
     role: string;
@@ -62,7 +63,8 @@ export function UsersTable() {
   const [userToEdit, setUserToEdit] = useState<User | null>(null);
   const [editFormData, setEditFormData] = useState({
     nome: "",
-    email: ""
+    email: "",
+    crp: ""
   });
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -71,7 +73,8 @@ export function UsersTable() {
     setUserToEdit(user);
     setEditFormData({
       nome: user.nome,
-      email: user.email
+      email: user.email,
+      crp: user.CRP || ""
     });
     setEditDialogOpen(true);
   };
@@ -82,11 +85,16 @@ export function UsersTable() {
 
     setIsUpdating(true);
     try {
-      // Preparar dados para envio - apenas nome e email
-      const updateData = {
+      // Preparar dados para envio - nome, email e CRP se for supervisor
+      const updateData: any = {
         nome: editFormData.nome,
         email: editFormData.email,
       };
+
+      // Adicionar CRP apenas se for supervisor (roleId 3)
+      if (userToEdit.roleId === 3) {
+        updateData.crp = editFormData.crp;
+      }
 
       const updatedUser = await apiService.updateUser(userToEdit.id_User, updateData, session?.token || '');
       
@@ -100,7 +108,7 @@ export function UsersTable() {
       // Fecha o dialog
       setEditDialogOpen(false);
       setUserToEdit(null);
-      setEditFormData({ nome: "", email: "" });
+      setEditFormData({ nome: "", email: "", crp: "" });
     } catch (err) {
       console.error("Erro ao atualizar usuário:", err);
       toast.error("Erro ao atualizar usuário. Tente novamente.");
@@ -506,6 +514,23 @@ export function UsersTable() {
                 className="col-span-3"
               />
             </div>
+            {/* Campo CRP - Apenas para Supervisores */}
+            {userToEdit && userToEdit.roleId === 3 && (
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="crp" className="text-right">
+                  CRP
+                </Label>
+                <Input
+                  id="crp"
+                  type="text"
+                  placeholder="Ex: 06/12345"
+                  maxLength={9}
+                  value={editFormData.crp}
+                  onChange={(e) => setEditFormData({ ...editFormData, crp: e.target.value })}
+                  className="col-span-3"
+                />
+              </div>
+            )}
             {/* Mostrar o tipo como informação somente leitura para todos */}
             {userToEdit && (
               <div className="grid grid-cols-4 items-center gap-4">
