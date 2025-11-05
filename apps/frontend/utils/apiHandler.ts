@@ -1,3 +1,5 @@
+import type { CreateTriagemProntuarioDto, CreateEvolucaoProntuarioDto, ConteudoTriagemDto, ConteudoEvolucaoDto } from '@/types/medical-record';
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333';
 
 export const API_ENDPOINTS = {
@@ -167,7 +169,7 @@ export const apiService = {
     }),
 
   // Medical Record operations
-  createMedicalRecordTriagem: (data: any, token: string) =>
+  createMedicalRecordTriagem: (data: CreateTriagemProntuarioDto, token: string) =>
     apiRequest(API_ENDPOINTS.medicalRecordTriagem, {
       method: 'POST',
       headers: { 
@@ -177,7 +179,7 @@ export const apiService = {
       body: JSON.stringify(data),
     }),
 
-  updateMedicalRecordTriagem: (recordId: string, data: any, token: string) =>
+  updateMedicalRecordTriagem: (recordId: string, data: ConteudoTriagemDto, token: string) =>
     apiRequest(`${API_ENDPOINTS.medicalRecordTriagem}/${recordId}`, {
       method: 'PUT',
       headers: { 
@@ -187,7 +189,7 @@ export const apiService = {
       body: JSON.stringify(data),
     }),
 
-  createMedicalRecordPsicoterapia: (data: any, token: string) =>
+  createMedicalRecordPsicoterapia: (data: CreateEvolucaoProntuarioDto, token: string) =>
     apiRequest(API_ENDPOINTS.medicalRecordPsicoterapia, {
       method: 'POST',
       headers: { 
@@ -197,7 +199,7 @@ export const apiService = {
       body: JSON.stringify(data),
     }),
 
-  updateMedicalRecordPsicoterapia: (recordId: string, data: any, token: string) =>
+  updateMedicalRecordPsicoterapia: (recordId: string, data: ConteudoEvolucaoDto, token: string) =>
     apiRequest(`${API_ENDPOINTS.medicalRecordPsicoterapia}/${recordId}`, {
       method: 'PUT',
       headers: { 
