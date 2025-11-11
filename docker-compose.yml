@@ -1,0 +1,53 @@
+services:
+  backend:
+    container_name: arca_backend
+    image: pedrokourly/arca-backend:latest
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    ports:
+      - "${BACK_PORT}:${BACK_PORT}"
+
+    env_file:
+      - ./.env
+    # Garante que o container use a porta correta
+    environment:
+      PORT: ${BACK_PORT}
+      DATABASE_URL: ${DATABASE_URL}
+
+      # Direct connection to the database. Used for migrations
+      DIRECT_URL: ${DIRECT_URL}
+
+      # CONFIGURAÇÃO DO TOKEN JWT
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_TOKEN_AUDIENCE: arca_users
+      JWT_TOKEN_ISSUER: arca_api
+      JWT_TTL: ${JWT_TTL}
+    networks:
+      - arca-net
+
+  frontend:
+    container_name: arca_frontend
+    image: pedrokourly/arca-frontend:latest
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+    ports:
+      - "${FRONT_PORT}:${FRONT_PORT}"
+    env_file:
+      - ./.env
+    environment:
+      PORT: ${FRONT_PORT}
+
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+      NEXTAUTH_URL: ${NEXTAUTH_URL}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+      IS_USING_DOCKER: 'true'
+    depends_on:
+      - backend 
+    networks:
+      - arca-net
+
+networks:
+  arca-net:
+    driver: bridge
