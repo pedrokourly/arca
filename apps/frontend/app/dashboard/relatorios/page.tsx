@@ -1,22 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
 import { 
   FileText, 
   ClipboardCheck, 
-  Edit, 
   CheckCircle2,
   Calendar,
   User,
-  Users,
   Clock
 } from "lucide-react";
 import { toast } from "sonner";
@@ -71,13 +67,12 @@ export default function RelatoriosPage() {
   const [userRole, setUserRole] = useState<number | null>(null);
 
   useEffect(() => {
-    if (session?.user) {
-      // @ts-ignore
+    if (session?.user?.roleId) {
       setUserRole(session.user.roleId);
     }
   }, [session]);
 
-  const fetchSessions = async () => {
+  const fetchSessions = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -95,13 +90,13 @@ export default function RelatoriosPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [session?.token]);
 
   useEffect(() => {
     if (session?.token) {
       fetchSessions();
     }
-  }, [session]);
+  }, [session?.token, fetchSessions]);
 
   // Adicionar listener para refetch quando a página receber foco
   useEffect(() => {
@@ -113,7 +108,7 @@ export default function RelatoriosPage() {
 
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
-  }, [session]);
+  }, [session?.token, fetchSessions]);
 
   // Filtrar sessões de triagem que precisam de relatório (status 1 = agendada, sem prontuário)
   const getTriagemPendente = () => {

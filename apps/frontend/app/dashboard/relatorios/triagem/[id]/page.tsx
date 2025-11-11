@@ -16,6 +16,7 @@ import { ptBR } from "date-fns/locale";
 import { apiService } from "@/utils/apiHandler";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/utils/toastErrorHandler";
+import { MedicalRecordEntry } from "@/types/api";
 
 interface SessionData {
   id_Atendimento: string;
@@ -44,12 +45,7 @@ interface SessionData {
     id_Status: number;
     nome: string;
   };
-  Prontuario?: Array<{
-    id_Registro: string;
-    id_Status: number;
-    id_Tipo: number;
-    conteudo: any;
-  }>;
+  Prontuario?: MedicalRecordEntry[];
 }
 
 interface TriagemFormData {
@@ -94,7 +90,7 @@ export default function TriagemReportPage() {
       }
 
       // Verifica se já existe um prontuário de triagem
-      const triagemProntuario = foundSession.Prontuario?.find((p: any) => p.id_Tipo === 1);
+      const triagemProntuario = foundSession.Prontuario?.find((p: MedicalRecordEntry) => p.id_Tipo === 1);
       if (triagemProntuario) {
         // Se já existe, redireciona para a página de edição
         toast.info("Relatório já existe", {
@@ -157,7 +153,7 @@ export default function TriagemReportPage() {
 
       // Redireciona de volta para a página de relatórios
       router.push("/dashboard/relatorios");
-    } catch (error: any) {
+    } catch (error) {
       console.error("Erro ao salvar relatório:", error);
       const { title, description } = getErrorMessage(error);
       toast.error(title, { description });

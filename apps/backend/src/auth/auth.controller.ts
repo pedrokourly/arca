@@ -1,6 +1,7 @@
-import { Controller, Post, Body, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, UseGuards, Request } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
+import { RequestWithUser } from './types/auth-request.interface';
 
 @Controller('auth')
 export class AuthController {
@@ -8,9 +9,7 @@ export class AuthController {
 
   @UseGuards(LocalAuthGuard)
   @Post('login')
-  async loginWithPassport(@Request() req: any): Promise<any> {
-
-    // Depois de verificado, geramos um token para o usuário
+  async loginWithPassport(@Request() req: RequestWithUser): Promise<any> {
     return this.authService.login(req.user);
   }
 }

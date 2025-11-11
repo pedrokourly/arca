@@ -21,7 +21,7 @@ export class CreateWaitlistDto {
   @IsString({ message: 'Contato de emergência deve ser uma string' })
   @Length(1, 20, { message: 'Contato de emergência deve ter entre 1 e 20 caracteres' })
   contatoEmergencia: string;
-  
+
   @IsString({ message: 'CPF deve ser uma string' })
   @Length(11, 11, { message: 'CPF deve ter exatamente 11 caracteres' })
   @Matches(/^\d{11}$/, { message: 'CPF deve conter apenas números' })

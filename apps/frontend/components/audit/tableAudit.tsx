@@ -44,8 +44,8 @@ interface AuditLog {
   detalhes: {
     path: string;
     method: string;
-    requestBody?: any;
-    [key: string]: any;
+    requestBody?: Record<string, unknown>;
+    [key: string]: unknown;
   };
 }
 

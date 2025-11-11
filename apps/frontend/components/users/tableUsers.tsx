@@ -28,6 +28,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ConditionalRender } from "@/components/auth/ConditionalRender";
 import { apiService } from "@/utils/apiHandler";
+import { UpdateUserData } from "@/types/api";
 
 interface User {
   id_User: string;
@@ -86,7 +87,7 @@ export function UsersTable() {
     setIsUpdating(true);
     try {
       // Preparar dados para envio - nome, email e CRP se for supervisor
-      const updateData: any = {
+      const updateData: UpdateUserData = {
         nome: editFormData.nome,
         email: editFormData.email,
       };

@@ -13,10 +13,8 @@ import { PdfModule } from './pdf/pdf.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
-        isGlobal: true,
-        envFilePath: process.env.NODE_ENV
-          ? `.env.${process.env.NODE_ENV}`
-          : '.env',
+      isGlobal: true,
+      envFilePath: process.env.NODE_ENV ? `.env.${process.env.NODE_ENV}` : '.env',
     }),
     AuditModule,
     AuthModule,
@@ -24,7 +22,7 @@ import { PdfModule } from './pdf/pdf.module';
     WaitlistModule,
     SessionModule,
     MedicalRecordModule,
-    PdfModule
+    PdfModule,
   ],
   controllers: [AppController],
   providers: [AppService],

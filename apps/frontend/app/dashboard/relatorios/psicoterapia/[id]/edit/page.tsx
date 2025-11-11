@@ -16,6 +16,7 @@ import { ptBR } from "date-fns/locale";
 import { apiService } from "@/utils/apiHandler";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/utils/toastErrorHandler";
+import { MedicalRecordEntry } from "@/types/api";
 
 interface SessionData {
   id_Atendimento: string;
@@ -44,13 +45,7 @@ interface SessionData {
     id_Status: number;
     nome: string;
   };
-  Prontuario?: Array<{
-    id_Registro: string;
-    id_Status: number;
-    id_Tipo: number;
-    conteudo: any;
-    dataEmissao: string;
-  }>;
+  Prontuario?: (MedicalRecordEntry & { dataEmissao: string })[];
 }
 
 interface PsicoterapiaFormData {
@@ -96,7 +91,7 @@ export default function EditPsicoterapiaReportPage() {
       }
 
       // Verifica se já existe um prontuário de psicoterapia (id_Tipo = 2)
-      const psicoterapiaProntuario = foundSession.Prontuario?.find((p: any) => p.id_Tipo === 2);
+      const psicoterapiaProntuario = foundSession.Prontuario?.find((p: MedicalRecordEntry & { dataEmissao: string }) => p.id_Tipo === 2);
       
       if (!psicoterapiaProntuario) {
         toast.error("Relatório de psicoterapia não encontrado", {
@@ -153,8 +148,11 @@ export default function EditPsicoterapiaReportPage() {
       setSubmitting(true);
 
       const payload = {
-        relatorioDaSessao: formData.relatorioDaSessao.trim(),
-        presente: formData.presente,
+        id_Sessao: sessionId,
+        conteudo: {
+          relatorioDaSessao: formData.relatorioDaSessao.trim(),
+          presente: formData.presente,
+        },
       };
 
       await apiService.updateMedicalRecordPsicoterapia(prontuarioId, payload, session.token);
@@ -163,7 +161,7 @@ export default function EditPsicoterapiaReportPage() {
 
       // Redireciona de volta para a página de relatórios
       router.push("/dashboard/relatorios");
-    } catch (error: any) {
+    } catch (error) {
       console.error("Erro ao atualizar relatório:", error);
       const { title, description } = getErrorMessage(error);
       toast.error(title, { description });

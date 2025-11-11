@@ -33,13 +33,13 @@ export function LoginForm({
 
       if (result?.error) {
         setError("Credenciais inválidas. Verifique seu email e senha.")
+        setIsLoading(false)
       } else {
-        router.push("/")
-        router.refresh()
+
+        window.location.href = "/dashboard"
       }
     } catch (error) {
       setError("Erro ao fazer login. Tente novamente.")
-    } finally {
       setIsLoading(false)
     }
   }

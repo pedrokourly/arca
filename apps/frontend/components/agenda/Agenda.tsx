@@ -230,14 +230,18 @@ const AgendaGeral = () => {
       
       setEventos(eventosFormatados);
       setTodosEventos(eventosFormatados); // Manter cópia de todos os eventos
-    } catch (error: any) {
+    } catch (error) {
       console.error('Erro detalhado ao buscar eventos:', error);
       
       // Tratamento específico por tipo de erro
-      if (error.response) {
+      const apiError = error as { 
+        response?: { status: number; data?: { message?: string }; statusText: string };
+        request?: unknown;
+      };
+      if (apiError.response) {
         // Erro de resposta do servidor
-        const status = error.response.status;
-        const message = error.response.data?.message || error.response.statusText;
+        const status = apiError.response.status;
+        const message = apiError.response.data?.message || apiError.response.statusText;
         
         switch (status) {
           case 401:
@@ -255,12 +259,13 @@ const AgendaGeral = () => {
           default:
             setError(`Erro do servidor (${status}): ${message}`);
         }
-      } else if (error.request) {
+      } else if (apiError.request) {
         // Erro de rede
         setError('Erro de conexão. Verifique sua internet e se o servidor está funcionando.');
       } else {
         // Outros erros
-        setError(error.message || 'Erro inesperado ao carregar agendamentos.');
+        const errorMessage = error instanceof Error ? error.message : 'Erro inesperado ao carregar agendamentos.';
+        setError(errorMessage);
       }
       
       setEventos([]);

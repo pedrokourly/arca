@@ -18,11 +18,7 @@ import { PrismaModule } from 'src/prisma/prisma.module';
     ConfigModule.forFeature(jwtConfig),
     JwtModule.registerAsync(jwtConfig.asProvider()),
   ],
-  providers: [
-    AuthService,
-    LocalStrategy,
-    JwtStrategy,
-  ],
+  providers: [AuthService, LocalStrategy, JwtStrategy],
   exports: [AuthService],
   controllers: [AuthController],
 })

@@ -1,7 +1,13 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  experimental: {
+    optimizePackageImports: ['sonner', 'next-themes'],
+  },
+  typescript: {
+    ignoreBuildErrors: false,
+  },
+
 };
 
 export default nextConfig;

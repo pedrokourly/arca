@@ -1,11 +1,8 @@
 "use client";
 import { AuditTable } from "@/components/audit/tableAudit";
-import { Button } from "@/components/ui/button";
-import { Plus, BookAlert } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { BookAlert } from "lucide-react";
 
 export default function AuditPage() {
-  const router = useRouter();
 
   return (
     <div className="py-6">

@@ -17,6 +17,7 @@ import { ptBR } from "date-fns/locale";
 import { apiService } from "@/utils/apiHandler";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/utils/toastErrorHandler";
+import { MedicalRecordEntry } from "@/types/api";
 
 interface SessionData {
   id_Atendimento: string;
@@ -45,13 +46,7 @@ interface SessionData {
     id_Status: number;
     nome: string;
   };
-  Prontuario?: Array<{
-    id_Registro: string;
-    id_Status: number;
-    id_Tipo: number;
-    conteudo: any;
-    dataEmissao: string;
-  }>;
+  Prontuario?: (MedicalRecordEntry & { dataEmissao: string })[];
 }
 
 interface ApprovalFormData {
@@ -60,6 +55,11 @@ interface ApprovalFormData {
   encaminhado: boolean;
   instituicaoEncaminhada: string;
   motivoEncaminhamento: string;
+}
+
+interface PsicoterapiaConteudo {
+  relatorioDaSessao: string;
+  presente: boolean;
 }
 
 export default function ApprovePsicoterapiaPage() {
@@ -117,7 +117,7 @@ export default function ApprovePsicoterapiaPage() {
 
       // Verifica se existe um prontuário de psicoterapia pendente (id_Tipo = 2, id_Status = 1)
       const psicoterapiaProntuario = foundSession.Prontuario?.find(
-        (p: any) => p.id_Tipo === 2 && p.id_Status === 1
+        (p: MedicalRecordEntry & { dataEmissao: string }) => p.id_Tipo === 2 && p.id_Status === 1
       );
 
       if (!psicoterapiaProntuario) {
@@ -184,7 +184,7 @@ export default function ApprovePsicoterapiaPage() {
     }
 
     const psicoterapiaProntuario = sessionData.Prontuario?.find(
-      (p: any) => p.id_Tipo === 2 && p.id_Status === 1
+      (p: MedicalRecordEntry & { dataEmissao: string }) => p.id_Tipo === 2 && p.id_Status === 1
     );
 
     if (!psicoterapiaProntuario) {
@@ -195,7 +195,13 @@ export default function ApprovePsicoterapiaPage() {
     try {
       setSubmitting(true);
 
-      const payload: any = {
+      const payload: {
+        recebeuAlta: boolean;
+        encaminhado: boolean;
+        finalidade?: string;
+        instituicaoEncaminhada?: string;
+        motivoEncaminhamento?: string;
+      } = {
         recebeuAlta: formData.recebeuAlta,
         encaminhado: formData.encaminhado,
       };
@@ -233,11 +239,10 @@ export default function ApprovePsicoterapiaPage() {
       }
 
       // Tenta parsear como JSON, se falhar usa como texto
-      let result;
       try {
-        result = JSON.parse(responseText);
+        JSON.parse(responseText);
       } catch {
-        result = responseText;
+        // Ignora erro de parse, apenas para validação
       }
 
       // Mensagem de sucesso baseada na ação
@@ -254,7 +259,7 @@ export default function ApprovePsicoterapiaPage() {
 
       // Redireciona de volta para a página de relatórios
       router.push("/dashboard/relatorios");
-    } catch (error: any) {
+    } catch (error) {
       console.error("Erro ao aprovar relatório:", error);
       const { title, description } = getErrorMessage(error);
       toast.error(title, { description });
@@ -294,7 +299,7 @@ export default function ApprovePsicoterapiaPage() {
   }
 
   const psicoterapiaProntuario = sessionData.Prontuario?.find(
-    (p: any) => p.id_Tipo === 2 && p.id_Status === 1
+    (p: MedicalRecordEntry & { dataEmissao: string }) => p.id_Tipo === 2 && p.id_Status === 1
   );
 
   return (
@@ -432,7 +437,7 @@ export default function ApprovePsicoterapiaPage() {
               </Label>
               <div className="mt-2 p-4 bg-muted rounded-md">
                 <p className="text-sm whitespace-pre-wrap">
-                  {psicoterapiaProntuario.conteudo.relatorioDaSessao}
+                  {(psicoterapiaProntuario.conteudo as unknown as PsicoterapiaConteudo).relatorioDaSessao}
                 </p>
               </div>
             </div>
@@ -449,7 +454,7 @@ export default function ApprovePsicoterapiaPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full">
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "aprovar" | "alta" | "encaminhar" | "ambos")} className="w-full">
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="aprovar">
                 <CheckCircle2 className="h-4 w-4 mr-2" />
@@ -503,7 +508,7 @@ export default function ApprovePsicoterapiaPage() {
 
                 <div className="bg-blue-50 p-4 rounded-md">
                   <p className="text-sm text-blue-900">
-                    <strong>Alta:</strong> O paciente receberá alta e seu status será atualizado para "Recebeu Alta".
+                    <strong>Alta:</strong> O paciente receberá alta e seu status será atualizado para &quot;Recebeu Alta&quot;.
                     Um relatório de alta será gerado.
                   </p>
                 </div>

@@ -1,8 +1,8 @@
-import { Type } from "class-transformer";
-import { IsNotEmpty,  IsUUID, ValidateNested } from "class-validator";
+import { Type } from 'class-transformer';
+import { IsNotEmpty, IsUUID, ValidateNested } from 'class-validator';
 import { ConteudoEvolucaoDto } from './conteudo-evolucao.dto';
 
-import { UUID } from "node:crypto";
+import { UUID } from 'node:crypto';
 
 export class CreateEvolucaoProntuarioDto {
   @IsNotEmpty({ message: 'O ID da sessão é obrigatório.' })

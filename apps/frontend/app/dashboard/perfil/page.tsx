@@ -12,6 +12,7 @@ import { User, Mail, Lock, IdCard, Save, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { apiService } from "@/utils/apiHandler";
 import { z } from "zod";
+import { UpdateUserData } from "@/types/api";
 
 // Schema de validação
 const updateProfileSchema = z.object({
@@ -117,7 +118,7 @@ export default function PerfilPage() {
     
     try {
       // Preparar dados para envio
-      const updateData: any = {
+      const updateData: UpdateUserData = {
         nome: formData.nome,
         email: formData.email,
       };
@@ -153,7 +154,7 @@ export default function PerfilPage() {
       // Limpar senha do formulário
       setFormData(prev => ({ ...prev, senha: "" }));
       
-    } catch (error: any) {
+    } catch (error) {
       console.error("Erro ao atualizar perfil:", error);
       toast.error(error instanceof Error ? error.message : "Erro ao atualizar perfil");
     } finally {

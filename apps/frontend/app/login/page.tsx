@@ -14,10 +14,9 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (status === "authenticated") {
-      router.push("/dashboard");
-      router.refresh();
+      window.location.href = "/dashboard"
     }
-  }, [status, router]);
+  }, [status])
 
   if (status === "loading") {
     return (

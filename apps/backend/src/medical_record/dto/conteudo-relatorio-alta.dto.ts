@@ -1,9 +1,4 @@
-import {
-  IsString,
-  IsNotEmpty,
-  IsOptional,
-  IsEnum,
-} from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsEnum } from 'class-validator';
 
 export enum MotivoAltaEnum {
   OBJETIVOS_ATINGIDOS = 'OBJETIVOS_ATINGIDOS',

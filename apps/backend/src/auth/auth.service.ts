@@ -1,16 +1,11 @@
-import {
-  Inject,
-  Injectable,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { HashingServiceProtocol } from './hash/hashing.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { LoginDto } from './dto/login.dto';
 import jwtConfig from './config/jwt.config';
 import { ConfigType } from '@nestjs/config';
-import { UserDto } from './dto/user.dto';
+import { UserWithoutPassword } from './types/auth-request.interface';
 
 @Injectable()
 export class AuthService {
@@ -23,7 +18,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async validateUser(body: LoginDto): Promise<any> {
+  async validateUser(body: LoginDto): Promise<UserWithoutPassword | null> {
     const user = await this.prisma.usuario.findFirst({
       where: {
         email: body.email,
@@ -32,23 +27,39 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new UnauthorizedException('Senha ou e-mail inválido.');
+      return null;
     }
 
-    const isPasswordValid = await this.hashingService.compare(
-      body.password,
-      user.senhaHash,
-    );
+    const isPasswordValid = await this.hashingService.compare(body.password, user.senhaHash);
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Senha ou e-mail inválido.');
+      return null;
     }
 
     // Retorna o usuário sem a senha
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { senhaHash, ...result } = user;
     return result;
   }
 
-  async login(user: UserDto): Promise<any> {
+  async login(user: UserWithoutPassword): Promise<any> {
+    // Converte "5h" para segundos (5 * 60 * 60 = 18000)
+    const ttl = this.jwtConfiguration.jwtTtl || '5h';
+    let expiresInSeconds: number;
+    
+    if (typeof ttl === 'string') {
+      const match = ttl.match(/^(\d+)([smhd])$/);
+      if (match) {
+        const value = parseInt(match[1]);
+        const unit = match[2];
+        const multipliers = { s: 1, m: 60, h: 3600, d: 86400 };
+        expiresInSeconds = value * (multipliers[unit as keyof typeof multipliers] || 3600);
+      } else {
+        expiresInSeconds = 18000; // 5 horas padrão
+      }
+    } else {
+      expiresInSeconds = ttl;
+    }
+
     const token = await this.jwtService.signAsync(
       {
         sub: user.id_User,
@@ -58,7 +69,7 @@ export class AuthService {
       },
       {
         secret: this.jwtConfiguration.secret,
-        expiresIn: this.jwtConfiguration.jwtTtl,
+        expiresIn: expiresInSeconds,
         audience: this.jwtConfiguration.audience,
         issuer: this.jwtConfiguration.issuer,
       },

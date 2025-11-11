@@ -4,12 +4,27 @@ import {
   CreatePsicoterapiaMedicalRecordData,
   UpdatePsicoterapiaMedicalRecordData,
 } from '@/types/medicalRecord';
+import {
+  CreateUserData,
+  UpdateUserData,
+  CreateSessionData,
+  UpdateSessionData,
+} from '@/types/api';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333';
+const API_BASE_URL = "https://api.arca.kourlydigital.com.br";
+const API_PORT = process.env.BACK_PORT || '3333';
+console.log('API_BASE_URL:', API_BASE_URL);
+
+const IS_USING_DOCKER = process.env.IS_USING_DOCKER === 'true';
+console.log('IS_USING_DOCKER:', IS_USING_DOCKER);
+
+const LOGIN_URL = IS_USING_DOCKER
+  ? `http://arca_backend:${API_PORT}`
+  : `${API_BASE_URL}`;
 
 export const API_ENDPOINTS = {
   // Auth endpoints
-  login: `${API_BASE_URL}/auth/login`,
+  login: `${LOGIN_URL}/auth/login`,
   
   // User endpoints
   users: `${API_BASE_URL}/users`,
@@ -69,7 +84,7 @@ export async function apiRequest(endpoint: string, options: RequestInit = {}) {
 // Helper functions for common API operations
 export const apiService = {
   // User operations
-  createUser: (userData: any, token: string) => 
+  createUser: (userData: CreateUserData, token: string) => 
     apiRequest(API_ENDPOINTS.users, {
       method: 'POST',
       headers: { 
@@ -88,7 +103,7 @@ export const apiService = {
       },
     }),
 
-  updateUser: (userId: string, userData: any, token: string) =>
+  updateUser: (userId: string, userData: UpdateUserData, token: string) =>
     apiRequest(`${API_ENDPOINTS.users}/${userId}`, {
       method: 'PUT',
       headers: { 
@@ -116,7 +131,7 @@ export const apiService = {
     }),
 
   // Auth operations
-  login: (credentials: { email: string; password: string }) =>
+  login: (credentials: { email: string; password: string }, isServerSide = false) =>
     apiRequest(API_ENDPOINTS.login, {
       method: 'POST',
       body: JSON.stringify(credentials),
@@ -145,7 +160,7 @@ export const apiService = {
       headers: { Authorization: `Bearer ${token}` },
     }),
 
-  createSession: (sessionData: any, token: string) =>
+  createSession: (sessionData: CreateSessionData, token: string) =>
     apiRequest(API_ENDPOINTS.sessions, {
       method: 'POST',
       headers: { 
@@ -155,7 +170,7 @@ export const apiService = {
       body: JSON.stringify(sessionData),
     }),
 
-  updateSession: (sessionId: string, sessionData: any, token: string) =>
+  updateSession: (sessionId: string, sessionData: UpdateSessionData, token: string) =>
     apiRequest(`${API_ENDPOINTS.sessions}/${sessionId}`, {
       method: 'PATCH',
       headers: { 

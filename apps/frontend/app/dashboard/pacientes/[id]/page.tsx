@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,7 +14,6 @@ import {
   User, 
   Calendar, 
   Phone, 
-  MapPin,
   CheckCircle2,
   Clock,
   Send,
@@ -28,7 +27,7 @@ import { getErrorMessage } from "@/utils/toastErrorHandler";
 
 interface ProntuarioData {
   id_Registro: string;
-  conteudo: any;
+  conteudo: {presente?: boolean; relatorioDaSessao?: string; finalidade?: string; instituicaoEncaminhada?: string; motivoEncaminhamento?: string};
   dataEmissao: string;
   id_Status: number;
   id_Tipo: number;
@@ -82,13 +81,7 @@ export default function PatientDetailsPage() {
   const [patientData, setPatientData] = useState<PatientData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (session?.token && patientId) {
-      fetchPatientData();
-    }
-  }, [session, patientId]);
-
-  const fetchPatientData = async () => {
+  const fetchPatientData = useCallback(async () => {
     try {
       setLoading(true);
       const endpoint = `${process.env.NEXT_PUBLIC_API_URL}/medical-record/prontuarios/${patientId}`;
@@ -113,7 +106,13 @@ export default function PatientDetailsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [session?.token, patientId]);
+
+  useEffect(() => {
+    if (session?.token && patientId) {
+      fetchPatientData();
+    }
+  }, [session?.token, patientId, fetchPatientData]);
 
   const getProntuariosByType = (tipo: number) => {
     if (!patientData) return [];

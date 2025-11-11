@@ -12,7 +12,7 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { HashingServiceProtocol } from '../auth/hash/hashing.service';
 import { UUID } from 'node:crypto';
-import { TokenDto } from './dto/token.dto';
+import { TokenDto } from 'src/auth/dto/token.dto';
 
 @Injectable()
 export class UsersService {
@@ -153,8 +153,9 @@ export class UsersService {
       throw new NotFoundException(`Usuário não encontrado.`);
     }
 
-    if (creator.access > 2){
-      if (user.id_User !== creator.sub) throw new ForbiddenException('Você não tem permissão para editar este usuário.');
+    if (creator.access > 2) {
+      if (user.id_User !== creator.sub)
+        throw new ForbiddenException('Você não tem permissão para editar este usuário.');
     }
 
     if (updateUserDto.email && updateUserDto.email !== user.email) {

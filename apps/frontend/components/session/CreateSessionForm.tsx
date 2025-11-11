@@ -19,6 +19,7 @@ import { ptBR } from "date-fns/locale";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
+import { CreateSessionFormData } from "@/types/api";
 
 // Schema de validação Zod
 const createSessionSchema = z.object({
@@ -53,16 +54,6 @@ const createSessionSchema = z.object({
   path: ["dataHoraFim"],
 });
 
-interface CreateSessionData {
-  dataHoraInicio: Date | null;
-  dataHoraFim: Date | null;
-  id_Lista: string;
-  id_Tipo_Atendimento: number;
-  id_Estagiario_Executor: string;
-  id_Supervisor_Executor: string;
-  observacoes: string;
-}
-
 interface WaitlistEntry {
   id_Lista: string;
   nomeRegistro: string;
@@ -80,7 +71,7 @@ interface User {
 }
 
 type CreateSessionFormErrors = {
-  [K in keyof CreateSessionData]?: string;
+  [K in keyof CreateSessionFormData]?: string;
 };
 
 // Mapeamento dos tipos de atendimento
@@ -107,7 +98,7 @@ export default function CreateSessionForm() {
   const { canCreateUsers } = usePermissions(); // Usando a mesma lógica de permissão
 
   // Estados do formulário
-  const [formData, setFormData] = useState<CreateSessionData>({
+  const [formData, setFormData] = useState<CreateSessionFormData>({
     dataHoraInicio: null,
     dataHoraFim: null,
     id_Lista: "",
@@ -189,7 +180,7 @@ export default function CreateSessionForm() {
         }
         
         // Atualizar formulário com o paciente selecionado
-        setFormData(prev => ({
+        setFormData((prev: CreateSessionFormData) => ({
           ...prev,
           id_Lista: patientId,
           id_Tipo_Atendimento: tipoAtendimento
@@ -217,15 +208,15 @@ export default function CreateSessionForm() {
     return [];
   };
 
-  const handleInputChange = (field: keyof CreateSessionData, value: any) => {
-    setFormData(prev => ({
+  const handleInputChange = (field: keyof CreateSessionFormData, value: Date | string | number | null) => {
+    setFormData((prev: CreateSessionFormData) => ({
       ...prev,
       [field]: value
     }));
     
     // Limpa o erro do campo quando o usuário faz alterações
-    if (formErrors[field]) {
-      setFormErrors(prev => ({
+    if (formErrors[field as keyof CreateSessionFormErrors]) {
+      setFormErrors((prev: CreateSessionFormErrors) => ({
         ...prev,
         [field]: undefined
       }));
@@ -233,21 +224,21 @@ export default function CreateSessionForm() {
 
     // Se mudou o tipo de atendimento, limpar seleção de paciente
     if (field === 'id_Tipo_Atendimento') {
-      setFormData(prev => ({
+      setFormData((prev: CreateSessionFormData) => ({
         ...prev,
         id_Lista: "", // Reset paciente quando muda o tipo
-        [field]: value
+        id_Tipo_Atendimento: value as number
       }));
       return;
     }
 
     // Se mudou a data/hora de início, ajustar automaticamente o fim para 1 hora depois
     if (field === 'dataHoraInicio' && value) {
-      const endTime = new Date(value);
+      const endTime = new Date(value as Date);
       endTime.setHours(endTime.getHours() + 1);
-      setFormData(prev => ({
+      setFormData((prev: CreateSessionFormData) => ({
         ...prev,
-        dataHoraInicio: value,
+        dataHoraInicio: value as Date,
         dataHoraFim: endTime
       }));
     }
@@ -274,8 +265,8 @@ export default function CreateSessionForm() {
       if (error instanceof z.ZodError) {
         const errors: CreateSessionFormErrors = {};
         error.issues.forEach((issue) => {
-          const field = issue.path[0] as keyof CreateSessionData;
-          errors[field] = issue.message;
+          const field = issue.path[0] as keyof CreateSessionFormData;
+          errors[field as keyof CreateSessionFormErrors] = issue.message;
         });
         setFormErrors(errors);
       }
@@ -316,7 +307,7 @@ export default function CreateSessionForm() {
       
       router.push("/dashboard/atendimento"); // Ajustar para a rota correta
       
-    } catch (error: any) {
+    } catch (error) {
       console.error("Erro ao criar sessão:", error);
       const { title, description } = getErrorMessage(error);
       toast.error(title, { description });

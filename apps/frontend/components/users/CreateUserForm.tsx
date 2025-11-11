@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { usePermissions } from "@/hooks/usePermissions";
 import { apiService } from "@/utils/apiHandler";
 import { z } from "zod";
+import { CreateUserData, ApiError } from "@/types/api";
 
 // Schema de validação Zod
 const createUserSchema = z.object({
@@ -40,14 +41,6 @@ const createUserSchema = z.object({
     .regex(/^\d{2}\/\d{5,6}$/, "O CRP é inválido. O formato esperado é XX/XXXXX ou XX/XXXXXX (ex: 06/12345)")
     .optional()
 });
-
-interface CreateUserData {
-  nome: string;
-  email: string;
-  senha: string;
-  roleId: number;
-  crp?: string;
-}
 
 type CreateUserFormErrors = {
   [K in keyof CreateUserData]?: string;
@@ -166,7 +159,7 @@ export default function CreateUserForm() {
     
     try {
       // Preparar dados para envio
-      const dataToSend: any = {
+      const dataToSend: CreateUserData = {
         nome: formData.nome,
         email: formData.email,
         senha: formData.senha,
@@ -183,16 +176,17 @@ export default function CreateUserForm() {
       toast.success("Usuário criado com sucesso!");
       router.push("/dashboard/usuarios");
       
-    } catch (error: any) {
+    } catch (error) {
       console.error("Erro ao criar usuário:", error);
       
       // Verifica se é um conflito (usuário desativado)
-      if (error?.status === 409) {
+      const apiError = error as ApiError;
+      if (apiError?.status === 409) {
         setReactivationOption({
           show: true,
-          userId: error.userId,
-          userName: error.userName || "usuário desconhecido",
-          message: error.message || "Usuário desativado encontrado"
+          userId: apiError.userId,
+          userName: apiError.userName || "usuário desconhecido",
+          message: apiError.message || "Usuário desativado encontrado"
         });
       } else {
         toast.error(error instanceof Error ? error.message : "Erro ao criar usuário");
@@ -217,7 +211,7 @@ export default function CreateUserForm() {
       toast.success(`Usuário ${reactivationOption.userName} reativado com sucesso!`);
       router.push("/dashboard/usuarios");
       
-    } catch (error: any) {
+    } catch (error) {
       console.error("Erro ao reativar usuário:", error);
       toast.error(error instanceof Error ? error.message : "Erro ao reativar usuário");
     } finally {

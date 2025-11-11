@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -43,19 +43,6 @@ interface PatientWithoutSession {
   };
 }
 
-interface SessionData {
-  id_Atendimento: string;
-  dataHoraInicio: string;
-  dataHoraFim: string;
-  id_Status: number;
-  id_Tipo_Atendimento: number;
-  id_Lista: string;
-  ListaEspera: {
-    id_Lista: string;
-    nomeRegistro: string;
-  };
-}
-
 // Mapeamento dos status da lista de espera
 const STATUS_MAP = {
   2: { 
@@ -93,7 +80,6 @@ export default function FluxoAtendimento() {
   const router = useRouter();
   const { canAccessFluxoAtendimento } = usePermissions();
   const [waitlistData, setWaitlistData] = useState<WaitlistItem[]>([]);
-  const [sessionsData, setSessionsData] = useState<SessionData[]>([]);
   const [patientsWithoutSessions, setPatientsWithoutSessions] = useState<PatientWithoutSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("2");
@@ -109,7 +95,7 @@ export default function FluxoAtendimento() {
   }, [session, canAccessFluxoAtendimento, router]);
 
   // Função para buscar dados da lista de espera
-  const fetchWaitlistData = async () => {
+  const fetchWaitlistData = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -137,32 +123,10 @@ export default function FluxoAtendimento() {
     } finally {
       setLoading(false);
     }
-  };
-
-  // Função para buscar sessões
-  const fetchSessionsData = async () => {
-    try {
-      if (!session?.token) {
-        throw new Error("Token de autenticação não encontrado");
-      }
-
-      const data = await apiRequest(API_ENDPOINTS.sessions, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${session.token}`,
-        },
-      });
-      
-      setSessionsData(data);
-    } catch (error) {
-      console.error("Erro ao carregar sessões:", error);
-      const { title, description } = getErrorMessage(error);
-      toast.error(title, { description });
-    }
-  };
+  }, [session?.token]);
 
   // Função para buscar pacientes sem agendamento futuro
-  const fetchPatientsWithoutSessions = async () => {
+  const fetchPatientsWithoutSessions = useCallback(async () => {
     try {
       if (!session?.token) {
         throw new Error("Token de autenticação não encontrado");
@@ -182,15 +146,14 @@ export default function FluxoAtendimento() {
       const { title, description } = getErrorMessage(error);
       toast.error(title, { description });
     }
-  };
+  }, [session?.token]);
 
   useEffect(() => {
     if (session?.token) {
       fetchWaitlistData();
-      fetchSessionsData();
       fetchPatientsWithoutSessions();
     }
-  }, [session]);
+  }, [session?.token, fetchWaitlistData, fetchPatientsWithoutSessions]);
 
   // Filtrar dados por status
   const getPatientsByStatus = (status: number) => {

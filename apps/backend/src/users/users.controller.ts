@@ -4,8 +4,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UUID } from 'node:crypto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { TokenDto } from './dto/token.dto';
-
+import { TokenDto } from 'src/auth/dto/token.dto';
 @Controller('users')
 @UseGuards(JwtAuthGuard)
 export class UsersController {

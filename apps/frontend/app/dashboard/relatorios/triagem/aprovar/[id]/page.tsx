@@ -19,13 +19,12 @@ import {
   User, 
   Users, 
   FileText,
-  UserPlus,
   UserCheck,
   Send
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { apiService, apiRequest, API_ENDPOINTS } from "@/utils/apiHandler";
+import { apiService, API_ENDPOINTS } from "@/utils/apiHandler";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/utils/toastErrorHandler";
 
@@ -109,7 +108,7 @@ export default function AprovarTriagemPage() {
       }
 
       // Verifica se existe um prontuário de triagem pendente
-      const triagemProntuario = foundSession.Prontuario?.find((p: any) => p.id_Tipo === 1 && p.id_Status === 1);
+      const triagemProntuario = foundSession.Prontuario?.find((p: { id_Tipo: number; id_Status: number }) => p.id_Tipo === 1 && p.id_Status === 1);
       if (!triagemProntuario) {
         toast.error("Não há relatório de triagem pendente de aprovação para esta sessão.");
         router.push("/dashboard/relatorios");
@@ -207,13 +206,11 @@ export default function AprovarTriagemPage() {
       }
 
       // Tenta parsear como JSON, mas se falhar, aceita como texto
-      let result;
       const responseText = await response.text();
       try {
-        result = JSON.parse(responseText);
+        JSON.parse(responseText);
       } catch {
         // Se não for JSON, é uma mensagem de sucesso em texto
-        result = responseText;
       }
 
       if (decisao === "encaminhar") {
@@ -224,7 +221,7 @@ export default function AprovarTriagemPage() {
 
       // Redireciona de volta para a página de relatórios
       router.push("/dashboard/relatorios");
-    } catch (error: any) {
+    } catch (error) {
       console.error("Erro ao aprovar triagem:", error);
       const { title, description } = getErrorMessage(error);
       toast.error(title, { description });
@@ -436,7 +433,7 @@ export default function AprovarTriagemPage() {
                       <h4 className="font-semibold mb-1">Aprovar para Psicoterapia</h4>
                       <p className="text-sm text-muted-foreground">
                         O paciente será marcado como apto para iniciar o processo de psicoterapia.
-                        O status será alterado para <strong>"Triagem Aprovada"</strong> e será possível
+                        O status será alterado para <strong>&quot;Triagem Aprovada&quot;</strong> e será possível
                         agendar sessões de psicoterapia.
                       </p>
                     </div>
@@ -482,7 +479,7 @@ export default function AprovarTriagemPage() {
                       <h4 className="font-semibold mb-1">Encaminhar para Outra Instituição</h4>
                       <p className="text-sm text-muted-foreground">
                         O paciente será encaminhado para atendimento em outra instituição.
-                        O status será alterado para <strong>"Encaminhado"</strong> e não será possível
+                        O status será alterado para <strong>&quot;Encaminhado&quot;</strong> e não será possível
                         agendar novas sessões.
                       </p>
                     </div>
