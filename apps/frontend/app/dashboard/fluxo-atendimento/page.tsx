@@ -132,7 +132,7 @@ export default function FluxoAtendimento() {
         throw new Error("Token de autenticação não encontrado");
       }
 
-      const endpoint = `${process.env.NEXT_PUBLIC_API_URL}/session/no-session`;
+      const endpoint = `${API_ENDPOINTS.sessions}/no-session`;
       const data = await apiRequest(endpoint, {
         method: "GET",
         headers: {

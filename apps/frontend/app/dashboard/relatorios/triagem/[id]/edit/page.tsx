@@ -148,11 +148,8 @@ export default function EditTriagemReportPage() {
       setSubmitting(true);
 
       const payload = {
-        id_Sessao: sessionId,
-        conteudo: {
-          relatorioDaSessao: formData.relatorioDaSessao.trim(),
-          presente: formData.presente,
-        },
+        relatorioDaSessao: formData.relatorioDaSessao.trim(),
+        presente: formData.presente,
       };
 
       await apiService.updateMedicalRecordTriagem(prontuarioId, payload, session.token);

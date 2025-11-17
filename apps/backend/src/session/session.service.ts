@@ -40,9 +40,11 @@ export class SessionService {
       if (paciente.id_Status !== 1) {
         throw new BadRequestException('Este paciente não está "Em Espera". Não é possível agendar uma nova triagem.');
       }
+
+      
     } else if (session.id_Tipo_Atendimento === 2) {
       // 2 = Psicoterapia
-      // Se o paciente está tentando agendar Psicoterapia, ele DEVE ter o status "Em Triagem" (2) ou "Em Psicoterapia" (3)
+      // Se o paciente está tentando agendar Psicoterapia, ele DEVE ter o status "Triagem aprovada" (3) ou "Em Psicoterapia" (4)
       const statusPermitidos = [3, 4];
 
       if (!statusPermitidos.includes(paciente.id_Status)) {
@@ -129,6 +131,18 @@ export class SessionService {
 
     if (overlappingSession) {
       throw new BadRequestException('O estagiário já possui uma sessão agendada nesse horário.');
+    }
+
+    // Verifica se o paciente já possui uma sessão agendada (não permite mais de uma sessão por vez)
+    const patientActiveSession = await this.prisma.atendimento.findFirst({
+      where: {
+        id_Lista: session.id_Lista,
+        id_Status: 1, // Apenas sessões agendadas
+      },
+    });
+
+    if (patientActiveSession) {
+      throw new BadRequestException('Este paciente já possui uma sessão agendada. Apenas uma sessão por vez é permitida.');
     }
 
     let updateListaEsperaPromise: Prisma.PrismaPromise<any> | null = null;

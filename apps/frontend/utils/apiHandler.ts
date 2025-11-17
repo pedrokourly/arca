@@ -13,10 +13,8 @@ import {
 
 const API_BASE_URL = "https://api.arca.kourlydigital.com.br";
 const API_PORT = process.env.BACK_PORT || '3333';
-console.log('API_BASE_URL:', API_BASE_URL);
 
 const IS_USING_DOCKER = process.env.IS_USING_DOCKER === 'true';
-console.log('IS_USING_DOCKER:', IS_USING_DOCKER);
 
 const LOGIN_URL = IS_USING_DOCKER
   ? `http://arca_backend:${API_PORT}`
@@ -78,7 +76,15 @@ export async function apiRequest(endpoint: string, options: RequestInit = {}) {
     throw error;
   }
 
-  return response.json();
+  // Tenta parsear como JSON, se falhar retorna o texto
+  const contentType = response.headers.get('content-type');
+  if (contentType && contentType.includes('application/json')) {
+    return response.json();
+  }
+  
+  // Se não for JSON, retorna o texto como está
+  const text = await response.text();
+  return text;
 }
 
 // Helper functions for common API operations
@@ -222,6 +228,26 @@ export const apiService = {
   updateMedicalRecordPsicoterapia: (recordId: string, data: UpdatePsicoterapiaMedicalRecordData, token: string) =>
     apiRequest(`${API_ENDPOINTS.medicalRecordPsicoterapia}/${recordId}`, {
       method: 'PUT',
+      headers: { 
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data),
+    }),
+
+  approveMedicalRecordTriagem: (recordId: string, data: any, token: string) =>
+    apiRequest(`${API_ENDPOINTS.medicalRecordTriagem}/${recordId}/approve`, {
+      method: 'PATCH',
+      headers: { 
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data),
+    }),
+
+  approveMedicalRecordPsicoterapia: (recordId: string, data: any, token: string) =>
+    apiRequest(`${API_ENDPOINTS.medicalRecordPsicoterapia}/${recordId}/approve`, {
+      method: 'PATCH',
       headers: { 
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'

@@ -29,10 +29,11 @@ export interface CreateTriagemMedicalRecordData {
 
 /**
  * Data structure for updating a Triagem medical record
+ * Only the content fields are sent (no id_Sessao or conteudo wrapper)
  */
 export interface UpdateTriagemMedicalRecordData {
-  id_Sessao: string;
-  conteudo: ConteudoTriagem;
+  relatorioDaSessao: string;
+  presente: boolean;
 }
 
 /**
@@ -45,8 +46,9 @@ export interface CreatePsicoterapiaMedicalRecordData {
 
 /**
  * Data structure for updating a Psicoterapia medical record
+ * Only the content fields are sent (no id_Sessao or conteudo wrapper)
  */
 export interface UpdatePsicoterapiaMedicalRecordData {
-  id_Sessao: string;
-  conteudo: ConteudoEvolucao;
+  relatorioDaSessao: string;
+  presente: boolean;
 }

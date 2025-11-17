@@ -519,6 +519,7 @@ export default function SessionTable() {
         <TableHeader>
           <TableRow>
             <TableHead>Paciente</TableHead>
+            <TableHead>Tipo</TableHead>
             <TableHead>Data e Hora</TableHead>
             <TableHead>Duração</TableHead>
             <TableHead>Estagiário</TableHead>

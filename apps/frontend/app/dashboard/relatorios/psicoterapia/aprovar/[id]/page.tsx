@@ -215,35 +215,11 @@ export default function ApprovePsicoterapiaPage() {
         payload.motivoEncaminhamento = formData.motivoEncaminhamento.trim();
       }
 
-      const endpoint = `${process.env.NEXT_PUBLIC_API_URL}/medical-record/psicoterapia/${psicoterapiaProntuario.id_Registro}/approve`;
-
-      const response = await fetch(endpoint, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${session.token}`,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const responseText = await response.text();
-
-      if (!response.ok) {
-        let errorData;
-        try {
-          errorData = JSON.parse(responseText);
-        } catch {
-          errorData = { message: responseText || `Erro ${response.status}` };
-        }
-        throw new Error(errorData.message || "Erro ao aprovar relatório");
-      }
-
-      // Tenta parsear como JSON, se falhar usa como texto
-      try {
-        JSON.parse(responseText);
-      } catch {
-        // Ignora erro de parse, apenas para validação
-      }
+      await apiService.approveMedicalRecordPsicoterapia(
+        psicoterapiaProntuario.id_Registro,
+        payload,
+        session.token
+      );
 
       // Mensagem de sucesso baseada na ação
       let successMessage = "Relatório aprovado com sucesso!";

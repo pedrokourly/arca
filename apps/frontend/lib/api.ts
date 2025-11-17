@@ -1,9 +1,12 @@
 import axios from 'axios';
 import { getSession } from 'next-auth/react';
 
+// Importa a URL base centralizada
+const API_BASE_URL = "https://api.arca.kourlydigital.com.br";
+
 // Crie uma instância do Axios com a URL base da sua API NestJS
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3333', // Sua URL da API
+  baseURL: API_BASE_URL,
 });
 
 // Interceptor para adicionar o token de autenticação nas requisições

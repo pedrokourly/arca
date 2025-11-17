@@ -24,6 +24,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 import { getErrorMessage } from "@/utils/toastErrorHandler";
+import { API_ENDPOINTS, apiRequest } from "@/utils/apiHandler";
 
 interface ProntuarioData {
   id_Registro: string;
@@ -84,20 +85,15 @@ export default function PatientDetailsPage() {
   const fetchPatientData = useCallback(async () => {
     try {
       setLoading(true);
-      const endpoint = `${process.env.NEXT_PUBLIC_API_URL}/medical-record/prontuarios/${patientId}`;
+      const endpoint = `${API_ENDPOINTS.medicalRecord}/prontuarios/${patientId}`;
       
-      const response = await fetch(endpoint, {
+      const data = await apiRequest(endpoint, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${session?.token}`,
         },
       });
 
-      if (!response.ok) {
-        throw new Error("Erro ao buscar dados do paciente");
-      }
-
-      const data = await response.json();
       setPatientData(data);
     } catch (error) {
       console.error("Erro ao buscar dados do paciente:", error);
@@ -142,17 +138,15 @@ export default function PatientDetailsPage() {
         .replace(/[\u0300-\u036f]/g, '') || 'paciente';
       
       if (tipo === 3) {
-        endpoint = `${process.env.NEXT_PUBLIC_API_URL}/medical-record/prontuarios/alta/pdf/${id}`;
+        endpoint = `${API_ENDPOINTS.medicalRecord}/prontuarios/alta/pdf/${id}`;
         filename = `relatorio_alta_${normalizedName}.pdf`;
       } else if (tipo === 4) {
-        endpoint = `${process.env.NEXT_PUBLIC_API_URL}/medical-record/prontuarios/encaminhamento/pdf/${id}`;
+        endpoint = `${API_ENDPOINTS.medicalRecord}/prontuarios/encaminhamento/pdf/${id}`;
         filename = `relatorio_encaminhamento_${normalizedName}.pdf`;
       } else {
-        endpoint = `${process.env.NEXT_PUBLIC_API_URL}/medical-record/prontuarios/pdf/${id}`;
+        endpoint = `${API_ENDPOINTS.medicalRecord}/prontuarios/pdf/${id}`;
         filename = `prontuario_${normalizedName}.pdf`;
       }
-
-      console.log("Baixando PDF:", { endpoint, id, tipo });
 
       const response = await fetch(endpoint, {
         method: "GET",
@@ -162,8 +156,6 @@ export default function PatientDetailsPage() {
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Erro ao baixar PDF:", response.status, errorText);
         throw new Error(`Erro ao baixar PDF: ${response.status}`);
       }
 
@@ -329,13 +321,19 @@ export default function PatientDetailsPage() {
             </Button>
 
             {totalAltas > 0 && (
-              <Button
-                variant="outline"
-                onClick={() => downloadPDF(patientId, 3)}
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Exportar Relatório de Alta
-              </Button>
+              <div className="flex gap-2 flex-wrap">
+                {getProntuariosByType(3).map((alta, idx) => (
+                  <Button
+                    key={alta.id_Registro}
+                    variant="outline"
+                    onClick={() => downloadPDF(patientId, 3)}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Exportar Relatório de Alta
+                    {totalAltas > 1 && ` #${idx + 1}`}
+                  </Button>
+                ))}
+              </div>
             )}
 
             {totalEncaminhamentos > 0 && (

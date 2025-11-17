@@ -435,106 +435,116 @@ export class MedicalRecordService {
   }
 
   async generatePdf(id: UUID, user: TokenDto, res: any) {
-    const paciente = await this.findOne(id, user);
+    try {
+      const paciente = await this.findOne(id, user);
 
-    const dataForPdf = {
-      paciente: {
-        nome: paciente.nomeRegistro,
-        nomeSocial: paciente.nomeSocial,
-        cpf: paciente.CPF || 'N/A',
-        dataNascimento: new Date(paciente.dataNascimento).toLocaleDateString('pt-BR'),
-        status: paciente.Status.nome,
-      },
-      atendimentos: paciente.Atendimento.map((atd) => ({
-        data: new Date(atd.dataHoraInicio).toLocaleDateString('pt-BR'),
-        supervisor: atd.supervisorExecutor?.nome || 'N/A',
-        estagiario: atd.estagiarioExecutor?.nome || 'N/A',
-        supervisorCRP: atd.supervisorExecutor?.CRP || 'N/A',
-        prontuarios: atd.Prontuario.map((p) => {
-          return {
-            id_Registro: p.id_Registro,
-            conteudo: p.conteudo as JSON,
-            dataEmissao: new Date(p.dataEmissao).toLocaleDateString('pt-BR'),
-            id_Status: p.id_Status,
-            id_Tipo: p.id_Tipo,
-            // @ts-ignore
-            tipo: p.TipoProntuario.nome,
-            // @ts-ignore
-            status: p.status.nome,
-          };
-        }),
-      })),
-    };
+      const dataForPdf = {
+        paciente: {
+          nome: paciente.nomeRegistro,
+          nomeSocial: paciente.nomeSocial,
+          cpf: paciente.CPF || 'N/A',
+          dataNascimento: new Date(paciente.dataNascimento).toLocaleDateString('pt-BR'),
+          status: paciente.Status.nome,
+        },
+        atendimentos: paciente.Atendimento.map((atd) => ({
+          data: new Date(atd.dataHoraInicio).toLocaleDateString('pt-BR'),
+          supervisor: atd.supervisorExecutor?.nome || 'N/A',
+          estagiario: atd.estagiarioExecutor?.nome || 'N/A',
+          supervisorCRP: atd.supervisorExecutor?.CRP || 'N/A',
+          prontuarios: atd.Prontuario.map((p) => {
+            return {
+              id_Registro: p.id_Registro,
+              conteudo: p.conteudo as JSON,
+              dataEmissao: new Date(p.dataEmissao).toLocaleDateString('pt-BR'),
+              id_Status: p.id_Status,
+              id_Tipo: p.id_Tipo,
+              // @ts-ignore
+              tipo: p.TipoProntuario.nome,
+              // @ts-ignore
+              status: p.status.nome,
+            };
+          }),
+        })),
+      };
 
-    const pdfBuffer = await this.pdfService.generatePdfFromTemplate('prontuario', dataForPdf);
+      const pdfBuffer = await this.pdfService.generatePdfFromTemplate('prontuario', dataForPdf);
 
-    if (!pdfBuffer) throw new InternalServerErrorException('Erro ao gerar o PDF.');
+      if (!pdfBuffer) {
+        throw new InternalServerErrorException('Erro ao gerar o PDF.');
+      }
+      const filename = `prontuario-arca-${paciente.nomeRegistro.replace(/\s+/g, '_')}.pdf`;
 
-    const filename = `prontuario-arca-${paciente.nomeRegistro.replace(/\s+/g, '_')}.pdf`;
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
 
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
-
-    res.send(pdfBuffer);
+      res.send(pdfBuffer);
+    } catch (error) {
+      throw error;
+    }
   }
 
   async generateAltaPdf(id: UUID, user: TokenDto, res: any) {
-    const paciente = await this.findOne(id, user);
+    try {
+      const paciente = await this.findOne(id, user);
 
-    let altaRecord: any = null;
-    let supervisorNome = 'N/A';
-    let supervisorCRP = 'N/A';
+      let altaRecord: any = null;
+      let supervisorNome = 'N/A';
+      let supervisorCRP = 'N/A';
 
-    for (const atd of paciente.Atendimento) {
-      // @ts-ignore
-      const found = atd.Prontuario.find((p) => p.id_Tipo === 3); // 3 = Alta
-      if (found) {
-        altaRecord = found;
-        supervisorNome = atd.supervisorExecutor?.nome || 'N/A';
-        supervisorCRP = atd.supervisorExecutor?.CRP || 'N/A';
-        break;
+      for (const atd of paciente.Atendimento) {
+        // @ts-ignore
+        const found = atd.Prontuario.find((p) => p.id_Tipo === 3); // 3 = Alta
+        if (found) {
+          altaRecord = found;
+          supervisorNome = atd.supervisorExecutor?.nome || 'N/A';
+          supervisorCRP = atd.supervisorExecutor?.CRP || 'N/A';
+          break;
+        }
       }
+
+      if (!altaRecord) {
+        throw new NotFoundException('Registro de Alta (Tipo 3) não encontrado para este paciente.');
+      }
+
+      const datasAtendimento = paciente.Atendimento.map((atd) => new Date(atd.dataHoraInicio).getTime());
+      const dataInicio = new Date(Math.min(...datasAtendimento)).toLocaleDateString('pt-BR');
+      const dataFim = new Date(Math.max(...datasAtendimento)).toLocaleDateString('pt-BR');
+
+      const dataForPdf = {
+        pacienteNome: paciente.nomeRegistro,
+        cpf: paciente.CPF || 'N/A',
+        supervisorNome: supervisorNome,
+        supervisorCRP: supervisorCRP,
+
+        solicitanteNome: 'O próprio paciente',
+        finalidade: 'Comprovação de acompanhamento psicológico',
+
+        dataInicio: dataInicio,
+        dataFim: dataFim,
+        motivoAlta: altaRecord.conteudo.finalidade,
+        dataAlta: new Date(altaRecord.dataEmissao).toLocaleDateString('pt-BR'),
+        dataDocumento: new Date().toLocaleDateString('pt-BR'),
+      };
+
+      const pdfBuffer = await this.pdfService.generatePdfFromTemplate('alta', dataForPdf);
+
+      if (!pdfBuffer) {
+        throw new InternalServerErrorException('Erro ao gerar o PDF.');
+      }
+      const filename = `alta-arca-${paciente.nomeRegistro.replace(/\s+/g, '_')}.pdf`;
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
+
+      res.send(pdfBuffer);
+    } catch (error) {
+      throw error;
     }
-
-    if (!altaRecord) {
-      throw new NotFoundException('Registro de Alta (Tipo 3) não encontrado para este paciente.');
-    }
-
-    const datasAtendimento = paciente.Atendimento.map((atd) => new Date(atd.dataHoraInicio).getTime());
-    const dataInicio = new Date(Math.min(...datasAtendimento)).toLocaleDateString('pt-BR');
-    const dataFim = new Date(Math.max(...datasAtendimento)).toLocaleDateString('pt-BR');
-
-    const dataForPdf = {
-      pacienteNome: paciente.nomeRegistro,
-      cpf: paciente.CPF || 'N/A',
-      supervisorNome: supervisorNome,
-      supervisorCRP: supervisorCRP,
-
-      solicitanteNome: 'O próprio paciente',
-      finalidade: 'Comprovação de acompanhamento psicológico',
-
-      dataInicio: dataInicio,
-      dataFim: dataFim,
-      motivoAlta: altaRecord.conteudo.finalidade,
-      dataAlta: new Date(altaRecord.dataEmissao).toLocaleDateString('pt-BR'),
-      dataDocumento: new Date().toLocaleDateString('pt-BR'),
-    };
-
-    const pdfBuffer = await this.pdfService.generatePdfFromTemplate('alta', dataForPdf);
-
-    if (!pdfBuffer) throw new InternalServerErrorException('Erro ao gerar o PDF.');
-
-    const filename = `alta-arca-${paciente.nomeRegistro.replace(/\s+/g, '_')}.pdf`;
-
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
-
-    res.send(pdfBuffer);
   }
 
   async generateEncaminhamentoPdf(id: UUID, user: TokenDto, res: any) {
-    // Buscar o prontuário específico de encaminhamento pelo ID do registro
-    const encaminhamentoRecord = await this.prisma.prontuario.findUnique({
+    try {
+      const encaminhamentoRecord = await this.prisma.prontuario.findUnique({
       where: { id_Registro: id },
       include: {
         TipoProntuario: true,
@@ -621,16 +631,20 @@ export class MedicalRecordService {
       dataDocumento: new Date().toLocaleDateString('pt-BR'),
     };
 
-    const pdfBuffer = await this.pdfService.generatePdfFromTemplate('encaminhamento', dataForPdf);
+      const pdfBuffer = await this.pdfService.generatePdfFromTemplate('encaminhamento', dataForPdf);
 
-    if (!pdfBuffer) throw new InternalServerErrorException('Erro ao gerar o PDF de encaminhamento.');
+      if (!pdfBuffer) {
+        throw new InternalServerErrorException('Erro ao gerar o PDF de encaminhamento.');
+      }
+      const filename = `declaracao-encaminhamento-${paciente.nomeRegistro.replace(/\s+/g, '_')}.pdf`;
 
-    const filename = `declaracao-encaminhamento-${paciente.nomeRegistro.replace(/\s+/g, '_')}.pdf`;
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
 
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
-
-    res.send(pdfBuffer);
+      res.send(pdfBuffer);
+    } catch (error) {
+      throw error;
+    }
   }
 
   async findAll(user: TokenDto) {
