@@ -66,44 +66,40 @@ export function PublicNavbar() {
               <Menu className="h-5 w-5" />
             </Button>
           </SheetTrigger>
-          <SheetContent side="right" className="w-72">
-            <div className="flex flex-col gap-6 mt-8">
-              <Link 
-                href="/lista-espera/cadastro" 
-                className="text-lg font-medium hover:text-primary transition-colors"
-                onClick={() => setIsOpen(false)}
-              >
-                Lista de Espera
-              </Link>
-              <Link 
-                href="/lista-espera/consulta" 
-                className="text-lg font-medium hover:text-primary transition-colors"
-                onClick={() => setIsOpen(false)}
-              >
-                Consultar Posição
-              </Link>
+          <SheetContent side="right" className="w-80 p-6">
+            <div className="flex flex-col gap-8 mt-6">
+              <div className="flex flex-col gap-1">
+                <Link 
+                  href="/lista-espera/cadastro" 
+                  className="text-base font-medium hover:text-primary transition-colors py-3 px-4 rounded-lg hover:bg-accent"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Lista de Espera
+                </Link>
+                <Link 
+                  href="/lista-espera/consulta" 
+                  className="text-base font-medium hover:text-primary transition-colors py-3 px-4 rounded-lg hover:bg-accent"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Consultar Posição
+                </Link>
+              </div>
               
-              <div className="flex flex-col gap-3 mt-6">
+              <div className="flex flex-col gap-3 pt-6 border-t">
                 {status === "authenticated" ? (
-                  <Button asChild onClick={() => setIsOpen(false)}>
+                  <Button asChild className="w-full" onClick={() => setIsOpen(false)}>
                     <Link href="/dashboard">
                       <User className="w-4 h-4" />
                       Dashboard
                     </Link>
                   </Button>
                 ) : (
-                  <>
-                    <Button asChild variant="outline" onClick={() => setIsOpen(false)}>
-                      <Link href="/lista-espera/consulta">
-                        Consultar Posição
-                      </Link>
-                    </Button>
-                    <Button asChild onClick={() => setIsOpen(false)}>
-                      <Link href="/lista-espera/cadastro">
-                        Entrar na Lista
-                      </Link>
-                    </Button>
-                  </>
+                  <Button asChild variant="outline" className="w-full" onClick={() => setIsOpen(false)}>
+                    <Link href="/login">
+                      <User className="w-4 h-4" />
+                      Acessar Plataforma
+                    </Link>
+                  </Button>
                 )}
               </div>
             </div>
