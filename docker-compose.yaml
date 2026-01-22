@@ -2,9 +2,6 @@ services:
   backend:
     container_name: arca_backend
     image: pedrokourly/arca-backend:latest
-    build:
-      context: .
-      dockerfile: apps/backend/Dockerfile
 
     environment:
       DATABASE_URL: ${DATABASE_URL}
@@ -27,9 +24,6 @@ services:
   frontend:
     container_name: arca_frontend
     image: pedrokourly/arca-frontend:latest
-    build:
-      context: .
-      dockerfile: apps/frontend/Dockerfile
 
     environment:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
