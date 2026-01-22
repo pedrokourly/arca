@@ -35,6 +35,6 @@ async function bootstrap() {
 
   app.useGlobalInterceptors(new AuditInterceptor(auditService));
 
-  void app.listen(3333);
+  await app.listen(3333, '0.0.0.0');
 }
 void bootstrap();

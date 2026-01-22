@@ -26,7 +26,7 @@ RUN npx prisma generate
 
 # Build da aplicação
 WORKDIR /app
-RUN npm run build --filter=backend
+RUN npx turbo run build --filter=backend
 
 # Etapa de produção
 FROM base AS runner
@@ -45,7 +45,7 @@ COPY --from=builder --chown=nestjs:nodejs /app/apps/generated ./apps/generated
 COPY --from=builder --chown=nestjs:nodejs /app/apps/backend/prisma ./prisma
 
 # Instalar apenas dependências de produção
-RUN npm ci --only=production && npm cache clean --force
+RUN npm install --omit=dev && npm cache clean --force
 
 # Gerar Prisma Client novamente em produção
 RUN npx prisma generate
