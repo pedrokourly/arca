@@ -11,14 +11,6 @@ services:
       JWT_TOKEN_AUDIENCE: arca_users
       JWT_TOKEN_ISSUER: arca_api
       JWT_TTL: ${JWT_TTL}
-    
-    healthcheck:
-      test: ["CMD-SHELL", "node -e \"fetch('http://127.0.0.1:3333/health').then(r => {if(!r.ok) throw new Error(); process.exit(0)}).catch(e => process.exit(1))\""]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-      start_period: 30s
 
     networks:
       - arca-net
