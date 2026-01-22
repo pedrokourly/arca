@@ -1,63 +1,52 @@
-# ==================================================================
-# Estágio 1: Builder (Construção)
-# ==================================================================
-FROM node:22-slim AS builder
+FROM node:20-alpine AS base
 
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# ==================================================================
-# MUDANÇA IMPORTANTE:
-# NÃO copiamos mais o 'package-lock.json'.
-# Copiamos apenas os 'package.json' para forçar o NPM a 
-# resolver as dependências do zero no ambiente Linux.
-# ==================================================================
-COPY package.json ./
-COPY apps/backend/package.json ./apps/backend/
-COPY apps/frontend/package.json ./apps/frontend/
-# (Se você tiver a pasta 'packages', copie-a também)
-# COPY packages/nome-do-pacote/package.json ./packages/nome-do-pacote/
+# Etapa de dependências
+FROM base AS deps
+COPY package*.json ./
+COPY turbo.json ./
+COPY apps/frontend/package*.json ./apps/frontend/
 
-# Agora, 'npm install' (sem um lockfile) vai gerar um plano
-# de instalação novo e CORRETO para Linux, baixando
-# o '...linux-x64-gnu.node' que precisamos.
-RUN npm install
+RUN npm ci
 
-# Copia todo o resto do código-fonte
+# Etapa de build
+FROM base AS builder
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/apps/frontend/node_modules ./apps/frontend/node_modules
 COPY . .
 
-# Executa o build apenas para o frontend
-RUN npm run -w frontend build
+# Variáveis de ambiente necessárias no build
+ARG NEXT_PUBLIC_API_URL
+ARG NEXTAUTH_URL
+ARG NEXTAUTH_SECRET
 
-# ==================================================================
-# Estágio 2: Production (Produção)
-# ==================================================================
-FROM node:22-slim
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXTAUTH_URL=$NEXTAUTH_URL
+ENV NEXTAUTH_SECRET=$NEXTAUTH_SECRET
 
+WORKDIR /app/apps/frontend
+RUN npm run build
+
+# Etapa de produção
+FROM base AS runner
 WORKDIR /app
 
-# ==================================================================
-# MUDANÇA IMPORTANTE:
-# Mesma lógica aqui. Copiamos apenas os 'package.json'.
-# ==================================================================
-COPY package.json ./
-COPY apps/frontend/package.json ./apps/frontend/
-# (Não precisamos do package.json do backend aqui)
+ENV NODE_ENV=production
 
-# 'npm install --production' (sem lockfile) vai instalar
-# apenas as dependências de produção corretas para Linux.
-RUN npm install --production
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
 
-# Precisamos mover para o diretório do app frontend
-WORKDIR /app/apps/frontend
+# Copiar arquivos necessários
+COPY --from=builder --chown=nextjs:nodejs /app/apps/frontend/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/apps/frontend/.next/static ./apps/frontend/.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/apps/frontend/public ./apps/frontend/public
 
-# Copia os artefatos construídos do Next.js do estágio 'builder'
-COPY --from=builder /app/apps/frontend/.next ./.next
-COPY --from=builder /app/apps/frontend/public ./public
-COPY --from=builder /app/apps/frontend/package.json ./package.json
-COPY --from=builder /app/apps/frontend/next.config.ts ./next.config.ts
+USER nextjs
 
-# Expõe a porta 3000 (padrão do Next.js)
 EXPOSE 3000
 
-# Comando para iniciar a aplicação em produção
-CMD ["npm", "run", "start"]
+ENV HOSTNAME="0.0.0.0"
+
+CMD ["node", "apps/frontend/server.js"]

@@ -1,100 +1,57 @@
-# ==================================================================
-# Estágio 1: Builder (Construção)
-# ==================================================================
-FROM node:22-slim AS builder
+FROM node:22-alpine AS base
+
+# Instalar dependências do sistema
+RUN apk add --no-cache libc6-compat openssl
 
 WORKDIR /app
 
-# ==================================================================
-# MUDANÇA AQUI:
-# NÃO copiamos o 'package-lock.json'.
-# ==================================================================
-COPY package.json ./
-COPY apps/backend/package.json ./apps/backend/
-COPY apps/frontend/package.json ./apps/frontend/
+# Etapa de dependências
+FROM base AS deps
+COPY package*.json ./
+COPY turbo.json ./
+COPY apps/backend/package*.json ./apps/backend/
+COPY apps/generated ./apps/generated
 
-# 'npm install' (sem lockfile) vai gerar um plano
-# de instalação novo e CORRETO para Linux.
-RUN npm install
+RUN npm ci
 
-# Copia todo o resto do código-fonte
+# Etapa de build
+FROM base AS builder
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/apps/backend/node_modules ./apps/backend/node_modules
 COPY . .
 
-# Gera o cliente Prisma
-RUN npx prisma generate --schema=./apps/backend/prisma/schema.prisma
+# Gerar Prisma Client
+WORKDIR /app/apps/backend
+RUN npx prisma generate
 
-# Executa o build apenas para o backend
-RUN npm run -w backend build
+# Build da aplicação
+WORKDIR /app
+RUN npm run build --filter=backend
 
-# ==================================================================
-# Estágio 2: Production (Produção)
-# ==================================================================
-FROM node:22-slim
-
+# Etapa de produção
+FROM base AS runner
 WORKDIR /app
 
-# ==================================================================
-# MUDANÇA AQUI:
-# NÃO copiamos o 'package-lock.json'
-# ==================================================================
-COPY package.json ./
-COPY apps/backend/package.json ./apps/backend/
+ENV NODE_ENV=production
 
-# 'npm install --production' (sem lockfile) vai instalar
-# apenas as dependências de produção corretas para Linux.
-RUN npm install --production
+# Criar usuário não-root
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nestjs
 
-# Copia os artefatos construídos (dist) do estágio 'builder'
-COPY --from=builder /app/apps/backend/dist ./dist
+# Copiar arquivos necessários
+COPY --from=builder --chown=nestjs:nodejs /app/apps/backend/dist ./dist
+COPY --from=builder --chown=nestjs:nodejs /app/apps/backend/package*.json ./
+COPY --from=builder --chown=nestjs:nodejs /app/apps/generated ./apps/generated
+COPY --from=builder --chown=nestjs:nodejs /app/apps/backend/prisma ./prisma
 
-# Copia o schema do Prisma (necessário para rodar migrações)
-COPY --from=builder /app/apps/backend/prisma ./prisma
+# Instalar apenas dependências de produção
+RUN npm ci --only=production && npm cache clean --force
 
-# Copia os templates do PDF para o diretório src/pdf/templates
-# (o código usa process.cwd() + 'src/pdf/templates')
-COPY apps/backend/src/pdf/templates ./src/pdf/templates
+# Gerar Prisma Client novamente em produção
+RUN npx prisma generate
 
-# Copia o cliente Prisma gerado do builder
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+USER nestjs
 
-# Instala o OpenSSL e dependências necessárias para o Puppeteer/Chrome
-RUN apt-get update && apt-get install -y \
-    openssl \
-    chromium \
-    chromium-sandbox \
-    fonts-liberation \
-    libasound2 \
-    libatk-bridge2.0-0 \
-    libatk1.0-0 \
-    libatspi2.0-0 \
-    libcairo2 \
-    libcups2 \
-    libdbus-1-3 \
-    libdrm2 \
-    libgbm1 \
-    libglib2.0-0 \
-    libgtk-3-0 \
-    libnspr4 \
-    libnss3 \
-    libpango-1.0-0 \
-    libx11-6 \
-    libxcb1 \
-    libxcomposite1 \
-    libxdamage1 \
-    libxext6 \
-    libxfixes3 \
-    libxkbcommon0 \
-    libxrandr2 \
-    xdg-utils \
-    && rm -rf /var/lib/apt/lists/*
-
-# Define variável de ambiente para o Puppeteer usar o Chromium instalado
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
-    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
-
-# Expõe a porta 3333
 EXPOSE 3333
 
-# Comando para iniciar a aplicação em produção
-CMD ["sh", "-c", "npx prisma migrate deploy --schema=./prisma/schema.prisma && node dist/src/main"]
+CMD ["node", "dist/main.js"]

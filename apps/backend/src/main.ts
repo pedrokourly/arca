@@ -35,6 +35,6 @@ async function bootstrap() {
 
   app.useGlobalInterceptors(new AuditInterceptor(auditService));
 
-  void app.listen(process.env.PORT ?? 3333);
+  void app.listen(3333);
 }
 void bootstrap();
