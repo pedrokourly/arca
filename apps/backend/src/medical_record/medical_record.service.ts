@@ -17,13 +17,32 @@ import { ConteudoEvolucaoDto } from './dto/conteudo-evolucao.dto';
 import { CreateEncaminhamentoDto } from './dto/create-encaminhamento.dto';
 import { CreateAltaDto } from './dto/create-alta.dtos';
 import { PdfService } from 'src/pdf/pdf.service';
+import { CryptoService } from 'src/crypto/crypto.service';
 
 @Injectable()
 export class MedicalRecordService {
   constructor(
     private prisma: PrismaService,
     private pdfService: PdfService,
+    private cryptoService: CryptoService,
   ) {}
+
+  private encrypt(data: object): string {
+    return this.cryptoService.encrypt(data);
+  }
+ 
+  /**
+   * Descriptografa o campo conteudo vindo do banco.
+   * Aceita tanto string cifrada (novo formato) quanto objetos JSON
+   * já parseados pelo Prisma (registros antigos ainda em JSON).
+   */
+  private decrypt(conteudo: unknown): object {
+    if (typeof conteudo === 'string') {
+      return this.cryptoService.decrypt(conteudo);
+    }
+
+    return conteudo as object;
+  }
 
   async createTriagem(CreateTriagemProntuarioDto: CreateTriagemProntuarioDto, user: TokenDto) {
     const atendimento = await this.prisma.atendimento.findFirst({
@@ -58,7 +77,7 @@ export class MedicalRecordService {
           data: {
             id_Atendimento: CreateTriagemProntuarioDto.id_Sessao,
 
-            conteudo: JSON.parse(JSON.stringify(CreateTriagemProntuarioDto.conteudo)),
+            conteudo: this.encrypt(CreateTriagemProntuarioDto.conteudo),
 
             id_Status: 1, // Em aprovação
             id_Tipo: 1, // Triagem
@@ -110,7 +129,7 @@ export class MedicalRecordService {
     return await this.prisma.prontuario.update({
       where: { id_Registro: id },
       data: {
-        conteudo: JSON.parse(JSON.stringify(ConteudoTriagemDto)),
+        conteudo: this.encrypt(ConteudoTriagemDto),
       },
     });
   }
@@ -182,10 +201,7 @@ export class MedicalRecordService {
         this.prisma.prontuario.create({
           data: {
             id_Atendimento: prontuario.id_Atendimento,
-            conteudo: {
-              instituicaoEncaminhada: createEncaminhamentoDto.instituicaoEncaminhada,
-              motivoEncaminhamento: createEncaminhamentoDto.motivoEncaminhamento,
-            },
+            conteudo: this.encrypt({ instituicaoEncaminhada, motivoEncaminhamento }),
             id_Status: 2, // Aprovado
             id_Tipo: 4, // Encaminhamento
           },
@@ -253,7 +269,7 @@ export class MedicalRecordService {
           data: {
             id_Atendimento: CreateEvolucaoProntuarioDto.id_Sessao,
 
-            conteudo: JSON.parse(JSON.stringify(CreateEvolucaoProntuarioDto.conteudo)),
+            conteudo: this.encrypt(CreateEvolucaoProntuarioDto.conteudo),
 
             id_Status: 1, // Em aprovação
             id_Tipo: 2, // Evolução
@@ -307,7 +323,7 @@ export class MedicalRecordService {
     return await this.prisma.prontuario.update({
       where: { id_Registro: id },
       data: {
-        conteudo: JSON.parse(JSON.stringify(ConteudoEvolucaoDto)),
+        conteudo: this.encrypt(ConteudoEvolucaoDto),
       },
     });
   }
@@ -368,7 +384,7 @@ export class MedicalRecordService {
         this.prisma.prontuario.create({
           data: {
             id_Atendimento: prontuario.id_Atendimento,
-            conteudo: { finalidade: finalidade },
+            conteudo: this.encrypt({ finalidade }),
             id_Status: 2,
             id_Tipo: 3, // Alta
           },
@@ -401,10 +417,7 @@ export class MedicalRecordService {
         this.prisma.prontuario.create({
           data: {
             id_Atendimento: prontuario.id_Atendimento,
-            conteudo: {
-              instituicaoEncaminhada: instituicaoEncaminhada,
-              motivoEncaminhamento: motivoEncaminhamento,
-            },
+            conteudo: this.encrypt({ instituicaoEncaminhada, motivoEncaminhamento }),
             id_Status: 2,
             id_Tipo: 4, // Encaminhamento
           },
@@ -744,27 +757,29 @@ export class MedicalRecordService {
       return []; // Nível de acesso inválido
     }
 
-    return this.prisma.listaEspera.findMany({
+    const pacientes = await this.prisma.listaEspera.findMany({
       where: whereCondition,
       select: {
-        // Dados do Paciente
         id_Lista: true,
         nomeRegistro: true,
         nomeSocial: true,
         id_Status: true,
-        Status: {
-          // O status principal do paciente
-          select: { nome: true },
-        },
-
-        // Aqui está a mágica:
-        // Traz os atendimentos filtrados que contêm os registros
+        Status: { select: { nome: true } },
         Atendimento: includeAtendimentos,
       },
-      orderBy: {
-        nomeRegistro: 'asc', // Ordena a lista de pacientes por nome
-      },
+      orderBy: { nomeRegistro: 'asc' },
     });
+ 
+    return pacientes.map((paciente) => ({
+      ...paciente,
+      Atendimento: (paciente.Atendimento as any[]).map((atd) => ({
+        ...atd,
+        Prontuario: atd.Prontuario.map((p: any) => ({
+          ...p,
+          conteudo: this.decrypt(p.conteudo),
+        })),
+      })),
+    }));
   }
 
   async findOne(id: UUID, user: TokenDto) {
@@ -853,20 +868,15 @@ export class MedicalRecordService {
       throw new NotFoundException(`Paciente com ID ${id} não encontrado.`);
     }
 
-    const pacienteComConteudoParseado = {
+    return {
       ...paciente,
       Atendimento: paciente.Atendimento.map((atd) => ({
         ...atd,
         Prontuario: atd.Prontuario.map((p) => ({
           ...p,
-          conteudo:
-            typeof p.conteudo === 'string'
-              ? JSON.parse(p.conteudo) 
-              : p.conteudo, 
+          conteudo: this.decrypt(p.conteudo),
         })),
       })),
     };
-
-    return pacienteComConteudoParseado;
   }
 }

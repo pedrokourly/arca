@@ -10,10 +10,68 @@ import { TokenDto } from './dto/token.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { UUID } from 'node:crypto';
+import { CryptoService } from 'src/crypto/crypto.service';
 
 @Injectable()
 export class SessionService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private cryptoService: CryptoService,
+  ) {}
+
+  /**
+   * Descriptografa o conteudo de um prontuário.
+   * Aceita string cifrada (novo formato) ou objeto JSON legado.
+   */
+  private decryptConteudo(conteudo: unknown): object {
+    if (typeof conteudo === 'string') {
+      return this.cryptoService.decrypt(conteudo);
+    }
+    return conteudo as object;
+  }
+ 
+  /** Recebe um atendimento do Prisma e descriptografa o conteudo de cada prontuário. */
+  private decryptSession(session: any): any {
+    if (!session?.Prontuario) return session;
+    return {
+      ...session,
+      Prontuario: session.Prontuario.map((p: any) => ({
+        ...p,
+        conteudo: this.decryptConteudo(p.conteudo),
+      })),
+    };
+  }
+  
+  private get includeRelations() {
+    return {
+      ListaEspera: {
+        select: {
+          id_Lista: true,
+          nomeRegistro: true,
+          nomeSocial: true,
+          telefonePessoal: true,
+        },
+      },
+      estagiarioExecutor: {
+        select: { id_User: true, nome: true, email: true },
+      },
+      supervisorExecutor: {
+        select: { id_User: true, nome: true, email: true },
+      },
+      status: {
+        select: { id_Status: true, nome: true },
+      },
+      Prontuario: {
+        select: {
+          id_Registro: true,
+          id_Status: true,
+          id_Tipo: true,
+          dataEmissao: true,
+          conteudo: true,
+        },
+      },
+    };
+  }
 
   async create(session: CreateSessionDto, user: TokenDto) {
     // Verifica se o usuário tem permissão para criar uma sessão
@@ -194,152 +252,48 @@ export class SessionService {
   }
 
   async findAll(user: TokenDto) {
-    const includeRelations = {
-      ListaEspera: {
-        select: {
-          id_Lista: true,
-          nomeRegistro: true,
-          nomeSocial: true,
-          telefonePessoal: true,
-        },
-      },
-      estagiarioExecutor: {
-        select: {
-          id_User: true,
-          nome: true,
-          email: true,
-        },
-      },
-      supervisorExecutor: {
-        select: {
-          id_User: true,
-          nome: true,
-          email: true,
-        },
-      },
-      status: {
-        select: {
-          id_Status: true,
-          nome: true,
-        },
-      },
-      Prontuario: {
-        select: {
-          id_Registro: true,
-          id_Status: true,
-          id_Tipo: true,
-          dataEmissao: true,
-          conteudo: true,
-        },
-      },
-    };
-
-    // Se o usuário for secretario ou admin, lista todas as sessões
+    let sessions: any[];
+ 
     if (user.access <= 2) {
-      return this.prisma.atendimento.findMany({
-        include: includeRelations,
-        orderBy: {
-          dataHoraInicio: 'desc',
-        },
+      sessions = await this.prisma.atendimento.findMany({
+        include: this.includeRelations,
+        orderBy: { dataHoraInicio: 'desc' },
       });
-    }
-
-    // Se o usuário for supervisor, lista todas as sessões que ele supervisiona
-    if (user.access === 3) {
-      return this.prisma.atendimento.findMany({
-        where: {
-          id_Supervisor_Executor: user.sub,
-        },
-        include: includeRelations,
-        orderBy: {
-          dataHoraInicio: 'desc',
-        },
+    } else if (user.access === 3) {
+      sessions = await this.prisma.atendimento.findMany({
+        where: { id_Supervisor_Executor: user.sub },
+        include: this.includeRelations,
+        orderBy: { dataHoraInicio: 'desc' },
       });
-    }
-
-    // Se o usuário for estagiário, lista todas as sessões que ele executa
-    if (user.access === 4) {
-      return this.prisma.atendimento.findMany({
-        where: {
-          id_Estagiario_Executor: user.sub,
-        },
-        include: includeRelations,
-        orderBy: {
-          dataHoraInicio: 'desc',
-        },
+    } else if (user.access === 4) {
+      sessions = await this.prisma.atendimento.findMany({
+        where: { id_Estagiario_Executor: user.sub },
+        include: this.includeRelations,
+        orderBy: { dataHoraInicio: 'desc' },
       });
+    } else {
+      throw new ForbiddenException('Você não tem permissão para ver sessões.');
     }
-
-    // Se o usuário for de outro nível, não tem permissão para ver sessões
-    throw new ForbiddenException('Você não tem permissão para ver sessões.');
+ 
+    return sessions.map((s) => this.decryptSession(s));
   }
 
   async findOne(id: UUID, user: TokenDto) {
-    const includeRelations = {
-      ListaEspera: {
-        select: {
-          id_Lista: true,
-          nomeRegistro: true,
-          nomeSocial: true,
-          telefonePessoal: true,
-        },
-      },
-      estagiarioExecutor: {
-        select: {
-          id_User: true,
-          nome: true,
-          email: true,
-        },
-      },
-      supervisorExecutor: {
-        select: {
-          id_User: true,
-          nome: true,
-          email: true,
-        },
-      },
-      status: {
-        select: {
-          id_Status: true,
-          nome: true,
-        },
-      },
-      Prontuario: {
-        select: {
-          id_Registro: true,
-          id_Status: true,
-          id_Tipo: true,
-          dataEmissao: true,
-          conteudo: true,
-        },
-      },
-    };
-
-    // Verifica se a sessão existe
     const session = await this.prisma.atendimento.findUnique({
       where: { id_Atendimento: id },
-      include: includeRelations,
+      include: this.includeRelations,
     });
-
-    // Verifica se o usuario tem permissão para ver a sessão
-    if (!session) {
-      throw new NotFoundException('Sessão não encontrada.');
-    } else if (user.access > 2) {
-      if (user.access === 3 && session.id_Supervisor_Executor !== user.sub) {
-        throw new ForbiddenException(
-          'Você não tem permissão para ver essa sessão.',
-        );
-      } else if (
-        user.access === 4 &&
-        session.id_Estagiario_Executor !== user.sub
-      ) {
-        throw new ForbiddenException(
-          'Você não tem permissão para ver essa sessão.',
-        );
-      }
+ 
+    if (!session) throw new NotFoundException('Sessão não encontrada.');
+ 
+    if (user.access > 2) {
+      if (user.access === 3 && session.id_Supervisor_Executor !== user.sub)
+        throw new ForbiddenException('Você não tem permissão para ver essa sessão.');
+      if (user.access === 4 && session.id_Estagiario_Executor !== user.sub)
+        throw new ForbiddenException('Você não tem permissão para ver essa sessão.');
     }
-
-    return session;
+ 
+    return this.decryptSession(session);
   }
 
   async findAllWithNoSession(user: TokenDto) {
