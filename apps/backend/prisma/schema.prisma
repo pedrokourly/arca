@@ -11,7 +11,6 @@ generator client {
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
 }
 
 // ===============================================
@@ -51,7 +50,7 @@ model Role {
 model Prontuario {
   id_Registro       String   @id @default(uuid()) @map("ID_Registro") @db.Uuid
   id_Atendimento    String   @db.Uuid
-  conteudo          Json     @db.JsonB
+  conteudo          String   @db.Text
   dataEmissao       DateTime @default(now())
   ultimaAtualizacao DateTime @updatedAt
   id_Status         Int      @default(1) @db.SmallInt
