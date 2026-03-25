@@ -40,3 +40,4 @@ yarn-error.log*
 *.pem
 
 apps/generated
+apps/generated/*
