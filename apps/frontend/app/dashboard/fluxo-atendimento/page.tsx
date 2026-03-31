@@ -6,9 +6,23 @@ import { useRouter } from "next/navigation";
 import { usePermissions } from "@/hooks/usePermissions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Clock, CheckCircle, Calendar, ArrowUpNarrowWide, AlertCircle, CalendarPlus } from "lucide-react";
+import {
+  User,
+  Clock,
+  CheckCircle,
+  Calendar,
+  ArrowUpNarrowWide,
+  AlertCircle,
+  CalendarPlus,
+} from "lucide-react";
 import { toast } from "sonner";
 import { API_ENDPOINTS, apiRequest } from "@/utils/apiHandler";
 import { getErrorMessage } from "@/utils/toastErrorHandler";
@@ -58,34 +72,35 @@ interface SessionData {
 
 // Mapeamento dos status da lista de espera
 const STATUS_MAP = {
-  2: { 
-    label: 'Em Triagem', 
-    variant: 'default' as const, 
-    color: 'bg-blue-100 text-blue-800',
+  2: {
+    label: "Em Triagem",
+    variant: "default" as const,
+    color: "bg-blue-100 text-blue-800",
     icon: Clock,
-    description: 'Pacientes em processo de triagem'
+    description: "Pacientes em processo de triagem",
   },
-  3: { 
-    label: 'Aguardando Psicoterapia', 
-    variant: 'default' as const, 
-    color: 'bg-yellow-100 text-yellow-800',
+  3: {
+    label: "Aguardando Psicoterapia",
+    variant: "default" as const,
+    color: "bg-yellow-100 text-yellow-800",
     icon: Calendar,
-    description: 'Pacientes com triagem aprovada aguardando agendamento de psicoterapia'
+    description:
+      "Pacientes com triagem aprovada aguardando agendamento de psicoterapia",
   },
-  4: { 
-    label: 'Em Psicoterapia', 
-    variant: 'default' as const, 
-    color: 'bg-purple-100 text-purple-800',
+  4: {
+    label: "Em Psicoterapia",
+    variant: "default" as const,
+    color: "bg-purple-100 text-purple-800",
     icon: CheckCircle,
-    description: 'Pacientes em processo de psicoterapia'
+    description: "Pacientes em processo de psicoterapia",
   },
-  'sem-agenda': {
-    label: 'Psicoterapia Sem Agendamento',
-    variant: 'default' as const,
-    color: 'bg-orange-100 text-orange-800',
+  "sem-agenda": {
+    label: "Psicoterapia Sem Agendamento",
+    variant: "default" as const,
+    color: "bg-orange-100 text-orange-800",
     icon: AlertCircle,
-    description: 'Pacientes em psicoterapia sem sessões futuras agendadas'
-  }
+    description: "Pacientes em psicoterapia sem sessões futuras agendadas",
+  },
 };
 
 export default function FluxoAtendimento() {
@@ -94,7 +109,9 @@ export default function FluxoAtendimento() {
   const { canAccessFluxoAtendimento } = usePermissions();
   const [waitlistData, setWaitlistData] = useState<WaitlistItem[]>([]);
   const [sessionsData, setSessionsData] = useState<SessionData[]>([]);
-  const [patientsWithoutSessions, setPatientsWithoutSessions] = useState<PatientWithoutSession[]>([]);
+  const [patientsWithoutSessions, setPatientsWithoutSessions] = useState<
+    PatientWithoutSession[]
+  >([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("2");
 
@@ -112,7 +129,7 @@ export default function FluxoAtendimento() {
   const fetchWaitlistData = async () => {
     try {
       setLoading(true);
-      
+
       if (!session?.token) {
         throw new Error("Token de autenticação não encontrado");
       }
@@ -123,12 +140,12 @@ export default function FluxoAtendimento() {
           Authorization: `Bearer ${session.token}`,
         },
       });
-      
+
       // Filtrar apenas pacientes nos status 2, 3 e 4 (fluxo de atendimento)
-      const filteredData = data.filter((item: WaitlistItem) => 
-        [2, 3, 4].includes(item.id_Status)
+      const filteredData = data.filter((item: WaitlistItem) =>
+        [2, 3, 4].includes(item.id_Status),
       );
-      
+
       setWaitlistData(filteredData);
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
@@ -152,7 +169,7 @@ export default function FluxoAtendimento() {
           Authorization: `Bearer ${session.token}`,
         },
       });
-      
+
       setSessionsData(data);
     } catch (error) {
       console.error("Erro ao carregar sessões:", error);
@@ -175,7 +192,7 @@ export default function FluxoAtendimento() {
           Authorization: `Bearer ${session.token}`,
         },
       });
-      
+
       setPatientsWithoutSessions(data);
     } catch (error) {
       console.error("Erro ao carregar pacientes sem agendamento:", error);
@@ -194,7 +211,7 @@ export default function FluxoAtendimento() {
 
   // Filtrar dados por status
   const getPatientsByStatus = (status: number) => {
-    return waitlistData.filter(item => item.id_Status === status);
+    return waitlistData.filter((item) => item.id_Status === status);
   };
 
   // Contar pacientes por status
@@ -203,7 +220,7 @@ export default function FluxoAtendimento() {
       2: getPatientsByStatus(2).length, // Em Triagem
       3: getPatientsByStatus(3).length, // Triagem Aprovada
       4: getPatientsByStatus(4).length, // Em Psicoterapia
-      'sem-agenda': patientsWithoutSessions.length, // Sem agendamento (do endpoint)
+      "sem-agenda": patientsWithoutSessions.length, // Sem agendamento (do endpoint)
     };
   };
 
@@ -212,13 +229,13 @@ export default function FluxoAtendimento() {
   // Componente para renderizar card de paciente
   const PatientCard = ({ patient }: { patient: WaitlistItem }) => {
     const statusInfo = STATUS_MAP[patient.id_Status as keyof typeof STATUS_MAP];
-    
+
     // Se não encontrar o status, usar um padrão
     if (!statusInfo) {
-      console.error('Status não encontrado:', patient.id_Status);
+      console.error("Status não encontrado:", patient.id_Status);
       return null;
     }
-    
+
     const Icon = statusInfo.icon;
 
     return (
@@ -246,7 +263,8 @@ export default function FluxoAtendimento() {
               <span className="font-medium">CPF:</span> {patient.CPF}
             </div>
             <div>
-              <span className="font-medium">Telefone:</span> {patient.telefonePessoal}
+              <span className="font-medium">Telefone:</span>{" "}
+              {patient.telefonePessoal}
             </div>
             <div>
               <span className="font-medium">Data de Nascimento:</span>{" "}
@@ -267,13 +285,19 @@ export default function FluxoAtendimento() {
   };
 
   // Componente para renderizar card de paciente sem sessão futura
-  const PatientWithoutSessionCard = ({ patient }: { patient: PatientWithoutSession }) => {
-    const statusInfo = STATUS_MAP['sem-agenda'];
+  const PatientWithoutSessionCard = ({
+    patient,
+  }: {
+    patient: PatientWithoutSession;
+  }) => {
+    const statusInfo = STATUS_MAP["sem-agenda"];
     const Icon = statusInfo.icon;
 
     const handleScheduleClick = () => {
       // Redireciona para a página de cadastro de atendimento com o ID do paciente
-      router.push(`/dashboard/atendimento/cadastro?patientId=${patient.id_Lista}`);
+      router.push(
+        `/dashboard/atendimento/cadastro?patientId=${patient.id_Lista}`,
+      );
     };
 
     return (
@@ -306,7 +330,7 @@ export default function FluxoAtendimento() {
                 Este paciente não possui sessões futuras agendadas.
               </div>
             </div>
-            <Button 
+            <Button
               onClick={handleScheduleClick}
               className="w-full"
               variant="default"
@@ -325,7 +349,9 @@ export default function FluxoAtendimento() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Carregando fluxo de atendimento...</p>
+          <p className="mt-4 text-gray-600">
+            Carregando fluxo de atendimento...
+          </p>
         </div>
       </div>
     );
@@ -334,28 +360,31 @@ export default function FluxoAtendimento() {
   return (
     <div className="container mx-auto p-6">
       <div className="flex items-center gap-3 mb-4">
-          <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-            <ArrowUpNarrowWide className="w-6 h-6 text-primary" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">
-              Fluxo de atendimentos
-            </h1>
-            <p className="text-muted-foreground text-lg">
-              Confira o status dos pacientes em triagem e psicoterapia
-            </p>
-          </div>
+        <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+          <ArrowUpNarrowWide className="w-6 h-6 text-primary" />
         </div>
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">
+            Fluxo de atendimentos
+          </h1>
+          <p className="text-muted-foreground text-lg">
+            Confira o status dos pacientes em triagem e psicoterapia
+          </p>
+        </div>
+      </div>
 
       {/* Cards de resumo */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
         {Object.entries(STATUS_MAP).map(([status, info]) => {
           const count = statusCounts[status as keyof typeof statusCounts];
           const Icon = info.icon;
-          
+
           return (
-            <Card key={status} className="cursor-pointer hover:shadow-md transition-shadow"
-                  onClick={() => setActiveTab(status)}>
+            <Card
+              key={status}
+              className="cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => setActiveTab(status)}
+            >
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
                   {info.label}
@@ -379,7 +408,11 @@ export default function FluxoAtendimento() {
           {Object.entries(STATUS_MAP).map(([status, info]) => {
             const count = statusCounts[status as keyof typeof statusCounts];
             return (
-              <TabsTrigger key={status} value={status} className="flex items-center gap-2">
+              <TabsTrigger
+                key={status}
+                value={status}
+                className="flex items-center gap-2"
+              >
                 <info.icon className="w-4 h-4" />
                 {info.label} ({count || 0})
               </TabsTrigger>
@@ -391,18 +424,20 @@ export default function FluxoAtendimento() {
         {[2, 3, 4].map((statusNum) => {
           const patients = getPatientsByStatus(statusNum);
           const info = STATUS_MAP[statusNum as keyof typeof STATUS_MAP];
-          
+
           return (
-            <TabsContent key={statusNum} value={statusNum.toString()} className="mt-6">
+            <TabsContent
+              key={statusNum}
+              value={statusNum.toString()}
+              className="mt-6"
+            >
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <info.icon className="w-5 h-5" />
                     {info.label}
                   </CardTitle>
-                  <CardDescription>
-                    {info.description}
-                  </CardDescription>
+                  <CardDescription>{info.description}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   {patients.length === 0 ? (
@@ -442,13 +477,17 @@ export default function FluxoAtendimento() {
                 <div className="text-center py-8">
                   <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
                   <p className="text-muted-foreground">
-                    Todos os pacientes em psicoterapia têm sessões futuras agendadas
+                    Todos os pacientes em psicoterapia têm sessões futuras
+                    agendadas
                   </p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {patientsWithoutSessions.map((patient) => (
-                    <PatientWithoutSessionCard key={patient.id_Lista} patient={patient} />
+                    <PatientWithoutSessionCard
+                      key={patient.id_Lista}
+                      patient={patient}
+                    />
                   ))}
                 </div>
               )}

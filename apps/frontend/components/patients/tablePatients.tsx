@@ -27,7 +27,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { API_ENDPOINTS, apiRequest } from "@/utils/apiHandler";
@@ -56,13 +62,41 @@ interface PatientEntry {
 
 // Mapeamento dos status
 const STATUS_MAP = {
-  1: { label: 'Em Espera', variant: 'secondary' as const, description: 'Aguardando atendimento' },
-  2: { label: 'Em Atendimento', variant: 'default' as const, description: 'Atualmente em atendimento' },
-  3: { label: 'Em Triagem', variant: 'default' as const, description: 'Em processo de triagem' },
-  4: { label: 'Em Psicoterapia', variant: 'default' as const, description: 'Em sessões de psicoterapia' },
-  5: { label: 'Recebeu Alta', variant: 'outline' as const, description: 'Atendimento finalizado' },
-  6: { label: 'Encaminhado', variant: 'outline' as const, description: 'Encaminhado para outro serviço' },
-  7: { label: 'Desativado', variant: 'destructive' as const, description: 'Removido da lista' }
+  1: {
+    label: "Em Espera",
+    variant: "secondary" as const,
+    description: "Aguardando atendimento",
+  },
+  2: {
+    label: "Em Atendimento",
+    variant: "default" as const,
+    description: "Atualmente em atendimento",
+  },
+  3: {
+    label: "Em Triagem",
+    variant: "default" as const,
+    description: "Em processo de triagem",
+  },
+  4: {
+    label: "Em Psicoterapia",
+    variant: "default" as const,
+    description: "Em sessões de psicoterapia",
+  },
+  5: {
+    label: "Recebeu Alta",
+    variant: "outline" as const,
+    description: "Atendimento finalizado",
+  },
+  6: {
+    label: "Encaminhado",
+    variant: "outline" as const,
+    description: "Encaminhado para outro serviço",
+  },
+  7: {
+    label: "Desativado",
+    variant: "destructive" as const,
+    description: "Removido da lista",
+  },
 };
 
 export function PatientsTable() {
@@ -75,13 +109,15 @@ export function PatientsTable() {
 
   // Estados para filtros e pesquisa
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<"all" | "1" | "2" | "3" | "4" | "5" | "6" | "7">("all");
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | "1" | "2" | "3" | "4" | "5" | "6" | "7"
+  >("all");
   const [filteredEntries, setFilteredEntries] = useState<PatientEntry[]>([]);
 
   // Estados para deleção de entrada
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [entryToDelete, setEntryToDelete] = useState<PatientEntry | null>(null);
-  
+
   // Estados para edição de entrada
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [entryToEdit, setEntryToEdit] = useState<PatientEntry | null>(null);
@@ -96,7 +132,7 @@ export function PatientsTable() {
     enderecoBairro: "",
     enderecoCidade: "",
     enderecoEstado: "",
-    enderecoCEP: ""
+    enderecoCEP: "",
   });
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -118,7 +154,7 @@ export function PatientsTable() {
       enderecoBairro: entry.enderecoBairro,
       enderecoCidade: entry.enderecoCidade,
       enderecoEstado: entry.enderecoEstado,
-      enderecoCEP: entry.enderecoCEP
+      enderecoCEP: entry.enderecoCEP,
     });
     setEditDialogOpen(true);
   };
@@ -144,24 +180,27 @@ export function PatientsTable() {
         enderecoCEP: editFormData.enderecoCEP,
       };
 
-      const updatedEntry = await apiRequest(`${API_ENDPOINTS.waitlist}/${entryToEdit.id_Lista}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session?.token}`,
+      const updatedEntry = await apiRequest(
+        `${API_ENDPOINTS.waitlist}/${entryToEdit.id_Lista}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session?.token}`,
+          },
+          body: JSON.stringify(updateData),
         },
-        body: JSON.stringify(updateData),
-      });
-      
-      // Atualiza a lista local
-      setPatientEntries(entries => 
-        entries.map(entry => 
-          entry.id_Lista === entryToEdit.id_Lista ? updatedEntry : entry
-        )
       );
-      
+
+      // Atualiza a lista local
+      setPatientEntries((entries) =>
+        entries.map((entry) =>
+          entry.id_Lista === entryToEdit.id_Lista ? updatedEntry : entry,
+        ),
+      );
+
       toast.success("Dados do paciente atualizados com sucesso!");
-      
+
       // Fecha o dialog
       setEditDialogOpen(false);
       setEntryToEdit(null);
@@ -176,7 +215,7 @@ export function PatientsTable() {
         enderecoBairro: "",
         enderecoCidade: "",
         enderecoEstado: "",
-        enderecoCEP: ""
+        enderecoCEP: "",
       });
     } catch (error) {
       console.error("Erro ao atualizar dados do paciente:", error);
@@ -189,7 +228,7 @@ export function PatientsTable() {
 
   // Função para editar entrada
   const handleEdit = (entryId: string) => {
-    const entry = filteredEntries.find(e => e.id_Lista === entryId);
+    const entry = filteredEntries.find((e) => e.id_Lista === entryId);
     if (entry) {
       handleEditClick(entry);
     }
@@ -197,7 +236,7 @@ export function PatientsTable() {
 
   // Função para visualizar entrada
   const handleView = (entryId: string) => {
-    const entry = filteredEntries.find(e => e.id_Lista === entryId);
+    const entry = filteredEntries.find((e) => e.id_Lista === entryId);
     if (entry) {
       setEntryToView(entry);
       setViewDialogOpen(true);
@@ -213,20 +252,20 @@ export function PatientsTable() {
   // Função para excluir entrada
   const handleDelete = async () => {
     if (!entryToDelete) return;
-    
+
     try {
       await apiRequest(`${API_ENDPOINTS.waitlist}/${entryToDelete.id_Lista}`, {
-        method: 'DELETE',
+        method: "DELETE",
         headers: {
           Authorization: `Bearer ${session?.token}`,
         },
       });
 
-      setPatientEntries(entries => 
-        entries.filter(entry => entry.id_Lista !== entryToDelete.id_Lista)
+      setPatientEntries((entries) =>
+        entries.filter((entry) => entry.id_Lista !== entryToDelete.id_Lista),
       );
       toast.success("Paciente excluído com sucesso!");
-      
+
       setDeleteDialogOpen(false);
       setEntryToDelete(null);
     } catch (error) {
@@ -248,18 +287,19 @@ export function PatientsTable() {
     // Filtro por status
     if (statusFilter !== "all") {
       const statusId = parseInt(statusFilter);
-      filtered = filtered.filter(entry => entry.id_Status === statusId);
+      filtered = filtered.filter((entry) => entry.id_Status === statusId);
     }
 
     // Filtro por pesquisa
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(entry =>
-        entry.nomeRegistro.toLowerCase().includes(term) ||
-        (entry.nomeSocial && entry.nomeSocial.toLowerCase().includes(term)) ||
-        entry.telefonePessoal.includes(term) ||
-        entry.enderecoCidade.toLowerCase().includes(term) ||
-        entry.enderecoBairro.toLowerCase().includes(term)
+      filtered = filtered.filter(
+        (entry) =>
+          entry.nomeRegistro.toLowerCase().includes(term) ||
+          (entry.nomeSocial && entry.nomeSocial.toLowerCase().includes(term)) ||
+          entry.telefonePessoal.includes(term) ||
+          entry.enderecoCidade.toLowerCase().includes(term) ||
+          entry.enderecoBairro.toLowerCase().includes(term),
       );
     }
 
@@ -397,9 +437,14 @@ export function PatientsTable() {
             />
           </div>
         </div>
-        
+
         <div className="flex flex-col sm:flex-row gap-2">
-          <Select value={statusFilter} onValueChange={(value: "all" | "1" | "2" | "3" | "4" | "5" | "6" | "7") => setStatusFilter(value)}>
+          <Select
+            value={statusFilter}
+            onValueChange={(
+              value: "all" | "1" | "2" | "3" | "4" | "5" | "6" | "7",
+            ) => setStatusFilter(value)}
+          >
             <SelectTrigger className="w-full sm:w-[200px]">
               <Filter className="h-4 w-4 mr-2" />
               <SelectValue placeholder="Filtrar por status" />
@@ -415,7 +460,7 @@ export function PatientsTable() {
               <SelectItem value="7">Desativado</SelectItem>
             </SelectContent>
           </Select>
-          
+
           {(searchTerm || statusFilter !== "all") && (
             <Button
               variant="outline"
@@ -433,43 +478,69 @@ export function PatientsTable() {
       {/* Estatísticas */}
       <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
         <span>
-          Total: <span className="font-medium text-foreground">{patientEntries.length}</span>
+          Total:{" "}
+          <span className="font-medium text-foreground">
+            {patientEntries.length}
+          </span>
         </span>
         <span>
-          Em Espera: <span className="font-medium text-blue-600">{patientEntries.filter(e => e.id_Status === 1).length}</span>
+          Em Espera:{" "}
+          <span className="font-medium text-blue-600">
+            {patientEntries.filter((e) => e.id_Status === 1).length}
+          </span>
         </span>
         <span>
-          Em Atendimento: <span className="font-medium text-green-600">{patientEntries.filter(e => e.id_Status === 2).length}</span>
+          Em Atendimento:{" "}
+          <span className="font-medium text-green-600">
+            {patientEntries.filter((e) => e.id_Status === 2).length}
+          </span>
         </span>
         <span>
-          Em Triagem: <span className="font-medium text-yellow-600">{patientEntries.filter(e => e.id_Status === 3).length}</span>
+          Em Triagem:{" "}
+          <span className="font-medium text-yellow-600">
+            {patientEntries.filter((e) => e.id_Status === 3).length}
+          </span>
         </span>
         <span>
-          Em Psicoterapia: <span className="font-medium text-purple-600">{patientEntries.filter(e => e.id_Status === 4).length}</span>
+          Em Psicoterapia:{" "}
+          <span className="font-medium text-purple-600">
+            {patientEntries.filter((e) => e.id_Status === 4).length}
+          </span>
         </span>
         <span>
-          Recebeu Alta: <span className="font-medium text-gray-600">{patientEntries.filter(e => e.id_Status === 5).length}</span>
+          Recebeu Alta:{" "}
+          <span className="font-medium text-gray-600">
+            {patientEntries.filter((e) => e.id_Status === 5).length}
+          </span>
         </span>
         <span>
-          Encaminhado: <span className="font-medium text-indigo-600">{patientEntries.filter(e => e.id_Status === 6).length}</span>
+          Encaminhado:{" "}
+          <span className="font-medium text-indigo-600">
+            {patientEntries.filter((e) => e.id_Status === 6).length}
+          </span>
         </span>
         <span>
-          Desativado: <span className="font-medium text-red-600">{patientEntries.filter(e => e.id_Status === 7).length}</span>
+          Desativado:{" "}
+          <span className="font-medium text-red-600">
+            {patientEntries.filter((e) => e.id_Status === 7).length}
+          </span>
         </span>
         {filteredEntries.length !== patientEntries.length && (
           <span>
-            Exibindo: <span className="font-medium text-orange-600">{filteredEntries.length}</span>
+            Exibindo:{" "}
+            <span className="font-medium text-orange-600">
+              {filteredEntries.length}
+            </span>
           </span>
         )}
       </div>
 
       <Table>
         <TableCaption>
-          Lista de pacientes do ARCA 
-          {filteredEntries.length !== patientEntries.length 
-            ? `(${filteredEntries.length} de ${patientEntries.length} ${patientEntries.length === 1 ? 'paciente' : 'pacientes'})`
-            : `(${patientEntries.length} ${patientEntries.length === 1 ? 'paciente' : 'pacientes'})`
-          }
+          Lista de pacientes do ARCA
+          {filteredEntries.length !== patientEntries.length
+            ? `(${filteredEntries.length} de ${patientEntries.length} ${patientEntries.length === 1 ? "paciente" : "pacientes"})`
+            : `(${patientEntries.length} ${patientEntries.length === 1 ? "paciente" : "pacientes"})`}
         </TableCaption>
         <TableHeader>
           <TableRow>
@@ -484,82 +555,100 @@ export function PatientsTable() {
         <TableBody>
           {filteredEntries.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                {patientEntries.length === 0 
+              <TableCell
+                colSpan={6}
+                className="text-center py-8 text-muted-foreground"
+              >
+                {patientEntries.length === 0
                   ? "Nenhum paciente encontrado."
-                  : "Nenhum paciente encontrado com os filtros aplicados."
-                }
+                  : "Nenhum paciente encontrado com os filtros aplicados."}
               </TableCell>
             </TableRow>
           ) : (
             filteredEntries.map((entry) => (
-            <TableRow key={entry.id_Lista}>
-              <TableCell className="font-medium">
-                <div>
-                  <p className="font-medium">{entry.nomeRegistro}</p>
-                  {entry.nomeSocial && (
-                    <p className="text-sm text-muted-foreground">({entry.nomeSocial})</p>
-                  )}
-                </div>
-              </TableCell>
-              <TableCell>
-                {format(new Date(entry.dataNascimento), "dd/MM/yyyy", { locale: ptBR })}
-              </TableCell>
-              <TableCell>{entry.telefonePessoal}</TableCell>
-              <TableCell>
-                <Badge 
-                  variant={STATUS_MAP[entry.id_Status as keyof typeof STATUS_MAP]?.variant || "secondary"}
-                  className="text-xs"
-                  title={STATUS_MAP[entry.id_Status as keyof typeof STATUS_MAP]?.description}
-                >
-                  {STATUS_MAP[entry.id_Status as keyof typeof STATUS_MAP]?.label || `Status ${entry.id_Status}`}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                {format(new Date(entry.createdAt), "dd/MM/yyyy", { locale: ptBR })}
-              </TableCell>
-              <TableCell className="text-center">
-                <div className="flex justify-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => router.push(`/dashboard/pacientes/${entry.id_Lista}`)}
-                    className="h-8 w-8 p-0"
-                    title="Ver prontuário"
+              <TableRow key={entry.id_Lista}>
+                <TableCell className="font-medium">
+                  <div>
+                    <p className="font-medium">{entry.nomeRegistro}</p>
+                    {entry.nomeSocial && (
+                      <p className="text-sm text-muted-foreground">
+                        ({entry.nomeSocial})
+                      </p>
+                    )}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  {format(new Date(entry.dataNascimento), "dd/MM/yyyy", {
+                    locale: ptBR,
+                  })}
+                </TableCell>
+                <TableCell>{entry.telefonePessoal}</TableCell>
+                <TableCell>
+                  <Badge
+                    variant={
+                      STATUS_MAP[entry.id_Status as keyof typeof STATUS_MAP]
+                        ?.variant || "secondary"
+                    }
+                    className="text-xs"
+                    title={
+                      STATUS_MAP[entry.id_Status as keyof typeof STATUS_MAP]
+                        ?.description
+                    }
                   >
-                    <FileText className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleView(entry.id_Lista)}
-                    className="h-8 w-8 p-0"
-                    title="Visualizar detalhes"
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEdit(entry.id_Lista)}
-                    className="h-8 w-8 p-0"
-                    title="Editar"
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDeleteClick(entry)}
-                    className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                    title="Excluir"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </TableCell>
-            </TableRow>
-          )))}
+                    {STATUS_MAP[entry.id_Status as keyof typeof STATUS_MAP]
+                      ?.label || `Status ${entry.id_Status}`}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  {format(new Date(entry.createdAt), "dd/MM/yyyy", {
+                    locale: ptBR,
+                  })}
+                </TableCell>
+                <TableCell className="text-center">
+                  <div className="flex justify-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        router.push(`/dashboard/pacientes/${entry.id_Lista}`)
+                      }
+                      className="h-8 w-8 p-0"
+                      title="Ver prontuário"
+                    >
+                      <FileText className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleView(entry.id_Lista)}
+                      className="h-8 w-8 p-0"
+                      title="Visualizar detalhes"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEdit(entry.id_Lista)}
+                      className="h-8 w-8 p-0"
+                      title="Editar"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeleteClick(entry)}
+                      className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      title="Excluir"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
 
@@ -569,21 +658,19 @@ export function PatientsTable() {
           <DialogHeader>
             <DialogTitle>Confirmar exclusão</DialogTitle>
             <DialogDescription>
-              Tem certeza que deseja excluir <strong>{entryToDelete?.nomeRegistro}</strong>?
-              Esta ação não pode ser desfeita.
+              Tem certeza que deseja excluir{" "}
+              <strong>{entryToDelete?.nomeRegistro}</strong>? Esta ação não pode
+              ser desfeita.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => setDeleteDialogOpen(false)}
             >
               Cancelar
             </Button>
-            <Button 
-              variant="destructive" 
-              onClick={handleDelete}
-            >
+            <Button variant="destructive" onClick={handleDelete}>
               Excluir
             </Button>
           </DialogFooter>
@@ -603,37 +690,58 @@ export function PatientsTable() {
             <div className="space-y-6">
               {/* Informações Pessoais */}
               <div className="space-y-3">
-                <h4 className="font-semibold text-sm text-primary">Informações Pessoais</h4>
+                <h4 className="font-semibold text-sm text-primary">
+                  Informações Pessoais
+                </h4>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <Label className="text-muted-foreground">Nome de Registro</Label>
+                    <Label className="text-muted-foreground">
+                      Nome de Registro
+                    </Label>
                     <p className="font-medium">{entryToView.nomeRegistro}</p>
                   </div>
                   {entryToView.nomeSocial && (
                     <div>
-                      <Label className="text-muted-foreground">Nome Social</Label>
+                      <Label className="text-muted-foreground">
+                        Nome Social
+                      </Label>
                       <p className="font-medium">{entryToView.nomeSocial}</p>
                     </div>
                   )}
                   <div>
                     <Label className="text-muted-foreground">CPF</Label>
                     <p className="font-medium font-mono">
-                      {entryToView.CPF.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')}
+                      {entryToView.CPF.replace(
+                        /(\d{3})(\d{3})(\d{3})(\d{2})/,
+                        "$1.$2.$3-$4",
+                      )}
                     </p>
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">Data de Nascimento</Label>
+                    <Label className="text-muted-foreground">
+                      Data de Nascimento
+                    </Label>
                     <p className="font-medium">
-                      {format(new Date(entryToView.dataNascimento), "dd/MM/yyyy", { locale: ptBR })}
+                      {format(
+                        new Date(entryToView.dataNascimento),
+                        "dd/MM/yyyy",
+                        { locale: ptBR },
+                      )}
                     </p>
                   </div>
                   <div>
                     <Label className="text-muted-foreground">Status</Label>
-                    <Badge 
-                      variant={STATUS_MAP[entryToView.id_Status as keyof typeof STATUS_MAP]?.variant || "secondary"}
+                    <Badge
+                      variant={
+                        STATUS_MAP[
+                          entryToView.id_Status as keyof typeof STATUS_MAP
+                        ]?.variant || "secondary"
+                      }
                       className="text-xs"
                     >
-                      {STATUS_MAP[entryToView.id_Status as keyof typeof STATUS_MAP]?.label || `Status ${entryToView.id_Status}`}
+                      {STATUS_MAP[
+                        entryToView.id_Status as keyof typeof STATUS_MAP
+                      ]?.label || `Status ${entryToView.id_Status}`}
                     </Badge>
                   </div>
                 </div>
@@ -644,12 +752,18 @@ export function PatientsTable() {
                 <h4 className="font-semibold text-sm text-primary">Contatos</h4>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <Label className="text-muted-foreground">Telefone Pessoal</Label>
+                    <Label className="text-muted-foreground">
+                      Telefone Pessoal
+                    </Label>
                     <p className="font-medium">{entryToView.telefonePessoal}</p>
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">Contato de Emergência</Label>
-                    <p className="font-medium">{entryToView.contatoEmergencia}</p>
+                    <Label className="text-muted-foreground">
+                      Contato de Emergência
+                    </Label>
+                    <p className="font-medium">
+                      {entryToView.contatoEmergencia}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -658,37 +772,63 @@ export function PatientsTable() {
               <div className="space-y-3">
                 <h4 className="font-semibold text-sm text-primary">Endereço</h4>
                 <div className="text-sm">
-                  <Label className="text-muted-foreground">Endereço Completo</Label>
+                  <Label className="text-muted-foreground">
+                    Endereço Completo
+                  </Label>
                   <p className="font-medium">{formatAddress(entryToView)}</p>
-                  <p className="text-muted-foreground">CEP: {entryToView.enderecoCEP}</p>
+                  <p className="text-muted-foreground">
+                    CEP: {entryToView.enderecoCEP}
+                  </p>
                 </div>
               </div>
 
               {/* Informações de Sistema */}
               <div className="space-y-3">
-                <h4 className="font-semibold text-sm text-primary">Informações do Sistema</h4>
+                <h4 className="font-semibold text-sm text-primary">
+                  Informações do Sistema
+                </h4>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <Label className="text-muted-foreground">ID</Label>
-                    <p className="font-mono text-xs break-all">{entryToView.id_Lista}</p>
+                    <p className="font-mono text-xs break-all">
+                      {entryToView.id_Lista}
+                    </p>
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">Data de Cadastro</Label>
+                    <Label className="text-muted-foreground">
+                      Data de Cadastro
+                    </Label>
                     <p className="font-medium">
-                      {format(new Date(entryToView.createdAt), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                      {format(
+                        new Date(entryToView.createdAt),
+                        "dd/MM/yyyy 'às' HH:mm",
+                        { locale: ptBR },
+                      )}
                     </p>
                   </div>
                   <div className="col-span-2">
-                    <Label className="text-muted-foreground">Status Atual</Label>
+                    <Label className="text-muted-foreground">
+                      Status Atual
+                    </Label>
                     <div className="flex items-center gap-2 mt-1">
-                      <Badge 
-                        variant={STATUS_MAP[entryToView.id_Status as keyof typeof STATUS_MAP]?.variant || "secondary"}
+                      <Badge
+                        variant={
+                          STATUS_MAP[
+                            entryToView.id_Status as keyof typeof STATUS_MAP
+                          ]?.variant || "secondary"
+                        }
                         className="text-xs"
                       >
-                        {STATUS_MAP[entryToView.id_Status as keyof typeof STATUS_MAP]?.label || `Status ${entryToView.id_Status}`}
+                        {STATUS_MAP[
+                          entryToView.id_Status as keyof typeof STATUS_MAP
+                        ]?.label || `Status ${entryToView.id_Status}`}
                       </Badge>
                       <p className="text-xs text-muted-foreground">
-                        {STATUS_MAP[entryToView.id_Status as keyof typeof STATUS_MAP]?.description}
+                        {
+                          STATUS_MAP[
+                            entryToView.id_Status as keyof typeof STATUS_MAP
+                          ]?.description
+                        }
                       </p>
                     </div>
                   </div>
@@ -697,10 +837,7 @@ export function PatientsTable() {
             </div>
           )}
           <DialogFooter>
-            <Button 
-              variant="outline" 
-              onClick={() => setViewDialogOpen(false)}
-            >
+            <Button variant="outline" onClick={() => setViewDialogOpen(false)}>
               Fechar
             </Button>
           </DialogFooter>
@@ -719,14 +856,21 @@ export function PatientsTable() {
           <div className="grid gap-4 py-4">
             {/* Informações Pessoais */}
             <div className="space-y-4">
-              <h4 className="font-semibold text-sm text-primary">Informações Pessoais</h4>
+              <h4 className="font-semibold text-sm text-primary">
+                Informações Pessoais
+              </h4>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="nomeRegistro">Nome de Registro</Label>
                   <Input
                     id="nomeRegistro"
                     value={editFormData.nomeRegistro}
-                    onChange={(e) => setEditFormData({ ...editFormData, nomeRegistro: e.target.value })}
+                    onChange={(e) =>
+                      setEditFormData({
+                        ...editFormData,
+                        nomeRegistro: e.target.value,
+                      })
+                    }
                   />
                 </div>
                 <div>
@@ -734,12 +878,17 @@ export function PatientsTable() {
                   <Input
                     id="nomeSocial"
                     value={editFormData.nomeSocial}
-                    onChange={(e) => setEditFormData({ ...editFormData, nomeSocial: e.target.value })}
+                    onChange={(e) =>
+                      setEditFormData({
+                        ...editFormData,
+                        nomeSocial: e.target.value,
+                      })
+                    }
                     placeholder="Opcional"
                   />
                 </div>
               </div>
-              
+
               <div>
                 <Label htmlFor="CPF">CPF</Label>
                 <Input
@@ -764,15 +913,27 @@ export function PatientsTable() {
                   <Input
                     id="telefonePessoal"
                     value={editFormData.telefonePessoal}
-                    onChange={(e) => setEditFormData({ ...editFormData, telefonePessoal: e.target.value })}
+                    onChange={(e) =>
+                      setEditFormData({
+                        ...editFormData,
+                        telefonePessoal: e.target.value,
+                      })
+                    }
                   />
                 </div>
                 <div>
-                  <Label htmlFor="contatoEmergencia">Contato de Emergência</Label>
+                  <Label htmlFor="contatoEmergencia">
+                    Contato de Emergência
+                  </Label>
                   <Input
                     id="contatoEmergencia"
                     value={editFormData.contatoEmergencia}
-                    onChange={(e) => setEditFormData({ ...editFormData, contatoEmergencia: e.target.value })}
+                    onChange={(e) =>
+                      setEditFormData({
+                        ...editFormData,
+                        contatoEmergencia: e.target.value,
+                      })
+                    }
                   />
                 </div>
               </div>
@@ -787,7 +948,12 @@ export function PatientsTable() {
                   <Input
                     id="enderecoRua"
                     value={editFormData.enderecoRua}
-                    onChange={(e) => setEditFormData({ ...editFormData, enderecoRua: e.target.value })}
+                    onChange={(e) =>
+                      setEditFormData({
+                        ...editFormData,
+                        enderecoRua: e.target.value,
+                      })
+                    }
                   />
                 </div>
                 <div>
@@ -795,7 +961,12 @@ export function PatientsTable() {
                   <Input
                     id="enderecoNumero"
                     value={editFormData.enderecoNumero}
-                    onChange={(e) => setEditFormData({ ...editFormData, enderecoNumero: e.target.value })}
+                    onChange={(e) =>
+                      setEditFormData({
+                        ...editFormData,
+                        enderecoNumero: e.target.value,
+                      })
+                    }
                   />
                 </div>
               </div>
@@ -805,7 +976,12 @@ export function PatientsTable() {
                   <Input
                     id="enderecoBairro"
                     value={editFormData.enderecoBairro}
-                    onChange={(e) => setEditFormData({ ...editFormData, enderecoBairro: e.target.value })}
+                    onChange={(e) =>
+                      setEditFormData({
+                        ...editFormData,
+                        enderecoBairro: e.target.value,
+                      })
+                    }
                   />
                 </div>
                 <div>
@@ -813,7 +989,12 @@ export function PatientsTable() {
                   <Input
                     id="enderecoCidade"
                     value={editFormData.enderecoCidade}
-                    onChange={(e) => setEditFormData({ ...editFormData, enderecoCidade: e.target.value })}
+                    onChange={(e) =>
+                      setEditFormData({
+                        ...editFormData,
+                        enderecoCidade: e.target.value,
+                      })
+                    }
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
@@ -822,7 +1003,12 @@ export function PatientsTable() {
                     <Input
                       id="enderecoEstado"
                       value={editFormData.enderecoEstado}
-                      onChange={(e) => setEditFormData({ ...editFormData, enderecoEstado: e.target.value.toUpperCase() })}
+                      onChange={(e) =>
+                        setEditFormData({
+                          ...editFormData,
+                          enderecoEstado: e.target.value.toUpperCase(),
+                        })
+                      }
                       maxLength={2}
                     />
                   </div>
@@ -833,7 +1019,10 @@ export function PatientsTable() {
                       value={editFormData.enderecoCEP}
                       onChange={(e) => {
                         const value = e.target.value.replace(/\D/g, "");
-                        setEditFormData({ ...editFormData, enderecoCEP: value });
+                        setEditFormData({
+                          ...editFormData,
+                          enderecoCEP: value,
+                        });
                       }}
                       maxLength={8}
                     />
@@ -843,16 +1032,20 @@ export function PatientsTable() {
             </div>
           </div>
           <DialogFooter>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => setEditDialogOpen(false)}
               disabled={isUpdating}
             >
               Cancelar
             </Button>
-            <Button 
+            <Button
               onClick={handleUpdateEntry}
-              disabled={isUpdating || !editFormData.nomeRegistro || !editFormData.telefonePessoal}
+              disabled={
+                isUpdating ||
+                !editFormData.nomeRegistro ||
+                !editFormData.telefonePessoal
+              }
             >
               {isUpdating ? "Salvando..." : "Salvar alterações"}
             </Button>

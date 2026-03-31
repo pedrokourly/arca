@@ -26,10 +26,10 @@ export class AuditService {
   }
 
   async findAll(user: TokenDto) {
-    if(user.access !== 1){
+    if (user.access !== 1) {
       throw new UnauthorizedException('Acesso negado.');
     }
-  
+
     return await this.prisma.logAuditoria.findMany();
   }
 }

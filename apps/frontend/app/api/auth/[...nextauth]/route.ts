@@ -19,10 +19,10 @@ const handler = NextAuth({
 
         // Chame a API do seu backend para autenticar
         const user = await apiService.login({
-          email: credentials?.email || '',
-          password: credentials?.password || '',
+          email: credentials?.email || "",
+          password: credentials?.password || "",
         });
-        
+
         // Se a resposta da sua API for bem-sucedida e tiver os dados do usuário e o token...
         if (user) {
           // O objeto retornado aqui será salvo no token da sessão do NextAuth.
@@ -46,19 +46,19 @@ const handler = NextAuth({
     async jwt({ token, user }) {
       // First time JWT callback is run, user object is available
       if (user) {
-        token.id = user.id
-        token.roleId = user.roleId
-        token.token = user.token
+        token.id = user.id;
+        token.roleId = user.roleId;
+        token.token = user.token;
       }
-      return token
+      return token;
     },
     async session({ session, token }) {
       // Send properties to the client
-      session.user.id = token.id
-      session.user.roleId = token.roleId
-      session.token = token.token
-      return session
-    }
+      session.user.id = token.id;
+      session.user.roleId = token.roleId;
+      session.token = token.token;
+      return session;
+    },
   },
 
   // 4. Configuração da página de login

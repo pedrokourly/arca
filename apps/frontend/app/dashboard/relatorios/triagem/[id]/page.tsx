@@ -3,14 +3,27 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { ArrowLeft, FileText, Loader2, Calendar, User, Users } from "lucide-react";
+import {
+  ArrowLeft,
+  FileText,
+  Loader2,
+  Calendar,
+  User,
+  Users,
+} from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { apiService } from "@/utils/apiHandler";
@@ -85,7 +98,9 @@ export default function TriagemReportPage() {
     try {
       setLoading(true);
       const data = await apiService.getSessions(session.token);
-      const foundSession = data.find((s: SessionData) => s.id_Atendimento === sessionId);
+      const foundSession = data.find(
+        (s: SessionData) => s.id_Atendimento === sessionId,
+      );
 
       if (!foundSession) {
         toast.error("Sessão não encontrada.");
@@ -94,7 +109,9 @@ export default function TriagemReportPage() {
       }
 
       // Verifica se já existe um prontuário de triagem
-      const triagemProntuario = foundSession.Prontuario?.find((p: any) => p.id_Tipo === 1);
+      const triagemProntuario = foundSession.Prontuario?.find(
+        (p: any) => p.id_Tipo === 1,
+      );
       if (triagemProntuario) {
         // Se já existe, redireciona para a página de edição
         toast.info("Relatório já existe", {
@@ -120,7 +137,8 @@ export default function TriagemReportPage() {
     if (!formData.relatorioDaSessao.trim()) {
       newErrors.relatorioDaSessao = "O relatório da sessão é obrigatório.";
     } else if (formData.relatorioDaSessao.trim().length < 50) {
-      newErrors.relatorioDaSessao = "O relatório deve conter pelo menos 50 caracteres.";
+      newErrors.relatorioDaSessao =
+        "O relatório deve conter pelo menos 50 caracteres.";
     }
 
     setErrors(newErrors);
@@ -171,7 +189,9 @@ export default function TriagemReportPage() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="flex flex-col items-center gap-2">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">Carregando dados da sessão...</p>
+          <p className="text-sm text-muted-foreground">
+            Carregando dados da sessão...
+          </p>
         </div>
       </div>
     );
@@ -183,10 +203,15 @@ export default function TriagemReportPage() {
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle>Sessão não encontrada</CardTitle>
-            <CardDescription>A sessão solicitada não foi encontrada.</CardDescription>
+            <CardDescription>
+              A sessão solicitada não foi encontrada.
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={() => router.push("/dashboard/relatorios")} variant="outline">
+            <Button
+              onClick={() => router.push("/dashboard/relatorios")}
+              variant="outline"
+            >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Voltar para Relatórios
             </Button>
@@ -232,7 +257,8 @@ export default function TriagemReportPage() {
             </Label>
             <div className="mt-1">
               <p className="font-medium">
-                {sessionData.ListaEspera.nomeSocial || sessionData.ListaEspera.nomeRegistro}
+                {sessionData.ListaEspera.nomeSocial ||
+                  sessionData.ListaEspera.nomeRegistro}
               </p>
               <p className="text-sm text-muted-foreground">
                 {sessionData.ListaEspera.telefonePessoal}
@@ -250,9 +276,13 @@ export default function TriagemReportPage() {
             </Label>
             <div className="mt-1 flex items-center gap-2">
               <p className="font-medium">
-                {format(new Date(sessionData.dataHoraInicio), "dd 'de' MMMM 'de' yyyy", {
-                  locale: ptBR,
-                })}
+                {format(
+                  new Date(sessionData.dataHoraInicio),
+                  "dd 'de' MMMM 'de' yyyy",
+                  {
+                    locale: ptBR,
+                  },
+                )}
               </p>
               <Badge variant="outline">
                 {format(new Date(sessionData.dataHoraInicio), "HH:mm")} -{" "}
@@ -270,8 +300,12 @@ export default function TriagemReportPage() {
                 <User className="h-4 w-4" />
                 Estagiário
               </Label>
-              <p className="mt-1 font-medium">{sessionData.estagiarioExecutor.nome}</p>
-              <p className="text-sm text-muted-foreground">{sessionData.estagiarioExecutor.email}</p>
+              <p className="mt-1 font-medium">
+                {sessionData.estagiarioExecutor.nome}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {sessionData.estagiarioExecutor.email}
+              </p>
             </div>
 
             <div>
@@ -279,8 +313,12 @@ export default function TriagemReportPage() {
                 <Users className="h-4 w-4" />
                 Supervisor
               </Label>
-              <p className="mt-1 font-medium">{sessionData.supervisorExecutor.nome}</p>
-              <p className="text-sm text-muted-foreground">{sessionData.supervisorExecutor.email}</p>
+              <p className="mt-1 font-medium">
+                {sessionData.supervisorExecutor.nome}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {sessionData.supervisorExecutor.email}
+              </p>
             </div>
           </div>
 
@@ -292,7 +330,9 @@ export default function TriagemReportPage() {
                 <Label className="text-sm font-semibold text-muted-foreground">
                   Observações da Sessão
                 </Label>
-                <p className="mt-1 text-sm whitespace-pre-wrap">{sessionData.observacoes}</p>
+                <p className="mt-1 text-sm whitespace-pre-wrap">
+                  {sessionData.observacoes}
+                </p>
               </div>
             </>
           )}
@@ -341,12 +381,17 @@ export default function TriagemReportPage() {
                 placeholder="Descreva detalhadamente o que ocorreu durante a sessão de triagem, incluindo observações sobre o paciente, temas abordados, avaliação inicial e recomendações..."
                 value={formData.relatorioDaSessao}
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                  setFormData({ ...formData, relatorioDaSessao: e.target.value })
+                  setFormData({
+                    ...formData,
+                    relatorioDaSessao: e.target.value,
+                  })
                 }
                 className={`min-h-[300px] ${errors.relatorioDaSessao ? "border-destructive" : ""}`}
               />
               {errors.relatorioDaSessao && (
-                <p className="text-sm text-destructive">{errors.relatorioDaSessao}</p>
+                <p className="text-sm text-destructive">
+                  {errors.relatorioDaSessao}
+                </p>
               )}
               <p className="text-sm text-muted-foreground">
                 Caracteres: {formData.relatorioDaSessao.length} (mínimo 50)
@@ -391,8 +436,9 @@ export default function TriagemReportPage() {
             <div>
               <h4 className="font-semibold mb-1">Próximo Passo</h4>
               <p className="text-sm text-muted-foreground">
-                Após salvar o relatório, ele ficará disponível para aprovação pelo supervisor.
-                O supervisor poderá então decidir o encaminhamento adequado para o paciente.
+                Após salvar o relatório, ele ficará disponível para aprovação
+                pelo supervisor. O supervisor poderá então decidir o
+                encaminhamento adequado para o paciente.
               </p>
             </div>
           </div>

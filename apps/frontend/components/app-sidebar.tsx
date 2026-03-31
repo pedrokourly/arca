@@ -10,7 +10,7 @@ import {
   BookMarked,
   ArrowUpNarrowWide,
   Users,
-  FileText
+  FileText,
 } from "lucide-react";
 import { usePermissions } from "@/hooks/usePermissions";
 
@@ -28,113 +28,131 @@ import {
 } from "@/components/ui/sidebar";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { canAccessUsers, canCreateUsers, canSeeAudit, canSeeNavSystem, canAccessFluxoAtendimento } = usePermissions();
+  const {
+    canAccessUsers,
+    canCreateUsers,
+    canSeeAudit,
+    canSeeNavSystem,
+    canAccessFluxoAtendimento,
+  } = usePermissions();
 
   // Filtrar itens do menu de usuários baseado nas permissões
   const getUsersMenuItems = () => {
     const items = [];
-    
+
     if (canAccessUsers()) {
       items.push({
         title: "Consulta",
         url: "/dashboard/usuarios",
       });
     }
-    
+
     if (canCreateUsers()) {
       items.push({
         title: "Cadastro",
         url: "/dashboard/usuarios/cadastro",
       });
     }
-    
+
     return items;
   };
 
-// This is sample data.
-const data = {
-  user: {
-    name: "Exemplo",
-    email: "mail@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-  navHeader: {
-    name: "Arca",
-    logo: GalleryVerticalEnd,
-    subtitle: "Dashboard",
-  },
-  navMain: [
-    {
-      title: "Agenda",
-      url: "/dashboard/agenda",
-      icon: BookMarked
+  // This is sample data.
+  const data = {
+    user: {
+      name: "Exemplo",
+      email: "mail@example.com",
+      avatar: "/avatars/shadcn.jpg",
     },
-    {
-      title: "Relatórios",
-      url: "/dashboard/relatorios",
-      icon: FileText
+    navHeader: {
+      name: "Arca",
+      logo: GalleryVerticalEnd,
+      subtitle: "Dashboard",
     },
-    ...(canAccessFluxoAtendimento() ? [{
-      title: "Fluxo de Atendimento",
-      url: "/dashboard/fluxo-atendimento",
-      icon: ArrowUpNarrowWide
-    }] : []),
-    {
-      title: "Pacientes",
-      url: "/dashboard/pacientes",
-      icon: Users
-    },
-    {
-      title: "Lista de Espera",
-      url: "#",
-      icon: ClipboardList,
-      isActive: true,
-      items: [
-        {
-          title: "Consulta",
-          url: "/dashboard/lista-espera",
-        },
-        {
-          title: "Cadastro",
-          url: "/dashboard/lista-espera/cadastro",
-        }
-      ],
-    },
+    navMain: [
+      {
+        title: "Agenda",
+        url: "/dashboard/agenda",
+        icon: BookMarked,
+      },
+      {
+        title: "Relatórios",
+        url: "/dashboard/relatorios",
+        icon: FileText,
+      },
+      ...(canAccessFluxoAtendimento()
+        ? [
+            {
+              title: "Fluxo de Atendimento",
+              url: "/dashboard/fluxo-atendimento",
+              icon: ArrowUpNarrowWide,
+            },
+          ]
+        : []),
+      {
+        title: "Pacientes",
+        url: "/dashboard/pacientes",
+        icon: Users,
+      },
+      {
+        title: "Lista de Espera",
+        url: "#",
+        icon: ClipboardList,
+        isActive: true,
+        items: [
+          {
+            title: "Consulta",
+            url: "/dashboard/lista-espera",
+          },
+          {
+            title: "Cadastro",
+            url: "/dashboard/lista-espera/cadastro",
+          },
+        ],
+      },
 
-    {
-      title: "Atendimentos",
-      url: "#",
-      icon: CalendarClock,
-      isActive: true,
-      items: [
-        {
-          title: "Consulta",
-          url: "/dashboard/atendimento",
-        },
-        {
-          title: "Cadastro",
-          url: "/dashboard/atendimento/cadastro",
-        }
-      ],
-    },
+      {
+        title: "Atendimentos",
+        url: "#",
+        icon: CalendarClock,
+        isActive: true,
+        items: [
+          {
+            title: "Consulta",
+            url: "/dashboard/atendimento",
+          },
+          {
+            title: "Cadastro",
+            url: "/dashboard/atendimento/cadastro",
+          },
+        ],
+      },
 
-    ...(canAccessUsers() ? [{
-      title: "Usuários",
-      url: "#",
-      icon: ShieldUser,
-      isActive: true,
-      items: getUsersMenuItems(),
-    }] : []),
-  ],
-  
-  NavSystem: [
-    ...(canSeeAudit() ? [{
-      title: "Registo de Auditoria",
-      url: "/dashboard/auditoria",
-      icon: Shield
-    }] : []),
-  ]
-};
+      ...(canAccessUsers()
+        ? [
+            {
+              title: "Usuários",
+              url: "#",
+              icon: ShieldUser,
+              isActive: true,
+              items: getUsersMenuItems(),
+            },
+          ]
+        : []),
+    ],
+
+    NavSystem: [
+      ...(canSeeAudit()
+        ? [
+            {
+              title: "Registo de Auditoria",
+              url: "/dashboard/auditoria",
+              icon: Shield,
+            },
+          ]
+        : []),
+    ],
+  };
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -148,8 +166,12 @@ const data = {
                 <data.navHeader.logo className="size-4" />
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{data.navHeader.name}</span>
-                <span className="truncate text-xs">{data.navHeader.subtitle}</span>
+                <span className="truncate font-medium">
+                  {data.navHeader.name}
+                </span>
+                <span className="truncate text-xs">
+                  {data.navHeader.subtitle}
+                </span>
               </div>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -158,8 +180,8 @@ const data = {
       <SidebarContent>
         <NavMain items={data.navMain} />
         {canSeeNavSystem() && (
-          <NavMain 
-            items={data.NavSystem} 
+          <NavMain
+            items={data.NavSystem}
             label="Sistema"
             className="group-data-[collapsible=icon]:hidden"
           />

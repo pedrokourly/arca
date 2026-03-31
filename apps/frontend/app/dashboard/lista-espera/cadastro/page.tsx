@@ -1,5 +1,11 @@
 import { WaitlistForm } from "@/components/waitlist/formList";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { UserPlus, Clock, Shield } from "lucide-react";
 
 export default function CreatePacientForm() {
@@ -12,12 +18,12 @@ export default function CreatePacientForm() {
             <UserPlus className="w-6 h-6 text-primary" />
           </div>
           <div>
-            
             <h1 className="text-3xl font-bold text-foreground">
               Cadastro na Lista de Espera
             </h1>
             <p className="text-muted-foreground text-lg">
-              Cadastre-se na lista de espera do ARCA para acompanhamento psicológico
+              Cadastre-se na lista de espera do ARCA para acompanhamento
+              psicológico
             </p>
           </div>
         </div>
@@ -73,7 +79,7 @@ export default function CreatePacientForm() {
           </Card>
         </div>
       </div>
-      
+
       {/* Formulário */}
       <WaitlistForm />
     </div>

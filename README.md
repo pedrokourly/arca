@@ -41,36 +41,41 @@ Este é um monorepo gerenciado pelo [Turborepo](https://turborepo.org/) contendo
 ### Instalação
 
 1. **Clone o repositório**
+
    ```bash
    git clone https://github.com/pedrokourly/arca.git
    cd arca
    ```
 
 2. **Instale as dependências**
+
    ```bash
    npm install
    ```
 
 3. **Configure o banco de dados**
+
    ```bash
    # Crie um arquivo .env no diretório backend
    cp apps/backend/.env.example apps/backend/.env
-   
+
    # Configure a string de conexão do PostgreSQL
    DATABASE_URL="postgresql://usuario:senha@localhost:5432/arca_db"
    ```
 
 4. **Execute as migrações**
+
    ```bash
    cd apps/backend
    npx prisma migrate dev
    ```
 
 5. **Inicie o desenvolvimento**
+
    ```bash
    # Volta para a raiz do projeto
    cd ../..
-   
+
    # Inicia backend (porta 3333) e frontend (porta 3000) simultaneamente
    npm run dev
    ```
@@ -84,29 +89,34 @@ Este é um monorepo gerenciado pelo [Turborepo](https://turborepo.org/) contendo
 ## 📋 Funcionalidades
 
 ### Gestão de Usuários
+
 - Cadastro de estagiários e supervisores
 - Controle de acesso baseado em roles
 - Autenticação segura
 
 ### Gestão de Pacientes
+
 - Cadastro completo com dados demográficos
 - Histórico de atendimentos
 - Relatórios de progresso
 - Lista de espera organizada
 
 ### Sistema de Atendimentos
+
 - Agendamento de consultas
 - Registro de observações
 - Status de acompanhamento
 - Histórico completo
 
 ### Documentação
+
 - Upload de arquivos
 - Versionamento de documentos
 - Relatórios de alta
 - Controle de acesso aos documentos
 
 ### Auditoria e Compliance
+
 - Log de todas as operações
 - Rastreabilidade completa
 - Relatórios de auditoria

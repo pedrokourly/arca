@@ -1,14 +1,20 @@
-import { PublicNavbar } from "@/components/public-navbar"
+import { PublicNavbar } from "@/components/public-navbar";
 import { PositionCheck } from "@/components/waitlist/positionCheck";
 import { WaitlistStatsCard } from "@/components/waitlist/WaitlistStatsCard";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Search, Clock, Shield, Users } from "lucide-react";
 
 export default function ConsultaListaEspera() {
   return (
     <div className="min-h-screen bg-background">
       <PublicNavbar />
-      
+
       <div className="container mx-auto px-4 pt-24 pb-6 max-w-5xl">
         {/* Header da página */}
         <div className="mb-8">
@@ -29,7 +35,7 @@ export default function ConsultaListaEspera() {
           {/* Cards informativos */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             <WaitlistStatsCard />
-            
+
             <Card className="border-blue-200 bg-blue-50/50">
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">

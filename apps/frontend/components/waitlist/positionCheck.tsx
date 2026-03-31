@@ -4,13 +4,25 @@ import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { SearchIcon, UserIcon, CalendarIcon, MapPinIcon, PhoneIcon } from "lucide-react";
+import {
+  SearchIcon,
+  UserIcon,
+  CalendarIcon,
+  MapPinIcon,
+  PhoneIcon,
+} from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -23,21 +35,17 @@ import {
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { API_ENDPOINTS, apiRequest } from "@/utils/apiHandler";
 import { getErrorMessage } from "@/utils/toastErrorHandler";
 
 // Mapeamento dos status
 const STATUS_MAP = {
-  1: { label: 'Em Espera', variant: 'secondary' as const, isActive: true },
-  2: { label: 'Em Atendimento', variant: 'default' as const, isActive: false },
-  3: { label: 'Recebeu Alta', variant: 'outline' as const, isActive: false },
-  4: { label: 'Desistente', variant: 'destructive' as const, isActive: false },
-  5: { label: 'Desativado', variant: 'destructive' as const, isActive: false }
+  1: { label: "Em Espera", variant: "secondary" as const, isActive: true },
+  2: { label: "Em Atendimento", variant: "default" as const, isActive: false },
+  3: { label: "Recebeu Alta", variant: "outline" as const, isActive: false },
+  4: { label: "Desistente", variant: "destructive" as const, isActive: false },
+  5: { label: "Desativado", variant: "destructive" as const, isActive: false },
 };
 
 // Função para obter descrição detalhada do status
@@ -99,24 +107,28 @@ export function PositionCheck() {
     setWaitlistData(null);
 
     try {
-      const result = await apiRequest(`${API_ENDPOINTS.waitlist}/${values.idLista}`, {
-        method: "GET",
-      });
+      const result = await apiRequest(
+        `${API_ENDPOINTS.waitlist}/${values.idLista}`,
+        {
+          method: "GET",
+        },
+      );
 
       setWaitlistData(result);
       toast.success("Dados encontrados!", {
-        description: "Informações da sua posição na lista de espera foram carregadas.",
+        description:
+          "Informações da sua posição na lista de espera foram carregadas.",
       });
     } catch (error) {
       console.error("Erro ao consultar posição:", error);
-      
+
       const { title, description } = getErrorMessage(error);
-      
+
       toast.error(title, {
         description: description,
         duration: 6000,
       });
-      
+
       setWaitlistData(null);
     } finally {
       setIsLoading(false);
@@ -140,7 +152,8 @@ export function PositionCheck() {
             Consultar Posição na Lista de Espera
           </CardTitle>
           <CardDescription>
-            Digite seu ID da lista de espera para verificar sua posição atual e status.
+            Digite seu ID da lista de espera para verificar sua posição atual e
+            status.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -160,19 +173,28 @@ export function PositionCheck() {
                       />
                     </FormControl>
                     <FormDescription>
-                      Informe o ID que você recebeu quando se inscreveu na lista de espera.
+                      Informe o ID que você recebeu quando se inscreveu na lista
+                      de espera.
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              
+
               <div className="flex gap-3">
-                <Button type="submit" disabled={isLoading} className="flex-1 md:flex-none md:min-w-48">
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="flex-1 md:flex-none md:min-w-48"
+                >
                   {isLoading ? "Consultando..." : "Consultar Posição"}
                 </Button>
                 {waitlistData && (
-                  <Button type="button" variant="outline" onClick={resetConsulta}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={resetConsulta}
+                  >
                     Nova Consulta
                   </Button>
                 )}
@@ -229,33 +251,55 @@ export function PositionCheck() {
                 </CardContent>
               </Card>
 
-              <Card className={`border-opacity-20 ${
-                STATUS_MAP[waitlistData.id_Status as keyof typeof STATUS_MAP]?.isActive 
-                  ? "border-green-500 bg-green-50/50" 
-                  : "border-red-500 bg-red-50/50"
-              }`}>
+              <Card
+                className={`border-opacity-20 ${
+                  STATUS_MAP[waitlistData.id_Status as keyof typeof STATUS_MAP]
+                    ?.isActive
+                    ? "border-green-500 bg-green-50/50"
+                    : "border-red-500 bg-red-50/50"
+                }`}
+              >
                 <CardHeader className="pb-3">
                   <CardTitle className="text-lg flex items-center gap-2">
-                    <SearchIcon className={`h-5 w-5 ${
-                      STATUS_MAP[waitlistData.id_Status as keyof typeof STATUS_MAP]?.isActive ? "text-green-600" : "text-red-600"
-                    }`} />
+                    <SearchIcon
+                      className={`h-5 w-5 ${
+                        STATUS_MAP[
+                          waitlistData.id_Status as keyof typeof STATUS_MAP
+                        ]?.isActive
+                          ? "text-green-600"
+                          : "text-red-600"
+                      }`}
+                    />
                     Status
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Badge 
-                    variant={STATUS_MAP[waitlistData.id_Status as keyof typeof STATUS_MAP]?.variant || "secondary"}
+                  <Badge
+                    variant={
+                      STATUS_MAP[
+                        waitlistData.id_Status as keyof typeof STATUS_MAP
+                      ]?.variant || "secondary"
+                    }
                     className="text-sm mb-2"
                   >
-                    {STATUS_MAP[waitlistData.id_Status as keyof typeof STATUS_MAP]?.label || `Status ${waitlistData.id_Status}`}
+                    {STATUS_MAP[
+                      waitlistData.id_Status as keyof typeof STATUS_MAP
+                    ]?.label || `Status ${waitlistData.id_Status}`}
                   </Badge>
-                  <p className={`text-sm ${
-                    STATUS_MAP[waitlistData.id_Status as keyof typeof STATUS_MAP]?.isActive ? "text-green-700" : "text-red-700"
-                  }`}>
-                    {STATUS_MAP[waitlistData.id_Status as keyof typeof STATUS_MAP]?.isActive 
-                      ? "Sua inscrição está ativa na lista" 
-                      : getStatusDescription(waitlistData.id_Status)
-                    }
+                  <p
+                    className={`text-sm ${
+                      STATUS_MAP[
+                        waitlistData.id_Status as keyof typeof STATUS_MAP
+                      ]?.isActive
+                        ? "text-green-700"
+                        : "text-red-700"
+                    }`}
+                  >
+                    {STATUS_MAP[
+                      waitlistData.id_Status as keyof typeof STATUS_MAP
+                    ]?.isActive
+                      ? "Sua inscrição está ativa na lista"
+                      : getStatusDescription(waitlistData.id_Status)}
                   </p>
                 </CardContent>
               </Card>
@@ -272,19 +316,28 @@ export function PositionCheck() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-3">
                   <div className="p-3 bg-muted/50 rounded-lg">
-                    <span className="text-sm font-medium text-muted-foreground">Nome Completo</span>
+                    <span className="text-sm font-medium text-muted-foreground">
+                      Nome Completo
+                    </span>
                     <p className="font-medium">{waitlistData.nomeRegistro}</p>
                   </div>
                   {waitlistData.nomeSocial && (
                     <div className="p-3 bg-muted/50 rounded-lg">
-                      <span className="text-sm font-medium text-muted-foreground">Nome Social</span>
+                      <span className="text-sm font-medium text-muted-foreground">
+                        Nome Social
+                      </span>
                       <p className="font-medium">{waitlistData.nomeSocial}</p>
                     </div>
                   )}
                   <div className="p-3 bg-muted/50 rounded-lg">
-                    <span className="text-sm font-medium text-muted-foreground">CPF</span>
+                    <span className="text-sm font-medium text-muted-foreground">
+                      CPF
+                    </span>
                     <p className="font-medium font-mono">
-                      {waitlistData.CPF.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')}
+                      {waitlistData.CPF.replace(
+                        /(\d{3})(\d{3})(\d{3})(\d{2})/,
+                        "$1.$2.$3-$4",
+                      )}
                     </p>
                   </div>
                 </div>
@@ -295,7 +348,11 @@ export function PositionCheck() {
                       Data de Nascimento
                     </span>
                     <p className="font-medium">
-                      {format(new Date(waitlistData.dataNascimento), "dd/MM/yyyy", { locale: ptBR })}
+                      {format(
+                        new Date(waitlistData.dataNascimento),
+                        "dd/MM/yyyy",
+                        { locale: ptBR },
+                      )}
                     </p>
                   </div>
                   <div className="p-3 bg-muted/50 rounded-lg">
@@ -303,7 +360,9 @@ export function PositionCheck() {
                       <PhoneIcon className="h-4 w-4" />
                       Telefone
                     </span>
-                    <p className="font-medium">{waitlistData.telefonePessoal}</p>
+                    <p className="font-medium">
+                      {waitlistData.telefonePessoal}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -318,9 +377,15 @@ export function PositionCheck() {
                 Endereço
               </h3>
               <div className="p-4 bg-muted/50 rounded-lg space-y-2">
-                <p className="font-medium">{waitlistData.enderecoRua}, {waitlistData.enderecoNumero}</p>
-                <p className="text-muted-foreground">{waitlistData.enderecoBairro}</p>
-                <p className="text-muted-foreground">{waitlistData.enderecoCidade} - {waitlistData.enderecoEstado}</p>
+                <p className="font-medium">
+                  {waitlistData.enderecoRua}, {waitlistData.enderecoNumero}
+                </p>
+                <p className="text-muted-foreground">
+                  {waitlistData.enderecoBairro}
+                </p>
+                <p className="text-muted-foreground">
+                  {waitlistData.enderecoCidade} - {waitlistData.enderecoEstado}
+                </p>
                 <p className="text-sm font-mono bg-background px-2 py-1 rounded border inline-block">
                   CEP: {waitlistData.enderecoCEP}
                 </p>
@@ -332,23 +397,41 @@ export function PositionCheck() {
             {/* Data de Inscrição e Informações importantes */}
             <div className="space-y-4">
               <div className="p-3 bg-muted/50 rounded-lg">
-                <span className="text-sm font-medium text-muted-foreground">Data de Inscrição</span>
+                <span className="text-sm font-medium text-muted-foreground">
+                  Data de Inscrição
+                </span>
                 <p className="font-medium">
-                  {format(new Date(waitlistData.createdAt), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                  {format(
+                    new Date(waitlistData.createdAt),
+                    "dd/MM/yyyy 'às' HH:mm",
+                    { locale: ptBR },
+                  )}
                 </p>
               </div>
 
-              <Alert className={STATUS_MAP[waitlistData.id_Status as keyof typeof STATUS_MAP]?.isActive ? "border-blue-200 bg-blue-50" : "border-red-200 bg-red-50"}>
+              <Alert
+                className={
+                  STATUS_MAP[waitlistData.id_Status as keyof typeof STATUS_MAP]
+                    ?.isActive
+                    ? "border-blue-200 bg-blue-50"
+                    : "border-red-200 bg-red-50"
+                }
+              >
                 <UserIcon className="h-4 w-4" />
                 <AlertTitle>Informações Importantes</AlertTitle>
                 <AlertDescription>
                   <ul className="list-disc list-inside space-y-1 text-sm mt-2">
-                    <li>Guarde seu ID da lista de espera para consultas futuras</li>
+                    <li>
+                      Guarde seu ID da lista de espera para consultas futuras
+                    </li>
                     <li>Entraremos em contato quando chegar sua vez</li>
                     <li>Mantenha seus dados de contato sempre atualizados</li>
-                    {!STATUS_MAP[waitlistData.id_Status as keyof typeof STATUS_MAP]?.isActive && (
+                    {!STATUS_MAP[
+                      waitlistData.id_Status as keyof typeof STATUS_MAP
+                    ]?.isActive && (
                       <li className="text-red-700 font-medium">
-                        {getStatusDescription(waitlistData.id_Status)} - entre em contato conosco para mais informações
+                        {getStatusDescription(waitlistData.id_Status)} - entre
+                        em contato conosco para mais informações
                       </li>
                     )}
                   </ul>

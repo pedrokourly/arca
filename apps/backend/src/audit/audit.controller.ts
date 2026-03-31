@@ -9,7 +9,7 @@ export class AuditController {
   constructor(private auditService: AuditService) {}
 
   @Get('/')
-    async getAuditInfo(@Request() req: any){
-        return this.auditService.findAll(req.user as TokenDto);
-    }
+  async getAuditInfo(@Request() req: any) {
+    return this.auditService.findAll(req.user as TokenDto);
+  }
 }

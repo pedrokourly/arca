@@ -54,13 +54,41 @@ interface WaitlistEntry {
 
 // Mapeamento dos status
 const STATUS_MAP = {
-  1: { label: 'Em Espera', variant: 'secondary' as const, description: 'Aguardando atendimento' },
-  2: { label: 'Em Atendimento', variant: 'default' as const, description: 'Atualmente em atendimento' },
-  3: { label: 'Em Triagem', variant: 'default' as const, description: 'Em processo de triagem' },
-  4: { label: 'Em Psicoterapia', variant: 'default' as const, description: 'Em sessões de psicoterapia' },
-  5: { label: 'Recebeu Alta', variant: 'outline' as const, description: 'Atendimento finalizado' },
-  6: { label: 'Encaminhado', variant: 'outline' as const, description: 'Encaminhado para outro serviço' },
-  7: { label: 'Desativado', variant: 'destructive' as const, description: 'Removido da lista' }
+  1: {
+    label: "Em Espera",
+    variant: "secondary" as const,
+    description: "Aguardando atendimento",
+  },
+  2: {
+    label: "Em Atendimento",
+    variant: "default" as const,
+    description: "Atualmente em atendimento",
+  },
+  3: {
+    label: "Em Triagem",
+    variant: "default" as const,
+    description: "Em processo de triagem",
+  },
+  4: {
+    label: "Em Psicoterapia",
+    variant: "default" as const,
+    description: "Em sessões de psicoterapia",
+  },
+  5: {
+    label: "Recebeu Alta",
+    variant: "outline" as const,
+    description: "Atendimento finalizado",
+  },
+  6: {
+    label: "Encaminhado",
+    variant: "outline" as const,
+    description: "Encaminhado para outro serviço",
+  },
+  7: {
+    label: "Desativado",
+    variant: "destructive" as const,
+    description: "Removido da lista",
+  },
 };
 
 export function WaitlistTable() {
@@ -76,8 +104,10 @@ export function WaitlistTable() {
 
   // Estados para deleção de entrada da lista
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [entryToDelete, setEntryToDelete] = useState<WaitlistEntry | null>(null);
-  
+  const [entryToDelete, setEntryToDelete] = useState<WaitlistEntry | null>(
+    null,
+  );
+
   // Estados para edição de entrada da lista
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [entryToEdit, setEntryToEdit] = useState<WaitlistEntry | null>(null);
@@ -92,7 +122,7 @@ export function WaitlistTable() {
     enderecoBairro: "",
     enderecoCidade: "",
     enderecoEstado: "",
-    enderecoCEP: ""
+    enderecoCEP: "",
   });
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -114,7 +144,7 @@ export function WaitlistTable() {
       enderecoBairro: entry.enderecoBairro,
       enderecoCidade: entry.enderecoCidade,
       enderecoEstado: entry.enderecoEstado,
-      enderecoCEP: entry.enderecoCEP
+      enderecoCEP: entry.enderecoCEP,
     });
     setEditDialogOpen(true);
   };
@@ -140,24 +170,27 @@ export function WaitlistTable() {
         enderecoCEP: editFormData.enderecoCEP,
       };
 
-      const updatedEntry = await apiRequest(`${API_ENDPOINTS.waitlist}/${entryToEdit.id_Lista}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session?.token}`,
+      const updatedEntry = await apiRequest(
+        `${API_ENDPOINTS.waitlist}/${entryToEdit.id_Lista}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session?.token}`,
+          },
+          body: JSON.stringify(updateData),
         },
-        body: JSON.stringify(updateData),
-      });
-      
-      // Atualiza a lista local
-      setWaitlistEntries(entries => 
-        entries.map(entry => 
-          entry.id_Lista === entryToEdit.id_Lista ? updatedEntry : entry
-        )
       );
-      
+
+      // Atualiza a lista local
+      setWaitlistEntries((entries) =>
+        entries.map((entry) =>
+          entry.id_Lista === entryToEdit.id_Lista ? updatedEntry : entry,
+        ),
+      );
+
       toast.success("Entrada da lista de espera atualizada com sucesso!");
-      
+
       // Fecha o dialog
       setEditDialogOpen(false);
       setEntryToEdit(null);
@@ -172,7 +205,7 @@ export function WaitlistTable() {
         enderecoBairro: "",
         enderecoCidade: "",
         enderecoEstado: "",
-        enderecoCEP: ""
+        enderecoCEP: "",
       });
     } catch (error) {
       console.error("Erro ao atualizar entrada da lista de espera:", error);
@@ -185,7 +218,7 @@ export function WaitlistTable() {
 
   // Função para editar entrada
   const handleEdit = (entryId: string) => {
-    const entry = filteredEntries.find(e => e.id_Lista === entryId);
+    const entry = filteredEntries.find((e) => e.id_Lista === entryId);
     if (entry) {
       handleEditClick(entry);
     }
@@ -193,7 +226,7 @@ export function WaitlistTable() {
 
   // Função para visualizar entrada
   const handleView = (entryId: string) => {
-    const entry = filteredEntries.find(e => e.id_Lista === entryId);
+    const entry = filteredEntries.find((e) => e.id_Lista === entryId);
     if (entry) {
       setEntryToView(entry);
       setViewDialogOpen(true);
@@ -209,20 +242,20 @@ export function WaitlistTable() {
   // Função para excluir entrada da lista de espera
   const handleDelete = async () => {
     if (!entryToDelete) return;
-    
+
     try {
       await apiRequest(`${API_ENDPOINTS.waitlist}/${entryToDelete.id_Lista}`, {
-        method: 'DELETE',
+        method: "DELETE",
         headers: {
           Authorization: `Bearer ${session?.token}`,
         },
       });
 
-      setWaitlistEntries(entries => 
-        entries.filter(entry => entry.id_Lista !== entryToDelete.id_Lista)
+      setWaitlistEntries((entries) =>
+        entries.filter((entry) => entry.id_Lista !== entryToDelete.id_Lista),
       );
       toast.success("Entrada da lista de espera excluída com sucesso!");
-      
+
       setDeleteDialogOpen(false);
       setEntryToDelete(null);
     } catch (error) {
@@ -244,12 +277,13 @@ export function WaitlistTable() {
     // Filtro por pesquisa
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(entry =>
-        entry.nomeRegistro.toLowerCase().includes(term) ||
-        (entry.nomeSocial && entry.nomeSocial.toLowerCase().includes(term)) ||
-        entry.telefonePessoal.includes(term) ||
-        entry.enderecoCidade.toLowerCase().includes(term) ||
-        entry.enderecoBairro.toLowerCase().includes(term)
+      filtered = filtered.filter(
+        (entry) =>
+          entry.nomeRegistro.toLowerCase().includes(term) ||
+          (entry.nomeSocial && entry.nomeSocial.toLowerCase().includes(term)) ||
+          entry.telefonePessoal.includes(term) ||
+          entry.enderecoCidade.toLowerCase().includes(term) ||
+          entry.enderecoBairro.toLowerCase().includes(term),
       );
     }
 
@@ -277,7 +311,9 @@ export function WaitlistTable() {
           },
         });
         // Filtrar apenas pessoas em espera (id_Status === 1)
-        const waitingOnly = data.filter((entry: WaitlistEntry) => entry.id_Status === 1);
+        const waitingOnly = data.filter(
+          (entry: WaitlistEntry) => entry.id_Status === 1,
+        );
         setWaitlistEntries(waitingOnly);
       } catch (err) {
         console.error("Erro ao buscar lista de espera:", err);
@@ -368,7 +404,9 @@ export function WaitlistTable() {
   if (error) {
     return (
       <div className="w-full text-center py-8">
-        <p className="text-red-600">Erro ao carregar lista de espera: {error}</p>
+        <p className="text-red-600">
+          Erro ao carregar lista de espera: {error}
+        </p>
       </div>
     );
   }
@@ -388,7 +426,7 @@ export function WaitlistTable() {
             />
           </div>
         </div>
-        
+
         {searchTerm && (
           <Button
             variant="outline"
@@ -405,22 +443,27 @@ export function WaitlistTable() {
       {/* Estatísticas */}
       <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
         <span>
-          Total em Espera: <span className="font-medium text-blue-600">{waitlistEntries.length}</span>
+          Total em Espera:{" "}
+          <span className="font-medium text-blue-600">
+            {waitlistEntries.length}
+          </span>
         </span>
         {filteredEntries.length !== waitlistEntries.length && (
           <span>
-            Exibindo: <span className="font-medium text-orange-600">{filteredEntries.length}</span>
+            Exibindo:{" "}
+            <span className="font-medium text-orange-600">
+              {filteredEntries.length}
+            </span>
           </span>
         )}
       </div>
 
       <Table>
         <TableCaption>
-          Lista de espera do ARCA 
-          {filteredEntries.length !== waitlistEntries.length 
-            ? `(${filteredEntries.length} de ${waitlistEntries.length} ${waitlistEntries.length === 1 ? 'pessoa' : 'pessoas'})`
-            : `(${waitlistEntries.length} ${waitlistEntries.length === 1 ? 'pessoa' : 'pessoas'})`
-          }
+          Lista de espera do ARCA
+          {filteredEntries.length !== waitlistEntries.length
+            ? `(${filteredEntries.length} de ${waitlistEntries.length} ${waitlistEntries.length === 1 ? "pessoa" : "pessoas"})`
+            : `(${waitlistEntries.length} ${waitlistEntries.length === 1 ? "pessoa" : "pessoas"})`}
         </TableCaption>
         <TableHeader>
           <TableRow>
@@ -435,73 +478,89 @@ export function WaitlistTable() {
         <TableBody>
           {filteredEntries.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                {waitlistEntries.length === 0 
+              <TableCell
+                colSpan={6}
+                className="text-center py-8 text-muted-foreground"
+              >
+                {waitlistEntries.length === 0
                   ? "Nenhuma entrada na lista de espera encontrada."
-                  : "Nenhuma entrada encontrada com os filtros aplicados."
-                }
+                  : "Nenhuma entrada encontrada com os filtros aplicados."}
               </TableCell>
             </TableRow>
           ) : (
             filteredEntries.map((entry) => (
-            <TableRow key={entry.id_Lista}>
-              <TableCell className="font-medium">
-                <div>
-                  <p className="font-medium">{entry.nomeRegistro}</p>
-                  {entry.nomeSocial && (
-                    <p className="text-sm text-muted-foreground">({entry.nomeSocial})</p>
-                  )}
-                </div>
-              </TableCell>
-              <TableCell>
-                {format(new Date(entry.dataNascimento), "dd/MM/yyyy", { locale: ptBR })}
-              </TableCell>
-              <TableCell>{entry.telefonePessoal}</TableCell>
-              <TableCell>
-                <Badge 
-                  variant={STATUS_MAP[entry.id_Status as keyof typeof STATUS_MAP]?.variant || "secondary"}
-                  className="text-xs"
-                  title={STATUS_MAP[entry.id_Status as keyof typeof STATUS_MAP]?.description}
-                >
-                  {STATUS_MAP[entry.id_Status as keyof typeof STATUS_MAP]?.label || `Status ${entry.id_Status}`}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                {format(new Date(entry.createdAt), "dd/MM/yyyy", { locale: ptBR })}
-              </TableCell>
-              <TableCell className="text-center">
-                <div className="flex justify-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleView(entry.id_Lista)}
-                    className="h-8 w-8 p-0"
-                    title="Visualizar detalhes"
+              <TableRow key={entry.id_Lista}>
+                <TableCell className="font-medium">
+                  <div>
+                    <p className="font-medium">{entry.nomeRegistro}</p>
+                    {entry.nomeSocial && (
+                      <p className="text-sm text-muted-foreground">
+                        ({entry.nomeSocial})
+                      </p>
+                    )}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  {format(new Date(entry.dataNascimento), "dd/MM/yyyy", {
+                    locale: ptBR,
+                  })}
+                </TableCell>
+                <TableCell>{entry.telefonePessoal}</TableCell>
+                <TableCell>
+                  <Badge
+                    variant={
+                      STATUS_MAP[entry.id_Status as keyof typeof STATUS_MAP]
+                        ?.variant || "secondary"
+                    }
+                    className="text-xs"
+                    title={
+                      STATUS_MAP[entry.id_Status as keyof typeof STATUS_MAP]
+                        ?.description
+                    }
                   >
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEdit(entry.id_Lista)}
-                    className="h-8 w-8 p-0"
-                    title="Editar"
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDeleteClick(entry)}
-                    className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                    title="Excluir"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </TableCell>
-            </TableRow>
-          )))}
+                    {STATUS_MAP[entry.id_Status as keyof typeof STATUS_MAP]
+                      ?.label || `Status ${entry.id_Status}`}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  {format(new Date(entry.createdAt), "dd/MM/yyyy", {
+                    locale: ptBR,
+                  })}
+                </TableCell>
+                <TableCell className="text-center">
+                  <div className="flex justify-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleView(entry.id_Lista)}
+                      className="h-8 w-8 p-0"
+                      title="Visualizar detalhes"
+                    >
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEdit(entry.id_Lista)}
+                      className="h-8 w-8 p-0"
+                      title="Editar"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleDeleteClick(entry)}
+                      className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      title="Excluir"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
 
@@ -511,21 +570,19 @@ export function WaitlistTable() {
           <DialogHeader>
             <DialogTitle>Confirmar exclusão</DialogTitle>
             <DialogDescription>
-              Tem certeza que deseja excluir a entrada de <strong>{entryToDelete?.nomeRegistro}</strong> da lista de espera?
+              Tem certeza que deseja excluir a entrada de{" "}
+              <strong>{entryToDelete?.nomeRegistro}</strong> da lista de espera?
               Esta ação não pode ser desfeita.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => setDeleteDialogOpen(false)}
             >
               Cancelar
             </Button>
-            <Button 
-              variant="destructive" 
-              onClick={handleDelete}
-            >
+            <Button variant="destructive" onClick={handleDelete}>
               Excluir
             </Button>
           </DialogFooter>
@@ -545,37 +602,58 @@ export function WaitlistTable() {
             <div className="space-y-6">
               {/* Informações Pessoais */}
               <div className="space-y-3">
-                <h4 className="font-semibold text-sm text-primary">Informações Pessoais</h4>
+                <h4 className="font-semibold text-sm text-primary">
+                  Informações Pessoais
+                </h4>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <Label className="text-muted-foreground">Nome de Registro</Label>
+                    <Label className="text-muted-foreground">
+                      Nome de Registro
+                    </Label>
                     <p className="font-medium">{entryToView.nomeRegistro}</p>
                   </div>
                   {entryToView.nomeSocial && (
                     <div>
-                      <Label className="text-muted-foreground">Nome Social</Label>
+                      <Label className="text-muted-foreground">
+                        Nome Social
+                      </Label>
                       <p className="font-medium">{entryToView.nomeSocial}</p>
                     </div>
                   )}
                   <div>
                     <Label className="text-muted-foreground">CPF</Label>
                     <p className="font-medium font-mono">
-                      {entryToView.CPF.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')}
+                      {entryToView.CPF.replace(
+                        /(\d{3})(\d{3})(\d{3})(\d{2})/,
+                        "$1.$2.$3-$4",
+                      )}
                     </p>
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">Data de Nascimento</Label>
+                    <Label className="text-muted-foreground">
+                      Data de Nascimento
+                    </Label>
                     <p className="font-medium">
-                      {format(new Date(entryToView.dataNascimento), "dd/MM/yyyy", { locale: ptBR })}
+                      {format(
+                        new Date(entryToView.dataNascimento),
+                        "dd/MM/yyyy",
+                        { locale: ptBR },
+                      )}
                     </p>
                   </div>
                   <div>
                     <Label className="text-muted-foreground">Status</Label>
-                    <Badge 
-                      variant={STATUS_MAP[entryToView.id_Status as keyof typeof STATUS_MAP]?.variant || "secondary"}
+                    <Badge
+                      variant={
+                        STATUS_MAP[
+                          entryToView.id_Status as keyof typeof STATUS_MAP
+                        ]?.variant || "secondary"
+                      }
                       className="text-xs"
                     >
-                      {STATUS_MAP[entryToView.id_Status as keyof typeof STATUS_MAP]?.label || `Status ${entryToView.id_Status}`}
+                      {STATUS_MAP[
+                        entryToView.id_Status as keyof typeof STATUS_MAP
+                      ]?.label || `Status ${entryToView.id_Status}`}
                     </Badge>
                   </div>
                 </div>
@@ -586,12 +664,18 @@ export function WaitlistTable() {
                 <h4 className="font-semibold text-sm text-primary">Contatos</h4>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
-                    <Label className="text-muted-foreground">Telefone Pessoal</Label>
+                    <Label className="text-muted-foreground">
+                      Telefone Pessoal
+                    </Label>
                     <p className="font-medium">{entryToView.telefonePessoal}</p>
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">Contato de Emergência</Label>
-                    <p className="font-medium">{entryToView.contatoEmergencia}</p>
+                    <Label className="text-muted-foreground">
+                      Contato de Emergência
+                    </Label>
+                    <p className="font-medium">
+                      {entryToView.contatoEmergencia}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -600,37 +684,63 @@ export function WaitlistTable() {
               <div className="space-y-3">
                 <h4 className="font-semibold text-sm text-primary">Endereço</h4>
                 <div className="text-sm">
-                  <Label className="text-muted-foreground">Endereço Completo</Label>
+                  <Label className="text-muted-foreground">
+                    Endereço Completo
+                  </Label>
                   <p className="font-medium">{formatAddress(entryToView)}</p>
-                  <p className="text-muted-foreground">CEP: {entryToView.enderecoCEP}</p>
+                  <p className="text-muted-foreground">
+                    CEP: {entryToView.enderecoCEP}
+                  </p>
                 </div>
               </div>
 
               {/* Informações de Sistema */}
               <div className="space-y-3">
-                <h4 className="font-semibold text-sm text-primary">Informações do Sistema</h4>
+                <h4 className="font-semibold text-sm text-primary">
+                  Informações do Sistema
+                </h4>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <Label className="text-muted-foreground">ID da Lista</Label>
-                    <p className="font-mono text-xs break-all">{entryToView.id_Lista}</p>
+                    <p className="font-mono text-xs break-all">
+                      {entryToView.id_Lista}
+                    </p>
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">Data de Inscrição</Label>
+                    <Label className="text-muted-foreground">
+                      Data de Inscrição
+                    </Label>
                     <p className="font-medium">
-                      {format(new Date(entryToView.createdAt), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                      {format(
+                        new Date(entryToView.createdAt),
+                        "dd/MM/yyyy 'às' HH:mm",
+                        { locale: ptBR },
+                      )}
                     </p>
                   </div>
                   <div className="col-span-2">
-                    <Label className="text-muted-foreground">Status Atual</Label>
+                    <Label className="text-muted-foreground">
+                      Status Atual
+                    </Label>
                     <div className="flex items-center gap-2 mt-1">
-                      <Badge 
-                        variant={STATUS_MAP[entryToView.id_Status as keyof typeof STATUS_MAP]?.variant || "secondary"}
+                      <Badge
+                        variant={
+                          STATUS_MAP[
+                            entryToView.id_Status as keyof typeof STATUS_MAP
+                          ]?.variant || "secondary"
+                        }
                         className="text-xs"
                       >
-                        {STATUS_MAP[entryToView.id_Status as keyof typeof STATUS_MAP]?.label || `Status ${entryToView.id_Status}`}
+                        {STATUS_MAP[
+                          entryToView.id_Status as keyof typeof STATUS_MAP
+                        ]?.label || `Status ${entryToView.id_Status}`}
                       </Badge>
                       <p className="text-xs text-muted-foreground">
-                        {STATUS_MAP[entryToView.id_Status as keyof typeof STATUS_MAP]?.description}
+                        {
+                          STATUS_MAP[
+                            entryToView.id_Status as keyof typeof STATUS_MAP
+                          ]?.description
+                        }
                       </p>
                     </div>
                   </div>
@@ -639,10 +749,7 @@ export function WaitlistTable() {
             </div>
           )}
           <DialogFooter>
-            <Button 
-              variant="outline" 
-              onClick={() => setViewDialogOpen(false)}
-            >
+            <Button variant="outline" onClick={() => setViewDialogOpen(false)}>
               Fechar
             </Button>
           </DialogFooter>
@@ -661,14 +768,21 @@ export function WaitlistTable() {
           <div className="grid gap-4 py-4">
             {/* Informações Pessoais */}
             <div className="space-y-4">
-              <h4 className="font-semibold text-sm text-primary">Informações Pessoais</h4>
+              <h4 className="font-semibold text-sm text-primary">
+                Informações Pessoais
+              </h4>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="nomeRegistro">Nome de Registro</Label>
                   <Input
                     id="nomeRegistro"
                     value={editFormData.nomeRegistro}
-                    onChange={(e) => setEditFormData({ ...editFormData, nomeRegistro: e.target.value })}
+                    onChange={(e) =>
+                      setEditFormData({
+                        ...editFormData,
+                        nomeRegistro: e.target.value,
+                      })
+                    }
                   />
                 </div>
                 <div>
@@ -676,12 +790,17 @@ export function WaitlistTable() {
                   <Input
                     id="nomeSocial"
                     value={editFormData.nomeSocial}
-                    onChange={(e) => setEditFormData({ ...editFormData, nomeSocial: e.target.value })}
+                    onChange={(e) =>
+                      setEditFormData({
+                        ...editFormData,
+                        nomeSocial: e.target.value,
+                      })
+                    }
                     placeholder="Opcional"
                   />
                 </div>
               </div>
-              
+
               <div>
                 <Label htmlFor="CPF">CPF</Label>
                 <Input
@@ -706,15 +825,27 @@ export function WaitlistTable() {
                   <Input
                     id="telefonePessoal"
                     value={editFormData.telefonePessoal}
-                    onChange={(e) => setEditFormData({ ...editFormData, telefonePessoal: e.target.value })}
+                    onChange={(e) =>
+                      setEditFormData({
+                        ...editFormData,
+                        telefonePessoal: e.target.value,
+                      })
+                    }
                   />
                 </div>
                 <div>
-                  <Label htmlFor="contatoEmergencia">Contato de Emergência</Label>
+                  <Label htmlFor="contatoEmergencia">
+                    Contato de Emergência
+                  </Label>
                   <Input
                     id="contatoEmergencia"
                     value={editFormData.contatoEmergencia}
-                    onChange={(e) => setEditFormData({ ...editFormData, contatoEmergencia: e.target.value })}
+                    onChange={(e) =>
+                      setEditFormData({
+                        ...editFormData,
+                        contatoEmergencia: e.target.value,
+                      })
+                    }
                   />
                 </div>
               </div>
@@ -729,7 +860,12 @@ export function WaitlistTable() {
                   <Input
                     id="enderecoRua"
                     value={editFormData.enderecoRua}
-                    onChange={(e) => setEditFormData({ ...editFormData, enderecoRua: e.target.value })}
+                    onChange={(e) =>
+                      setEditFormData({
+                        ...editFormData,
+                        enderecoRua: e.target.value,
+                      })
+                    }
                   />
                 </div>
                 <div>
@@ -737,7 +873,12 @@ export function WaitlistTable() {
                   <Input
                     id="enderecoNumero"
                     value={editFormData.enderecoNumero}
-                    onChange={(e) => setEditFormData({ ...editFormData, enderecoNumero: e.target.value })}
+                    onChange={(e) =>
+                      setEditFormData({
+                        ...editFormData,
+                        enderecoNumero: e.target.value,
+                      })
+                    }
                   />
                 </div>
               </div>
@@ -747,7 +888,12 @@ export function WaitlistTable() {
                   <Input
                     id="enderecoBairro"
                     value={editFormData.enderecoBairro}
-                    onChange={(e) => setEditFormData({ ...editFormData, enderecoBairro: e.target.value })}
+                    onChange={(e) =>
+                      setEditFormData({
+                        ...editFormData,
+                        enderecoBairro: e.target.value,
+                      })
+                    }
                   />
                 </div>
                 <div>
@@ -755,7 +901,12 @@ export function WaitlistTable() {
                   <Input
                     id="enderecoCidade"
                     value={editFormData.enderecoCidade}
-                    onChange={(e) => setEditFormData({ ...editFormData, enderecoCidade: e.target.value })}
+                    onChange={(e) =>
+                      setEditFormData({
+                        ...editFormData,
+                        enderecoCidade: e.target.value,
+                      })
+                    }
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-2">
@@ -764,7 +915,12 @@ export function WaitlistTable() {
                     <Input
                       id="enderecoEstado"
                       value={editFormData.enderecoEstado}
-                      onChange={(e) => setEditFormData({ ...editFormData, enderecoEstado: e.target.value.toUpperCase() })}
+                      onChange={(e) =>
+                        setEditFormData({
+                          ...editFormData,
+                          enderecoEstado: e.target.value.toUpperCase(),
+                        })
+                      }
                       maxLength={2}
                     />
                   </div>
@@ -775,7 +931,10 @@ export function WaitlistTable() {
                       value={editFormData.enderecoCEP}
                       onChange={(e) => {
                         const value = e.target.value.replace(/\D/g, "");
-                        setEditFormData({ ...editFormData, enderecoCEP: value });
+                        setEditFormData({
+                          ...editFormData,
+                          enderecoCEP: value,
+                        });
                       }}
                       maxLength={8}
                     />
@@ -785,16 +944,20 @@ export function WaitlistTable() {
             </div>
           </div>
           <DialogFooter>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => setEditDialogOpen(false)}
               disabled={isUpdating}
             >
               Cancelar
             </Button>
-            <Button 
+            <Button
               onClick={handleUpdateEntry}
-              disabled={isUpdating || !editFormData.nomeRegistro || !editFormData.telefonePessoal}
+              disabled={
+                isUpdating ||
+                !editFormData.nomeRegistro ||
+                !editFormData.telefonePessoal
+              }
             >
               {isUpdating ? "Salvando..." : "Salvar alterações"}
             </Button>

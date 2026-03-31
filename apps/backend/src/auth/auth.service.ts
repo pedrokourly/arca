@@ -1,8 +1,4 @@
-import {
-  Inject,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { HashingServiceProtocol } from './hash/hashing.service';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -34,10 +30,7 @@ export class AuthService {
       throw new UnauthorizedException('Senha ou e-mail inválido.');
     }
 
-    const isPasswordValid = await this.hashingService.compare(
-      body.password,
-      user.senhaHash,
-    );
+    const isPasswordValid = await this.hashingService.compare(body.password, user.senhaHash);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Senha ou e-mail inválido.');
     }

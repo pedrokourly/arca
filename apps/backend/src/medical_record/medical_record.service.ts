@@ -30,7 +30,7 @@ export class MedicalRecordService {
   private encrypt(data: object): string {
     return this.cryptoService.encrypt(data);
   }
- 
+
   /**
    * Descriptografa o campo conteudo vindo do banco.
    * Aceita tanto string cifrada (novo formato) quanto objetos JSON
@@ -117,7 +117,7 @@ export class MedicalRecordService {
     if (prontuario.id_Status !== 1)
       throw new BadRequestException('Triagem já foi aprovada, não é possível alterar os dados.');
 
-    if (!prontuario.atendimento || !prontuario.atendimento.id_Supervisor_Executor)
+    if (!prontuario.atendimento?.id_Supervisor_Executor)
       throw new InternalServerErrorException('Dados do atendimento inválidos.');
 
     if (user.access === 3 && user.sub !== prontuario.atendimento.id_Supervisor_Executor)
@@ -152,7 +152,7 @@ export class MedicalRecordService {
     if (prontuario.id_Tipo !== 1) throw new BadRequestException('Registro não é de triagem.');
     if (prontuario.id_Status !== 1) throw new BadRequestException('Triagem já foi aprovada.');
     if (user.access > 3) throw new UnauthorizedException('Este usuário não tem permissão para aprovar triagens.');
-    if (!prontuario.atendimento || !prontuario.atendimento.id_Supervisor_Executor)
+    if (!prontuario.atendimento?.id_Supervisor_Executor)
       throw new InternalServerErrorException('Dados do atendimento inválidos.');
     if (user.access === 3 && user.sub !== prontuario.atendimento.id_Supervisor_Executor)
       throw new UnauthorizedException('Apenas o supervisor responsável pode aprovar esta triagem.');
@@ -311,7 +311,7 @@ export class MedicalRecordService {
     if (prontuario.id_Status !== 1)
       throw new BadRequestException('Registro de evolução já foi aprovado, não é possível alterar os dados.');
 
-    if (!prontuario.atendimento || !prontuario.atendimento.id_Supervisor_Executor)
+    if (!prontuario.atendimento?.id_Supervisor_Executor)
       throw new InternalServerErrorException('Dados do atendimento inválidos.');
 
     if (user.access === 3 && user.sub !== prontuario.atendimento.id_Supervisor_Executor)
@@ -347,7 +347,7 @@ export class MedicalRecordService {
     if (prontuario.id_Status !== 1) throw new BadRequestException('Registro de psicoterapia já foi aprovado.');
     if (user.access > 3)
       throw new UnauthorizedException('Este usuário não tem permissão para aprovar registro de psicoterapia.');
-    if (!prontuario.atendimento || !prontuario.atendimento.id_Supervisor_Executor)
+    if (!prontuario.atendimento?.id_Supervisor_Executor)
       throw new InternalServerErrorException('Dados do atendimento inválidos.');
     if (user.access === 3 && user.sub !== prontuario.atendimento.id_Supervisor_Executor)
       throw new UnauthorizedException('Apenas o supervisor responsável pode aprovar este registro de psicoterapia.');
@@ -444,7 +444,6 @@ export class MedicalRecordService {
   }
 
   async generatePdf(id: UUID, user: TokenDto, res: any) {
-
     const paciente = await this.findOne(id, user);
 
     const dataForPdf = {
@@ -452,9 +451,7 @@ export class MedicalRecordService {
         nome: paciente.nomeRegistro,
         nomeSocial: paciente.nomeSocial,
         cpf: paciente.CPF || 'N/A',
-        dataNascimento: new Date(paciente.dataNascimento).toLocaleDateString(
-          'pt-BR',
-        ),
+        dataNascimento: new Date(paciente.dataNascimento).toLocaleDateString('pt-BR'),
         status: paciente.Status.nome,
       },
       atendimentos: paciente.Atendimento.map((atd) => ({
@@ -465,42 +462,32 @@ export class MedicalRecordService {
         prontuarios: atd.Prontuario.map((p) => {
           return {
             id_Registro: p.id_Registro,
-            conteudo: p.conteudo, 
+            conteudo: p.conteudo,
             dataEmissao: new Date(p.dataEmissao).toLocaleDateString('pt-BR'),
             id_Status: p.id_Status,
             id_Tipo: p.id_Tipo,
-            // @ts-ignore 
+            // @ts-expect-error
             tipo: p.TipoProntuario.nome,
-            // @ts-ignore 
+            // @ts-expect-error
             status: p.status.nome,
           };
         }),
       })),
     };
 
-    const pdfBuffer = await this.pdfService.generatePdfFromTemplate(
-      'prontuario', 
-      dataForPdf,
-    );
+    const pdfBuffer = await this.pdfService.generatePdfFromTemplate('prontuario', dataForPdf);
 
     if (!pdfBuffer) throw new InternalServerErrorException('Erro ao gerar o PDF.');
 
-    const filename = `prontuario-arca-${paciente.nomeRegistro.replace(
-      /\s+/g,
-      '_',
-    )}.pdf`;
+    const filename = `prontuario-arca-${paciente.nomeRegistro.replace(/\s+/g, '_')}.pdf`;
 
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader(
-      'Content-Disposition',
-      `attachment; filename=${filename}`,
-    );
+    res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
 
     res.send(pdfBuffer);
   }
 
   async generateAltaPdf(id: UUID, user: TokenDto, res: any) {
-
     const paciente = await this.findOne(id, user);
 
     let altaRecord: any = null;
@@ -508,7 +495,6 @@ export class MedicalRecordService {
     let supervisorCRP = 'N/A';
 
     for (const atd of paciente.Atendimento) {
-      // @ts-ignore
       const found = atd.Prontuario.find((p) => p.id_Tipo === 3); // 3 = Alta
       if (found) {
         altaRecord = found;
@@ -519,20 +505,12 @@ export class MedicalRecordService {
     }
 
     if (!altaRecord) {
-      throw new NotFoundException(
-        'Registro de Alta (Tipo 3) não encontrado para este paciente.',
-      );
+      throw new NotFoundException('Registro de Alta (Tipo 3) não encontrado para este paciente.');
     }
 
-    const datasAtendimento = paciente.Atendimento.map((atd) =>
-      new Date(atd.dataHoraInicio).getTime(),
-    );
-    const dataInicio = new Date(
-      Math.min(...datasAtendimento),
-    ).toLocaleDateString('pt-BR');
-    const dataFim = new Date(Math.max(...datasAtendimento)).toLocaleDateString(
-      'pt-BR',
-    );
+    const datasAtendimento = paciente.Atendimento.map((atd) => new Date(atd.dataHoraInicio).getTime());
+    const dataInicio = new Date(Math.min(...datasAtendimento)).toLocaleDateString('pt-BR');
+    const dataFim = new Date(Math.max(...datasAtendimento)).toLocaleDateString('pt-BR');
 
     const dataForPdf = {
       pacienteNome: paciente.nomeRegistro,
@@ -545,28 +523,19 @@ export class MedicalRecordService {
 
       dataInicio: dataInicio,
       dataFim: dataFim,
-      motivoAlta: altaRecord.conteudo.finalidade, 
+      motivoAlta: altaRecord.conteudo.finalidade,
       dataAlta: new Date(altaRecord.dataEmissao).toLocaleDateString('pt-BR'),
       dataDocumento: new Date().toLocaleDateString('pt-BR'),
     };
 
-    const pdfBuffer = await this.pdfService.generatePdfFromTemplate(
-      'alta', 
-      dataForPdf,
-    );
+    const pdfBuffer = await this.pdfService.generatePdfFromTemplate('alta', dataForPdf);
 
     if (!pdfBuffer) throw new InternalServerErrorException('Erro ao gerar o PDF.');
 
-    const filename = `alta-arca-${paciente.nomeRegistro.replace(
-      /\s+/g,
-      '_',
-    )}.pdf`;
+    const filename = `alta-arca-${paciente.nomeRegistro.replace(/\s+/g, '_')}.pdf`;
 
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader(
-      'Content-Disposition',
-      `attachment; filename=${filename}`,
-    );
+    res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
 
     res.send(pdfBuffer);
   }
@@ -587,34 +556,25 @@ export class MedicalRecordService {
     });
 
     if (!encaminhamentoRecord) {
-      throw new NotFoundException(
-        'Registro de Encaminhamento não encontrado.',
-      );
+      throw new NotFoundException('Registro de Encaminhamento não encontrado.');
     }
 
     if (encaminhamentoRecord.id_Tipo !== 4) {
-      throw new BadRequestException(
-        'O registro fornecido não é do tipo Encaminhamento.',
-      );
+      throw new BadRequestException('O registro fornecido não é do tipo Encaminhamento.');
     }
 
     if (user.access === 3) {
       if (encaminhamentoRecord.atendimento.id_Supervisor_Executor !== user.sub) {
-        throw new ForbiddenException(
-          'Você não tem permissão para acessar este registro.',
-        );
+        throw new ForbiddenException('Você não tem permissão para acessar este registro.');
       }
     }
 
     if (user.access === 4) {
       if (encaminhamentoRecord.atendimento.id_Estagiario_Executor !== user.sub) {
-        throw new ForbiddenException(
-          'Você não tem permissão para acessar este registro.',
-        );
+        throw new ForbiddenException('Você não tem permissão para acessar este registro.');
       }
     }
 
-    
     const paciente = encaminhamentoRecord.atendimento.ListaEspera;
     const supervisorNome = encaminhamentoRecord.atendimento.supervisorExecutor?.nome || 'N/A';
     const supervisorCRP = encaminhamentoRecord.atendimento.supervisorExecutor?.CRP || 'N/A';
@@ -663,42 +623,26 @@ export class MedicalRecordService {
       instituicaoNome: conteudoEncaminhamento.instituicaoEncaminhada,
       motivoEncaminhamento: conteudoEncaminhamento.motivoEncaminhamento,
 
-      dataInicioTriagem: new Date(triagemRecord.dataEmissao).toLocaleDateString(
-        'pt-BR',
-      ),
-      dataFimTriagem: new Date(triagemRecord.dataEmissao).toLocaleDateString(
-        'pt-BR',
-      ),
+      dataInicioTriagem: new Date(triagemRecord.dataEmissao).toLocaleDateString('pt-BR'),
+      dataFimTriagem: new Date(triagemRecord.dataEmissao).toLocaleDateString('pt-BR'),
 
       dataDocumento: new Date().toLocaleDateString('pt-BR'),
     };
 
-    const pdfBuffer = await this.pdfService.generatePdfFromTemplate(
-      'encaminhamento',
-      dataForPdf,
-    );
+    const pdfBuffer = await this.pdfService.generatePdfFromTemplate('encaminhamento', dataForPdf);
 
-    if (!pdfBuffer)
-      throw new InternalServerErrorException(
-        'Erro ao gerar o PDF de encaminhamento.',
-      );
+    if (!pdfBuffer) throw new InternalServerErrorException('Erro ao gerar o PDF de encaminhamento.');
 
-    const filename = `declaracao-encaminhamento-${paciente.nomeRegistro.replace(
-      /\s+/g,
-      '_',
-    )}.pdf`;
+    const filename = `declaracao-encaminhamento-${paciente.nomeRegistro.replace(/\s+/g, '_')}.pdf`;
 
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader(
-      'Content-Disposition',
-      `attachment; filename=${filename}`,
-    );
+    res.setHeader('Content-Disposition', `attachment; filename=${filename}`);
 
     res.send(pdfBuffer);
   }
 
   async findAll(user: TokenDto) {
-    let whereCondition: Prisma.ListaEsperaWhereInput = {
+    const whereCondition: Prisma.ListaEsperaWhereInput = {
       Atendimento: {
         some: {
           Prontuario: {
@@ -709,7 +653,7 @@ export class MedicalRecordService {
       },
     };
 
-    let includeAtendimentos: Prisma.AtendimentoFindManyArgs = {
+    const includeAtendimentos: Prisma.AtendimentoFindManyArgs = {
       where: {
         Prontuario: {
           some: {},
@@ -769,7 +713,7 @@ export class MedicalRecordService {
       },
       orderBy: { nomeRegistro: 'asc' },
     });
- 
+
     return pacientes.map((paciente) => ({
       ...paciente,
       Atendimento: (paciente.Atendimento as any[]).map((atd) => ({
@@ -783,7 +727,7 @@ export class MedicalRecordService {
   }
 
   async findOne(id: UUID, user: TokenDto) {
-    let whereCondition: Prisma.ListaEsperaWhereInput = {
+    const whereCondition: Prisma.ListaEsperaWhereInput = {
       id_Lista: id,
       Atendimento: {
         some: {
@@ -821,11 +765,9 @@ export class MedicalRecordService {
       },
     };
 
-    const includeAtendimentosOrderBy: Prisma.AtendimentoOrderByWithRelationInput[] =
-      [{ dataHoraInicio: 'asc' }];
+    const includeAtendimentosOrderBy: Prisma.AtendimentoOrderByWithRelationInput[] = [{ dataHoraInicio: 'asc' }];
 
     if (user.access === 3) {
-
       if (whereCondition.Atendimento?.some) {
         whereCondition.Atendimento.some.id_Supervisor_Executor = user.sub;
       }
@@ -855,7 +797,7 @@ export class MedicalRecordService {
         CPF: true,
         telefonePessoal: true,
         dataNascimento: true,
- 
+
         Atendimento: {
           where: includeAtendimentosWhere,
           select: includeAtendimentosSelect,

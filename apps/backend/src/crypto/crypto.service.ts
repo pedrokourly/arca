@@ -9,7 +9,7 @@ export class CryptoService {
 
   constructor(private configService: ConfigService) {
     const keyHex = this.configService.getOrThrow<string>('ENCRYPTION_KEY');
-    
+
     if (keyHex.length !== 64) {
       throw new Error('ENCRYPTION_KEY deve ter exatamente 64 caracteres hex (32 bytes).');
     }
@@ -17,7 +17,7 @@ export class CryptoService {
     if (!/^[0-9a-fA-F]{64}$/.test(keyHex)) {
       throw new Error('ENCRYPTION_KEY deve conter apenas caracteres hexadecimais válidos (0-9, a-f, A-F).');
     }
-    
+
     this.key = Buffer.from(keyHex, 'hex');
   }
 

@@ -21,12 +21,16 @@ export class MedicalRecordController {
   }
 
   @Put('triagem/:id')
-  put_triagem(@Param('id', ParseUUIDPipe) id: UUID, @Body() ConteudoTriagemDto:ConteudoTriagemDto, @Req() req: any) {
+  put_triagem(@Param('id', ParseUUIDPipe) id: UUID, @Body() ConteudoTriagemDto: ConteudoTriagemDto, @Req() req: any) {
     return this.medicalRecordService.putTriagem(id, ConteudoTriagemDto, req.user as TokenDto);
   }
 
   @Patch('triagem/:id/approve')
-  approve_triagem(@Param('id', ParseUUIDPipe) id: UUID, @Body() CreateEncaminhamentoDto:CreateEncaminhamentoDto, @Req() req: any) {
+  approve_triagem(
+    @Param('id', ParseUUIDPipe) id: UUID,
+    @Body() CreateEncaminhamentoDto: CreateEncaminhamentoDto,
+    @Req() req: any,
+  ) {
     return this.medicalRecordService.approveTriagem(id, CreateEncaminhamentoDto, req.user as TokenDto);
   }
 
@@ -36,12 +40,16 @@ export class MedicalRecordController {
   }
 
   @Put('psicoterapia/:id')
-  put_evolucao(@Param('id', ParseUUIDPipe) id: UUID, @Body() ConteudoEvolucaoDto:ConteudoEvolucaoDto, @Req() req: any) {
+  put_evolucao(
+    @Param('id', ParseUUIDPipe) id: UUID,
+    @Body() ConteudoEvolucaoDto: ConteudoEvolucaoDto,
+    @Req() req: any,
+  ) {
     return this.medicalRecordService.putEvolucao(id, ConteudoEvolucaoDto, req.user as TokenDto);
   }
 
   @Patch('psicoterapia/:id/approve')
-  approve_evolucao(@Param('id', ParseUUIDPipe) id: UUID, @Body() CreateAltaDto:CreateAltaDto, @Req() req: any) {
+  approve_evolucao(@Param('id', ParseUUIDPipe) id: UUID, @Body() CreateAltaDto: CreateAltaDto, @Req() req: any) {
     return this.medicalRecordService.approveEvolucao(id, CreateAltaDto, req.user as TokenDto);
   }
 

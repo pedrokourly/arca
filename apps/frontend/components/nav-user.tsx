@@ -1,20 +1,11 @@
-"use client"
+"use client";
 
-import { useSession, signOut } from "next-auth/react"
-import { useRouter } from "next/navigation"
+import { useSession, signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
-import {
-  BadgeCheck,
-  ChevronsUpDown,
-  LogOut,
-  User,
-} from "lucide-react"
+import { BadgeCheck, ChevronsUpDown, LogOut, User } from "lucide-react";
 
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,26 +14,26 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 
 export function NavUser({
   user,
 }: {
   user: {
-    name: string
-    email: string
-    avatar: string
-  }
+    name: string;
+    email: string;
+    avatar: string;
+  };
 }) {
-  const { data : session } = useSession()
-  const { isMobile } = useSidebar()
-  const router = useRouter()
+  const { data: session } = useSession();
+  const { isMobile } = useSidebar();
+  const router = useRouter();
 
   return (
     <SidebarMenu>
@@ -60,7 +51,9 @@ export function NavUser({
                 </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">{session?.user.name}</span>
+                <span className="truncate font-medium">
+                  {session?.user.name}
+                </span>
                 <span className="truncate text-xs">{session?.user.email}</span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />
@@ -81,20 +74,30 @@ export function NavUser({
                   </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">{session?.user.name}</span>
-                  <span className="truncate text-xs">{session?.user.email}</span>
+                  <span className="truncate font-medium">
+                    {session?.user.name}
+                  </span>
+                  <span className="truncate text-xs">
+                    {session?.user.email}
+                  </span>
                 </div>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem onClick={() => router.push('/dashboard/perfil')}>
+              <DropdownMenuItem
+                onClick={() => router.push("/dashboard/perfil")}
+              >
                 <BadgeCheck />
                 Conta
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onSelect={() => signOut()} className="text-red-600" variant="destructive">
+            <DropdownMenuItem
+              onSelect={() => signOut()}
+              className="text-red-600"
+              variant="destructive"
+            >
               <LogOut className="text-red-600" />
               Sair
             </DropdownMenuItem>
@@ -102,5 +105,5 @@ export function NavUser({
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
-  )
+  );
 }

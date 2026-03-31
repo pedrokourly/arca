@@ -8,21 +8,18 @@ import { AuthService } from './auth.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(
-    private readonly authService: AuthService,
-
-  ) {
+  constructor() {
     if (!jwtConstants.secret) {
       throw new Error('JWT secret is not defined');
     }
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: jwtConstants.secret as string,
+      secretOrKey: jwtConstants.secret,
     });
   }
 
-  async validate(payload) {
+  validate(payload) {
     return payload;
   }
 }

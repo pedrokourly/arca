@@ -1,4 +1,16 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, Query, ParseUUIDPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Req,
+  Query,
+  ParseUUIDPipe,
+} from '@nestjs/common';
 import { SessionService } from './session.service';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { UpdateSessionDto } from './dto/update-session.dto';
@@ -22,9 +34,9 @@ export class SessionController {
   }
 
   @Get('no-session')
-  findAllWithNoSession(@Req() req: any){
+  findAllWithNoSession(@Req() req: any) {
     return this.sessionService.findAllWithNoSession(req.user as TokenDto);
-  } 
+  }
 
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: UUID, @Req() req: any) {

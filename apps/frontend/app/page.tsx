@@ -1,14 +1,30 @@
-import { PublicNavbar } from "@/components/public-navbar"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowRight, Heart, Users, Clock, Shield, CheckCircle, Phone, Mail, MapPin } from "lucide-react"
-import Link from "next/link"
+import { PublicNavbar } from "@/components/public-navbar";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  ArrowRight,
+  Heart,
+  Users,
+  Clock,
+  Shield,
+  CheckCircle,
+  Phone,
+  Mail,
+  MapPin,
+} from "lucide-react";
+import Link from "next/link";
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-background">
       <PublicNavbar />
-      
+
       {/* Hero Section */}
       <section className="pt-24 pb-16 px-4">
         <div className="container mx-auto max-w-6xl text-center">
@@ -17,21 +33,29 @@ export default function Home() {
               Bem-vindo ao <span className="text-primary">ARCA</span>
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-              Clínica-escola de Psicologia comprometida com o cuidado e bem-estar da comunidade
+              Clínica-escola de Psicologia comprometida com o cuidado e
+              bem-estar da comunidade
             </p>
-            
+
             <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-lg mx-auto">
-              <Button asChild size="lg" className="text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6">
+              <Button
+                asChild
+                size="lg"
+                className="text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6"
+              >
                 <Link href="/lista-espera/cadastro">
                   Entrar na Lista de Espera
                   <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
                 </Link>
               </Button>
-              
-              <Button asChild variant="outline" size="lg" className="text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6">
-                <Link href="/lista-espera/consulta">
-                  Consultar Posição
-                </Link>
+
+              <Button
+                asChild
+                variant="outline"
+                size="lg"
+                className="text-base sm:text-lg px-6 sm:px-8 py-4 sm:py-6"
+              >
+                <Link href="/lista-espera/consulta">Consultar Posição</Link>
               </Button>
             </div>
           </div>
@@ -46,7 +70,8 @@ export default function Home() {
               Nossos Diferenciais
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Oferecemos atendimento psicológico de qualidade com foco no desenvolvimento humano
+              Oferecemos atendimento psicológico de qualidade com foco no
+              desenvolvimento humano
             </p>
           </div>
 
@@ -62,7 +87,8 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <CardDescription className="text-blue-700 text-center">
-                  Cuidado personalizado e acolhimento em todas as etapas do processo terapêutico
+                  Cuidado personalizado e acolhimento em todas as etapas do
+                  processo terapêutico
                 </CardDescription>
               </CardContent>
             </Card>
@@ -78,7 +104,8 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <CardDescription className="text-green-700 text-center">
-                  Profissionais e estudantes supervisionados, garantindo qualidade no atendimento
+                  Profissionais e estudantes supervisionados, garantindo
+                  qualidade no atendimento
                 </CardDescription>
               </CardContent>
             </Card>
@@ -94,7 +121,8 @@ export default function Home() {
               </CardHeader>
               <CardContent>
                 <CardDescription className="text-purple-700 text-center">
-                  Atendimento gratuito ou com valores acessíveis para toda a comunidade
+                  Atendimento gratuito ou com valores acessíveis para toda a
+                  comunidade
                 </CardDescription>
               </CardContent>
             </Card>
@@ -110,7 +138,8 @@ export default function Home() {
               Como Funciona
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Processo simples e transparente para iniciar seu acompanhamento psicológico
+              Processo simples e transparente para iniciar seu acompanhamento
+              psicológico
             </p>
           </div>
 
@@ -164,7 +193,7 @@ export default function Home() {
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-8">
             Entre em Contato
           </h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
             <div className="flex flex-col items-center">
               <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3">
@@ -173,7 +202,7 @@ export default function Home() {
               <h3 className="font-semibold mb-1">Telefone</h3>
               <p className="text-muted-foreground">(11) 1234-5678</p>
             </div>
-            
+
             <div className="flex flex-col items-center">
               <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3">
                 <Mail className="w-6 h-6 text-primary" />
@@ -181,7 +210,7 @@ export default function Home() {
               <h3 className="font-semibold mb-1">E-mail</h3>
               <p className="text-muted-foreground">contato@arca.edu.br</p>
             </div>
-            
+
             <div className="flex flex-col items-center">
               <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3">
                 <MapPin className="w-6 h-6 text-primary" />
@@ -197,10 +226,11 @@ export default function Home() {
       <footer className="py-8 px-4 border-t">
         <div className="container mx-auto max-w-6xl text-center">
           <p className="text-muted-foreground">
-            © 2024 ARCA - Clínica-escola de Psicologia. Todos os direitos reservados.
+            © 2024 ARCA - Clínica-escola de Psicologia. Todos os direitos
+            reservados.
           </p>
         </div>
       </footer>
     </div>
-  )
+  );
 }

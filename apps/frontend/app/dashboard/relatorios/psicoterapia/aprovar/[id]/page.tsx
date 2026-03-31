@@ -3,7 +3,13 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -11,7 +17,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, FileText, Loader2, Calendar, User, Users, CheckCircle2, Send } from "lucide-react";
+import {
+  ArrowLeft,
+  FileText,
+  Loader2,
+  Calendar,
+  User,
+  Users,
+  CheckCircle2,
+  Send,
+} from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { apiService } from "@/utils/apiHandler";
@@ -71,7 +86,9 @@ export default function ApprovePsicoterapiaPage() {
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [activeTab, setActiveTab] = useState<"aprovar" | "alta" | "encaminhar" | "ambos">("aprovar");
+  const [activeTab, setActiveTab] = useState<
+    "aprovar" | "alta" | "encaminhar" | "ambos"
+  >("aprovar");
   const [formData, setFormData] = useState<ApprovalFormData>({
     recebeuAlta: false,
     finalidade: "",
@@ -91,13 +108,29 @@ export default function ApprovePsicoterapiaPage() {
   useEffect(() => {
     // Atualiza os valores dos checkboxes baseado na aba ativa
     if (activeTab === "aprovar") {
-      setFormData(prev => ({ ...prev, recebeuAlta: false, encaminhado: false }));
+      setFormData((prev) => ({
+        ...prev,
+        recebeuAlta: false,
+        encaminhado: false,
+      }));
     } else if (activeTab === "alta") {
-      setFormData(prev => ({ ...prev, recebeuAlta: true, encaminhado: false }));
+      setFormData((prev) => ({
+        ...prev,
+        recebeuAlta: true,
+        encaminhado: false,
+      }));
     } else if (activeTab === "encaminhar") {
-      setFormData(prev => ({ ...prev, recebeuAlta: false, encaminhado: true }));
+      setFormData((prev) => ({
+        ...prev,
+        recebeuAlta: false,
+        encaminhado: true,
+      }));
     } else if (activeTab === "ambos") {
-      setFormData(prev => ({ ...prev, recebeuAlta: true, encaminhado: true }));
+      setFormData((prev) => ({
+        ...prev,
+        recebeuAlta: true,
+        encaminhado: true,
+      }));
     }
   }, [activeTab]);
 
@@ -107,7 +140,9 @@ export default function ApprovePsicoterapiaPage() {
     try {
       setLoading(true);
       const data = await apiService.getSessions(session.token);
-      const foundSession = data.find((s: SessionData) => s.id_Atendimento === sessionId);
+      const foundSession = data.find(
+        (s: SessionData) => s.id_Atendimento === sessionId,
+      );
 
       if (!foundSession) {
         toast.error("Sessão não encontrada.");
@@ -117,13 +152,17 @@ export default function ApprovePsicoterapiaPage() {
 
       // Verifica se existe um prontuário de psicoterapia pendente (id_Tipo = 2, id_Status = 1)
       const psicoterapiaProntuario = foundSession.Prontuario?.find(
-        (p: any) => p.id_Tipo === 2 && p.id_Status === 1
+        (p: any) => p.id_Tipo === 2 && p.id_Status === 1,
       );
 
       if (!psicoterapiaProntuario) {
-        toast.error("Relatório de psicoterapia não encontrado ou já foi aprovado", {
-          description: "Não há relatório pendente de aprovação para esta sessão.",
-        });
+        toast.error(
+          "Relatório de psicoterapia não encontrado ou já foi aprovado",
+          {
+            description:
+              "Não há relatório pendente de aprovação para esta sessão.",
+          },
+        );
         router.push("/dashboard/relatorios");
         return;
       }
@@ -151,18 +190,22 @@ export default function ApprovePsicoterapiaPage() {
       if (!formData.finalidade.trim()) {
         newErrors.finalidade = "A finalidade é obrigatória para dar alta.";
       } else if (formData.finalidade.trim().length < 20) {
-        newErrors.finalidade = "A finalidade deve conter pelo menos 20 caracteres.";
+        newErrors.finalidade =
+          "A finalidade deve conter pelo menos 20 caracteres.";
       }
     }
 
     if (activeTab === "encaminhar" || activeTab === "ambos") {
       if (!formData.instituicaoEncaminhada.trim()) {
-        newErrors.instituicaoEncaminhada = "A instituição é obrigatória para encaminhamento.";
+        newErrors.instituicaoEncaminhada =
+          "A instituição é obrigatória para encaminhamento.";
       }
       if (!formData.motivoEncaminhamento.trim()) {
-        newErrors.motivoEncaminhamento = "O motivo é obrigatório para encaminhamento.";
+        newErrors.motivoEncaminhamento =
+          "O motivo é obrigatório para encaminhamento.";
       } else if (formData.motivoEncaminhamento.trim().length < 20) {
-        newErrors.motivoEncaminhamento = "O motivo deve conter pelo menos 20 caracteres.";
+        newErrors.motivoEncaminhamento =
+          "O motivo deve conter pelo menos 20 caracteres.";
       }
     }
 
@@ -184,7 +227,7 @@ export default function ApprovePsicoterapiaPage() {
     }
 
     const psicoterapiaProntuario = sessionData.Prontuario?.find(
-      (p: any) => p.id_Tipo === 2 && p.id_Status === 1
+      (p: any) => p.id_Tipo === 2 && p.id_Status === 1,
     );
 
     if (!psicoterapiaProntuario) {
@@ -245,11 +288,13 @@ export default function ApprovePsicoterapiaPage() {
       if (activeTab === "alta") {
         successMessage = "Relatório aprovado e alta concedida com sucesso!";
       } else if (activeTab === "encaminhar") {
-        successMessage = "Relatório aprovado e paciente encaminhado com sucesso!";
+        successMessage =
+          "Relatório aprovado e paciente encaminhado com sucesso!";
       } else if (activeTab === "ambos") {
-        successMessage = "Relatório aprovado, alta concedida e paciente encaminhado com sucesso!";
+        successMessage =
+          "Relatório aprovado, alta concedida e paciente encaminhado com sucesso!";
       }
-      
+
       toast.success(successMessage);
 
       // Redireciona de volta para a página de relatórios
@@ -268,7 +313,9 @@ export default function ApprovePsicoterapiaPage() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="flex flex-col items-center gap-2">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">Carregando dados da sessão...</p>
+          <p className="text-sm text-muted-foreground">
+            Carregando dados da sessão...
+          </p>
         </div>
       </div>
     );
@@ -280,10 +327,15 @@ export default function ApprovePsicoterapiaPage() {
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle>Sessão não encontrada</CardTitle>
-            <CardDescription>A sessão solicitada não foi encontrada.</CardDescription>
+            <CardDescription>
+              A sessão solicitada não foi encontrada.
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={() => router.push("/dashboard/relatorios")} variant="outline">
+            <Button
+              onClick={() => router.push("/dashboard/relatorios")}
+              variant="outline"
+            >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Voltar para Relatórios
             </Button>
@@ -294,7 +346,7 @@ export default function ApprovePsicoterapiaPage() {
   }
 
   const psicoterapiaProntuario = sessionData.Prontuario?.find(
-    (p: any) => p.id_Tipo === 2 && p.id_Status === 1
+    (p: any) => p.id_Tipo === 2 && p.id_Status === 1,
   );
 
   return (
@@ -333,7 +385,8 @@ export default function ApprovePsicoterapiaPage() {
             </Label>
             <div className="mt-1">
               <p className="font-medium">
-                {sessionData.ListaEspera.nomeSocial || sessionData.ListaEspera.nomeRegistro}
+                {sessionData.ListaEspera.nomeSocial ||
+                  sessionData.ListaEspera.nomeRegistro}
               </p>
               <p className="text-sm text-muted-foreground">
                 {sessionData.ListaEspera.telefonePessoal}
@@ -351,9 +404,13 @@ export default function ApprovePsicoterapiaPage() {
             </Label>
             <div className="mt-1 flex items-center gap-2">
               <p className="font-medium">
-                {format(new Date(sessionData.dataHoraInicio), "dd 'de' MMMM 'de' yyyy", {
-                  locale: ptBR,
-                })}
+                {format(
+                  new Date(sessionData.dataHoraInicio),
+                  "dd 'de' MMMM 'de' yyyy",
+                  {
+                    locale: ptBR,
+                  },
+                )}
               </p>
               <Badge variant="outline">
                 {format(new Date(sessionData.dataHoraInicio), "HH:mm")} -{" "}
@@ -371,8 +428,12 @@ export default function ApprovePsicoterapiaPage() {
                 <User className="h-4 w-4" />
                 Estagiário
               </Label>
-              <p className="mt-1 font-medium">{sessionData.estagiarioExecutor.nome}</p>
-              <p className="text-sm text-muted-foreground">{sessionData.estagiarioExecutor.email}</p>
+              <p className="mt-1 font-medium">
+                {sessionData.estagiarioExecutor.nome}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {sessionData.estagiarioExecutor.email}
+              </p>
             </div>
 
             <div>
@@ -380,8 +441,12 @@ export default function ApprovePsicoterapiaPage() {
                 <Users className="h-4 w-4" />
                 Supervisor
               </Label>
-              <p className="mt-1 font-medium">{sessionData.supervisorExecutor.nome}</p>
-              <p className="text-sm text-muted-foreground">{sessionData.supervisorExecutor.email}</p>
+              <p className="mt-1 font-medium">
+                {sessionData.supervisorExecutor.nome}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {sessionData.supervisorExecutor.email}
+              </p>
             </div>
           </div>
 
@@ -393,7 +458,9 @@ export default function ApprovePsicoterapiaPage() {
                 <Label className="text-sm font-semibold text-muted-foreground">
                   Observações da Sessão
                 </Label>
-                <p className="mt-1 text-sm whitespace-pre-wrap">{sessionData.observacoes}</p>
+                <p className="mt-1 text-sm whitespace-pre-wrap">
+                  {sessionData.observacoes}
+                </p>
               </div>
             </>
           )}
@@ -407,9 +474,13 @@ export default function ApprovePsicoterapiaPage() {
             <CardTitle className="text-lg">Relatório de Evolução</CardTitle>
             <CardDescription>
               Relatório preenchido pelo estagiário em{" "}
-              {format(new Date(psicoterapiaProntuario.dataEmissao), "dd/MM/yyyy 'às' HH:mm", {
-                locale: ptBR,
-              })}
+              {format(
+                new Date(psicoterapiaProntuario.dataEmissao),
+                "dd/MM/yyyy 'às' HH:mm",
+                {
+                  locale: ptBR,
+                },
+              )}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -418,8 +489,16 @@ export default function ApprovePsicoterapiaPage() {
                 Presença do Paciente
               </Label>
               <p className="mt-1">
-                <Badge variant={psicoterapiaProntuario.conteudo.presente ? "default" : "destructive"}>
-                  {psicoterapiaProntuario.conteudo.presente ? "Presente" : "Ausente"}
+                <Badge
+                  variant={
+                    psicoterapiaProntuario.conteudo.presente
+                      ? "default"
+                      : "destructive"
+                  }
+                >
+                  {psicoterapiaProntuario.conteudo.presente
+                    ? "Presente"
+                    : "Ausente"}
                 </Badge>
               </p>
             </div>
@@ -449,7 +528,11 @@ export default function ApprovePsicoterapiaPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full">
+          <Tabs
+            value={activeTab}
+            onValueChange={(v) => setActiveTab(v as any)}
+            className="w-full"
+          >
             <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="aprovar">
                 <CheckCircle2 className="h-4 w-4 mr-2" />
@@ -474,8 +557,9 @@ export default function ApprovePsicoterapiaPage() {
               <TabsContent value="aprovar" className="space-y-4">
                 <div className="bg-green-50 p-4 rounded-md">
                   <p className="text-sm text-green-900">
-                    <strong>Aprovar:</strong> O relatório será aprovado sem dar alta ou encaminhar o paciente.
-                    O paciente continuará em psicoterapia e poderá ter novas sessões agendadas.
+                    <strong>Aprovar:</strong> O relatório será aprovado sem dar
+                    alta ou encaminhar o paciente. O paciente continuará em
+                    psicoterapia e poderá ter novas sessões agendadas.
                   </p>
                 </div>
               </TabsContent>
@@ -484,17 +568,22 @@ export default function ApprovePsicoterapiaPage() {
               <TabsContent value="alta" className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="finalidade">
-                    Finalidade da Alta <span className="text-destructive">*</span>
+                    Finalidade da Alta{" "}
+                    <span className="text-destructive">*</span>
                   </Label>
                   <Textarea
                     id="finalidade"
                     placeholder="Descreva os motivos e objetivos alcançados que justificam a alta do paciente..."
                     value={formData.finalidade}
-                    onChange={(e) => setFormData({ ...formData, finalidade: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, finalidade: e.target.value })
+                    }
                     className={`min-h-[150px] ${errors.finalidade ? "border-destructive" : ""}`}
                   />
                   {errors.finalidade && (
-                    <p className="text-sm text-destructive">{errors.finalidade}</p>
+                    <p className="text-sm text-destructive">
+                      {errors.finalidade}
+                    </p>
                   )}
                   <p className="text-sm text-muted-foreground">
                     Caracteres: {formData.finalidade.length} (mínimo 20)
@@ -503,8 +592,9 @@ export default function ApprovePsicoterapiaPage() {
 
                 <div className="bg-blue-50 p-4 rounded-md">
                   <p className="text-sm text-blue-900">
-                    <strong>Alta:</strong> O paciente receberá alta e seu status será atualizado para "Recebeu Alta".
-                    Um relatório de alta será gerado.
+                    <strong>Alta:</strong> O paciente receberá alta e seu status
+                    será atualizado para "Recebeu Alta". Um relatório de alta
+                    será gerado.
                   </p>
                 </div>
               </TabsContent>
@@ -513,49 +603,65 @@ export default function ApprovePsicoterapiaPage() {
               <TabsContent value="encaminhar" className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="instituicaoEncaminhada">
-                    Instituição de Encaminhamento <span className="text-destructive">*</span>
+                    Instituição de Encaminhamento{" "}
+                    <span className="text-destructive">*</span>
                   </Label>
                   <Input
                     id="instituicaoEncaminhada"
                     placeholder="Ex: Hospital Municipal, Clínica Particular..."
                     value={formData.instituicaoEncaminhada}
                     onChange={(e) =>
-                      setFormData({ ...formData, instituicaoEncaminhada: e.target.value })
+                      setFormData({
+                        ...formData,
+                        instituicaoEncaminhada: e.target.value,
+                      })
                     }
-                    className={errors.instituicaoEncaminhada ? "border-destructive" : ""}
+                    className={
+                      errors.instituicaoEncaminhada ? "border-destructive" : ""
+                    }
                   />
                   {errors.instituicaoEncaminhada && (
-                    <p className="text-sm text-destructive">{errors.instituicaoEncaminhada}</p>
+                    <p className="text-sm text-destructive">
+                      {errors.instituicaoEncaminhada}
+                    </p>
                   )}
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="motivoEncaminhamento">
-                    Motivo do Encaminhamento <span className="text-destructive">*</span>
+                    Motivo do Encaminhamento{" "}
+                    <span className="text-destructive">*</span>
                   </Label>
                   <Textarea
                     id="motivoEncaminhamento"
                     placeholder="Descreva os motivos pelos quais o paciente está sendo encaminhado para outra instituição..."
                     value={formData.motivoEncaminhamento}
                     onChange={(e) =>
-                      setFormData({ ...formData, motivoEncaminhamento: e.target.value })
+                      setFormData({
+                        ...formData,
+                        motivoEncaminhamento: e.target.value,
+                      })
                     }
                     className={`min-h-[150px] ${
                       errors.motivoEncaminhamento ? "border-destructive" : ""
                     }`}
                   />
                   {errors.motivoEncaminhamento && (
-                    <p className="text-sm text-destructive">{errors.motivoEncaminhamento}</p>
+                    <p className="text-sm text-destructive">
+                      {errors.motivoEncaminhamento}
+                    </p>
                   )}
                   <p className="text-sm text-muted-foreground">
-                    Caracteres: {formData.motivoEncaminhamento.length} (mínimo 20)
+                    Caracteres: {formData.motivoEncaminhamento.length} (mínimo
+                    20)
                   </p>
                 </div>
 
                 <div className="bg-orange-50 p-4 rounded-md">
                   <p className="text-sm text-orange-900">
-                    <strong>Encaminhamento:</strong> O paciente será encaminhado para outra instituição.
-                    Um relatório de encaminhamento será gerado.
+                    <strong>Encaminhamento:</strong> O paciente será encaminhado
+                    para outra instituição. Um relatório de encaminhamento será
+                    gerado.
                   </p>
                 </div>
               </TabsContent>
@@ -564,17 +670,22 @@ export default function ApprovePsicoterapiaPage() {
               <TabsContent value="ambos" className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="finalidade-ambos">
-                    Finalidade da Alta <span className="text-destructive">*</span>
+                    Finalidade da Alta{" "}
+                    <span className="text-destructive">*</span>
                   </Label>
                   <Textarea
                     id="finalidade-ambos"
                     placeholder="Descreva os motivos e objetivos alcançados que justificam a alta do paciente..."
                     value={formData.finalidade}
-                    onChange={(e) => setFormData({ ...formData, finalidade: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, finalidade: e.target.value })
+                    }
                     className={`min-h-[120px] ${errors.finalidade ? "border-destructive" : ""}`}
                   />
                   {errors.finalidade && (
-                    <p className="text-sm text-destructive">{errors.finalidade}</p>
+                    <p className="text-sm text-destructive">
+                      {errors.finalidade}
+                    </p>
                   )}
                   <p className="text-sm text-muted-foreground">
                     Caracteres: {formData.finalidade.length} (mínimo 20)
@@ -585,49 +696,65 @@ export default function ApprovePsicoterapiaPage() {
 
                 <div className="space-y-2">
                   <Label htmlFor="instituicaoEncaminhada-ambos">
-                    Instituição de Encaminhamento <span className="text-destructive">*</span>
+                    Instituição de Encaminhamento{" "}
+                    <span className="text-destructive">*</span>
                   </Label>
                   <Input
                     id="instituicaoEncaminhada-ambos"
                     placeholder="Ex: Hospital Municipal, Clínica Particular..."
                     value={formData.instituicaoEncaminhada}
                     onChange={(e) =>
-                      setFormData({ ...formData, instituicaoEncaminhada: e.target.value })
+                      setFormData({
+                        ...formData,
+                        instituicaoEncaminhada: e.target.value,
+                      })
                     }
-                    className={errors.instituicaoEncaminhada ? "border-destructive" : ""}
+                    className={
+                      errors.instituicaoEncaminhada ? "border-destructive" : ""
+                    }
                   />
                   {errors.instituicaoEncaminhada && (
-                    <p className="text-sm text-destructive">{errors.instituicaoEncaminhada}</p>
+                    <p className="text-sm text-destructive">
+                      {errors.instituicaoEncaminhada}
+                    </p>
                   )}
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="motivoEncaminhamento-ambos">
-                    Motivo do Encaminhamento <span className="text-destructive">*</span>
+                    Motivo do Encaminhamento{" "}
+                    <span className="text-destructive">*</span>
                   </Label>
                   <Textarea
                     id="motivoEncaminhamento-ambos"
                     placeholder="Descreva os motivos pelos quais o paciente está sendo encaminhado..."
                     value={formData.motivoEncaminhamento}
                     onChange={(e) =>
-                      setFormData({ ...formData, motivoEncaminhamento: e.target.value })
+                      setFormData({
+                        ...formData,
+                        motivoEncaminhamento: e.target.value,
+                      })
                     }
                     className={`min-h-[120px] ${
                       errors.motivoEncaminhamento ? "border-destructive" : ""
                     }`}
                   />
                   {errors.motivoEncaminhamento && (
-                    <p className="text-sm text-destructive">{errors.motivoEncaminhamento}</p>
+                    <p className="text-sm text-destructive">
+                      {errors.motivoEncaminhamento}
+                    </p>
                   )}
                   <p className="text-sm text-muted-foreground">
-                    Caracteres: {formData.motivoEncaminhamento.length} (mínimo 20)
+                    Caracteres: {formData.motivoEncaminhamento.length} (mínimo
+                    20)
                   </p>
                 </div>
 
                 <div className="bg-green-50 p-4 rounded-md">
                   <p className="text-sm text-green-900">
-                    <strong>Alta + Encaminhamento:</strong> O paciente receberá alta e será encaminhado
-                    para outra instituição. Ambos os relatórios serão gerados.
+                    <strong>Alta + Encaminhamento:</strong> O paciente receberá
+                    alta e será encaminhado para outra instituição. Ambos os
+                    relatórios serão gerados.
                   </p>
                 </div>
               </TabsContent>
@@ -654,7 +781,8 @@ export default function ApprovePsicoterapiaPage() {
                       {activeTab === "aprovar" && "Aprovar Relatório"}
                       {activeTab === "alta" && "Aprovar e Dar Alta"}
                       {activeTab === "encaminhar" && "Aprovar e Encaminhar"}
-                      {activeTab === "ambos" && "Aprovar, Dar Alta e Encaminhar"}
+                      {activeTab === "ambos" &&
+                        "Aprovar, Dar Alta e Encaminhar"}
                     </>
                   )}
                 </Button>
@@ -674,9 +802,10 @@ export default function ApprovePsicoterapiaPage() {
             <div>
               <h4 className="font-semibold mb-1 text-yellow-900">Atenção</h4>
               <p className="text-sm text-yellow-800">
-                Esta ação é irreversível. Após a aprovação, o relatório será marcado como aprovado
-                e os documentos pertinentes (alta e/ou encaminhamento) serão gerados. O status do
-                paciente na lista de espera será atualizado conforme a decisão tomada.
+                Esta ação é irreversível. Após a aprovação, o relatório será
+                marcado como aprovado e os documentos pertinentes (alta e/ou
+                encaminhamento) serão gerados. O status do paciente na lista de
+                espera será atualizado conforme a decisão tomada.
               </p>
             </div>
           </div>
