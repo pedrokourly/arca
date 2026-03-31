@@ -8,6 +8,8 @@ import { AuditModule } from './audit/audit.module';
 import { SessionModule } from './session/session.module';
 import { MedicalRecordModule } from './medical_record/medical_record.module';
 import { PdfModule } from './pdf/pdf.module';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
   imports: [
@@ -15,6 +17,10 @@ import { PdfModule } from './pdf/pdf.module';
       isGlobal: true,
       envFilePath: process.env.NODE_ENV ? `.env.${process.env.NODE_ENV}` : '.env',
     }),
+    ThrottlerModule.forRoot([{
+      ttl: 60_000,
+      limit: 10,
+    }]),
     AuditModule,
     AuthModule,
     UsersModule,
@@ -24,5 +30,8 @@ import { PdfModule } from './pdf/pdf.module';
     PdfModule,
   ],
   controllers: [AppController],
+  providers: [
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+  ],
 })
 export class AppModule {}

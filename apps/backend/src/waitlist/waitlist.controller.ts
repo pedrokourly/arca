@@ -4,11 +4,13 @@ import { CreateWaitlistDto } from './dto/create-waitlist.dto';
 import { UpdateWaitlistDto } from './dto/update-waitlist.dto';
 import { UUID } from 'node:crypto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { Throttle } from '@nestjs/throttler';
 
 @Controller('waitlist')
 export class WaitlistController {
   constructor(private readonly waitlistService: WaitlistService) {}
 
+  @Throttle({ default: { ttl: 60_000, limit: 5 } })
   @Post()
   create(@Body() body: CreateWaitlistDto) {
     return this.waitlistService.create(body);
