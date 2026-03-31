@@ -1,0 +1,21 @@
+$kind: http-request
+url: "{{baseURL}}/medical-record/psicoterapia/:id/approve"
+method: PATCH
+pathVariables:
+  id: 9a41f066-343a-4186-a1e4-52c5462064e8
+body:
+  type: json
+  content: "{\r
+
+    \    \"id_Sessao\": \"cfcb6f6a-e25b-4f25-b066-e8e458092dc2\",\r
+
+    \    \"conteudo\": {\r
+
+    \        \"hipoteseDiagnosticaInicial\": \"\",\r
+
+    \        \"planoTerapeuticoInicial\": \"\"\r
+
+    \    }\r
+
+    }"
+order: 5000

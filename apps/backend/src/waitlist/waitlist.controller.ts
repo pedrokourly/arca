@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, ParseUUIDPipe } from '@nestjs/common';
 import { WaitlistService } from './waitlist.service';
 import { CreateWaitlistDto } from './dto/create-waitlist.dto';
 import { UpdateWaitlistDto } from './dto/update-waitlist.dto';
@@ -14,6 +14,7 @@ export class WaitlistController {
     return this.waitlistService.create(body);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get()
   findAll() {
     return this.waitlistService.findAll();
@@ -24,20 +25,21 @@ export class WaitlistController {
     return this.waitlistService.findPositions();
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
-  findOne(@Param('id') id: UUID) {
+  findOne(@Param('id', ParseUUIDPipe) id: UUID) {
     return this.waitlistService.findOne(id);
   }
 
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
-  update(@Param('id') id: UUID, @Body() body: UpdateWaitlistDto) {
+  update(@Param('id', ParseUUIDPipe) id: UUID, @Body() body: UpdateWaitlistDto) {
     return this.waitlistService.update(id, body);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: UUID) {
+  remove(@Param('id', ParseUUIDPipe) id: UUID) {
     return this.waitlistService.remove(id);
   }
 }

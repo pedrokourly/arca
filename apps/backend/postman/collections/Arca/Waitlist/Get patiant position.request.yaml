@@ -1,0 +1,6 @@
+$kind: http-request
+url: "{{baseURL}}/waitlist/:id"
+method: GET
+pathVariables:
+  id: 5ae4ffcc-4c1e-4a0e-b68f-f8a4d2b6124b
+order: 5000

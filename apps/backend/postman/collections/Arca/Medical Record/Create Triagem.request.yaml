@@ -1,0 +1,19 @@
+$kind: http-request
+url: "{{baseURL}}/medical-record/triagem"
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \    \"id_Sessao\": \"cfcb6f6a-e25b-4f25-b066-e8e458092dc2\",\r
+
+    \    \"conteudo\": {\r
+
+    \        \"hipoteseDiagnosticaInicial\": \"\",\r
+
+    \        \"planoTerapeuticoInicial\": \"\"\r
+
+    \    }\r
+
+    }"
+order: 1000

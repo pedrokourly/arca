@@ -1,0 +1,35 @@
+$kind: http-request
+url: http://localhost:3000/waitlist
+method: POST
+body:
+  type: json
+  content: "{\r
+
+    \  \"nomeRegistro\": \"Maria Silvagssf Santos\",\r
+
+    \  \"dataNascimento\": \"1990-05-15\",\r
+
+    \  \"telefonePessoal\": \"11 99999-9999\",\r
+
+    \  \"contatoEmergencia\": \"+55 11 88888-8888\",\r
+
+    \  \"enderecoRua\": \"Rua das Flores\",\r
+
+    \  \"enderecoNumero\": \"123A\",\r
+
+    \  \"enderecoBairro\": \"Centro\",\r
+
+    \  \"enderecoCidade\": \"São Paulo\",\r
+
+    \  \"enderecoEstado\": \"SP\",\r
+
+    \  \"enderecoCEP\": \"12345-678\",\r
+
+    \  \"id_Genero\": 1,\r
+
+    \  \"id_CorPele\": 1,\r
+
+    \  \"id_Escolaridade\": 1\r
+
+    }"
+order: 1000

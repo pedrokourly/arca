@@ -1,0 +1,10 @@
+$kind: collection
+variables:
+  baseURL: http://localhost:3333
+  jwt_token: ""
+auth:
+  - id: 23c7a7e5-bddb-4055-ba75-a58246623232
+    type: bearer
+    name: bearer auth
+    credentials:
+      token: "{{jwt_token}}"

@@ -1,0 +1,8 @@
+$kind: http-request
+url: "{{baseURL}}/audit"
+method: GET
+auth:
+  type: bearer
+  credentials:
+    token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJjZTQ5YzQ2OC02MmVhLTRkODQtYjYyMC1iNWYwMjNlYjZhZmMiLCJuYW1lIjoiU2VjcmV0w6FyaW8gUGFkcsOjbyIsImVtYWlsIjoic2VjcmV0YXJpb0BhcmNhLmNvbSIsImFjY2VzcyI6MiwiaWF0IjoxNzU4MzM0NjczLCJleHAiOjE3NTgzNTI2NzMsImF1ZCI6Imh0dHA6Ly9sb2NhbGhvc3Q6MzMzMyIsImlzcyI6Imh0dHA6Ly9sb2NhbGhvc3Q6MzMzMyJ9.78klCLMgGE_pyi5CVcRHhcdgty1ZCHCM0_kDT4WO9Tw
+order: 1000

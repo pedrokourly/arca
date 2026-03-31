@@ -1,0 +1,7 @@
+$kind: http-request
+url: "{{baseURL}}/medical-record/prontuarios"
+method: GET
+body:
+  type: json
+  content: ""
+order: 6000

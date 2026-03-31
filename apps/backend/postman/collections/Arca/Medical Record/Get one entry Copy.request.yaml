@@ -1,0 +1,11 @@
+$kind: http-request
+url: "{{baseURL}}/medical-record/prontuarios/pdf/:id"
+method: GET
+pathVariables:
+  id: |+
+    3f19df31-98e0-42c2-8ca4-f4e51f6b0726
+
+body:
+  type: json
+  content: ""
+order: 8000

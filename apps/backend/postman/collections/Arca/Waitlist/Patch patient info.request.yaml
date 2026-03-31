@@ -1,0 +1,13 @@
+$kind: http-request
+url: http://localhost:3000/waitlist/:id
+method: PATCH
+pathVariables:
+  id: ""
+body:
+  type: json
+  content: "{\r
+
+    \  \"nomeSocial\": \"Joaozin\"\r
+
+    }"
+order: 7000

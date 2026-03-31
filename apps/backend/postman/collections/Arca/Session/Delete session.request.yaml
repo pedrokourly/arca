@@ -1,0 +1,9 @@
+$kind: http-request
+url: "{{baseURL}}/session/:id"
+method: DELETE
+pathVariables:
+  id: f5f622fc-0c41-4aa6-8666-5029ac7f659c
+body:
+  type: text
+  content: ""
+order: 4000

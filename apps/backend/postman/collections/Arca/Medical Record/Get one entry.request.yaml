@@ -1,0 +1,9 @@
+$kind: http-request
+url: "{{baseURL}}/arquivos/prontuarios/:id"
+method: GET
+pathVariables:
+  id: ""
+body:
+  type: json
+  content: ""
+order: 7000

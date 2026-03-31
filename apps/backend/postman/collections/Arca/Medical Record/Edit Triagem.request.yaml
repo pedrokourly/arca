@@ -1,0 +1,15 @@
+$kind: http-request
+url: "{{baseURL}}/medical-record/triagem/:id"
+method: PUT
+pathVariables:
+  id: bb73bbee-6d17-47a9-835a-772b6c3018b9
+body:
+  type: json
+  content: "{\r
+
+    \    \"relatorioDaSessao\" : \"Mudanças basicas\",\r
+
+    \    \"presente\" : true\r
+
+    }"
+order: 2000
