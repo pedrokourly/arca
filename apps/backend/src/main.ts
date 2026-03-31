@@ -3,9 +3,13 @@ import { AppModule } from 'src/app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { AuditService } from 'src/audit/audit.service';
 import { AuditInterceptor } from 'src/audit/audit.interceptor';
+import helmet from 'helmet';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  app.use(helmet());       
+  app.enableShutdownHooks();     
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -23,7 +27,7 @@ async function bootstrap() {
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
-  const auditService = app.get(AuditService); // Pega a instância do serviço
+  const auditService = app.get(AuditService);
 
   app.useGlobalInterceptors(new AuditInterceptor(auditService));
 
