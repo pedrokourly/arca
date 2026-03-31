@@ -1,14 +1,13 @@
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
-import { Inject, Injectable } from '@nestjs/common';
-import { UsersService } from 'src/users/users.service';
-import { UUID } from 'node:crypto';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { jwtConstants } from './constants';
-import { AuthService } from './auth.service';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { TokenDto } from 'src/common/dto/token.dto';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor() {
+  constructor(private readonly prisma: PrismaService) {
     if (!jwtConstants.secret) {
       throw new Error('JWT secret is not defined');
     }
@@ -19,7 +18,15 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  validate(payload) {
-    return payload;
+  async validate(payload: TokenDto) {
+    const user = await this.prisma.usuario.findUnique({
+      where: { id_User: payload.sub },
+    });
+
+    if (!user || !user.isActive) {
+      throw new UnauthorizedException();
+    }
+
+    return user;
   }
 }
