@@ -25,6 +25,11 @@ export class WaitlistController {
     return this.waitlistService.findPositions();
   }
 
+  @Get(':id/position')
+  findPublicPosition(@Param('id', ParseUUIDPipe) id: UUID) {
+    return this.waitlistService.findPublicPosition(id);
+  }
+
   @UseGuards(JwtAuthGuard)
   @Get(':id')
   findOne(@Param('id', ParseUUIDPipe) id: UUID) {

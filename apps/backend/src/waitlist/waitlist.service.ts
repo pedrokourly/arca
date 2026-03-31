@@ -54,9 +54,6 @@ export class WaitlistService {
   }
 
   async findOne(id: UUID) {
-    if (!isUUID(id)) {
-      throw new BadRequestException('Formato de UUID inválido.');
-    }
 
     const waitlistEntry = await this.prisma.listaEspera.findUnique({
       where: { id_Lista: id },
@@ -66,23 +63,51 @@ export class WaitlistService {
       throw new NotFoundException('Paciente não encontrado na lista de espera.');
     }
 
-    // Calcular a posição na lista
-    // Conta quantas pessoas ativas foram criadas antes desta pessoa
     const posicaoNaLista = await this.prisma.listaEspera.count({
       where: {
         createdAt: {
-          lt: waitlistEntry.createdAt, // Criadas antes desta entrada
+          lt: waitlistEntry.createdAt,
         },
-        id_Status: 1, // Apenas pessoas ativas
+        id_Status: 1,
       },
     });
 
-    // A posição é contagem + 1 (porque a contagem começa em 0)
     const posicao = posicaoNaLista + 1;
 
     return {
       ...waitlistEntry,
       posicaoNaLista: posicao,
+      situacao: waitlistEntry.id_Status === 1 ? 'Ativo' : 'Inativo',
+    };
+  }
+
+  async findPublicPosition(id: UUID) {
+
+    const waitlistEntry = await this.prisma.listaEspera.findUnique({
+      where: { id_Lista: id },
+      select: {
+        id_Lista: true,
+        nomeRegistro: true,
+        nomeSocial: true,
+        createdAt: true,
+        id_Status: true,
+      },
+    });
+
+    if (!waitlistEntry) {
+      throw new NotFoundException('Paciente não encontrado na lista de espera.');
+    }
+
+    const posicaoNaLista = await this.prisma.listaEspera.count({
+      where: {
+        createdAt: { lt: waitlistEntry.createdAt },
+        id_Status: 1,
+      },
+    });
+
+    return {
+      ...waitlistEntry,
+      posicaoNaLista: posicaoNaLista + 1,
       situacao: waitlistEntry.id_Status === 1 ? 'Ativo' : 'Inativo',
     };
   }
