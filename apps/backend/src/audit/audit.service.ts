@@ -1,8 +1,8 @@
 // src/audit/audit.service.ts
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from 'src/prisma/prisma.service';
 import { Prisma } from '@prisma/client'; // Importa o tipo JsonValue
-import { TokenDto } from './dto/token.dto';
+import { TokenDto } from 'src/common/dto/token.dto';
 
 // DTO atualizado
 export class CreateAuditLogDto {

@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { CreateTriagemProntuarioDto } from './dto/create-triagem-medical_record.dto';
 import { CreateEvolucaoProntuarioDto } from './dto/create-evolucao-medical_record.dto';
-import { TokenDto } from 'src/users/dto/token.dto';
+import { TokenDto } from 'src/common/dto/token.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { UUID } from 'node:crypto';

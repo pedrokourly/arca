@@ -9,10 +9,10 @@ import {
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Prisma } from '@prisma/client';
-import { PrismaService } from '../prisma/prisma.service';
-import { HashingServiceProtocol } from '../auth/hash/hashing.service';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { HashingServiceProtocol } from 'src/auth/hash/hashing.service';
 import { UUID } from 'node:crypto';
-import { TokenDto } from './dto/token.dto';
+import { TokenDto } from 'src/common/dto/token.dto';
 
 @Injectable()
 export class UsersService {

@@ -1,5 +1,13 @@
 
-import { Controller} from '@nestjs/common';
+import { Controller, Get} from '@nestjs/common';
 
 @Controller()
-export class AppController {}
+export class AppController {
+    @Get()
+    healthCheck(){
+        return { 
+            service: 'arca-backend',
+            status: 'ok',
+        };
+    }
+}

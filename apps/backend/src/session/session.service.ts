@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { UpdateSessionDto } from './dto/update-session.dto';
-import { TokenDto } from './dto/token.dto';
+import { TokenDto } from 'src/common/dto/token.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { UUID } from 'node:crypto';

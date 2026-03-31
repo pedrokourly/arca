@@ -3,7 +3,7 @@ import { MedicalRecordService } from './medical_record.service';
 import { CreateTriagemProntuarioDto } from './dto/create-triagem-medical_record.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { UUID } from 'node:crypto';
-import { TokenDto } from 'src/users/dto/token.dto';
+import { TokenDto } from 'src/common/dto/token.dto';
 import { CreateEvolucaoProntuarioDto } from './dto/create-evolucao-medical_record.dto';
 import { ConteudoTriagemDto } from './dto/conteudo-triagem.dto';
 import { ConteudoEvolucaoDto } from './dto/conteudo-evolucao.dto';
