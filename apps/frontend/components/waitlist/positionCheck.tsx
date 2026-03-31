@@ -108,7 +108,7 @@ export function PositionCheck() {
 
     try {
       const result = await apiRequest(
-        `${API_ENDPOINTS.waitlist}/${values.idLista}`,
+        `${API_ENDPOINTS.waitlist}/${values.idLista}/position`,
         {
           method: "GET",
         },
