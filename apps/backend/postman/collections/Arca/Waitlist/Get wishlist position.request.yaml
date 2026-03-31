@@ -1,5 +1,0 @@
-$kind: http-request
-name: Get wishlist position
-url: "{{baseURL}}/waitlist/stats"
-method: GET
-order: 6000

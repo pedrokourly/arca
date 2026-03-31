@@ -1,7 +1,0 @@
-$kind: http-request
-name: Get patiant position
-url: "{{baseURL}}/waitlist/:id/position"
-method: GET
-pathVariables:
-  id: 8d530f15-0531-434d-9f88-69051410f741
-order: 5000

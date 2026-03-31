@@ -1,4 +1,0 @@
-$kind: http-request
-url: "{{baseURL}}/waitlist/stats"
-method: GET
-order: 4000

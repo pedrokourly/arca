@@ -1,6 +1,0 @@
-$kind: http-request
-url: http://localhost:3000/users/:id
-method: GET
-pathVariables:
-  id: d1a8e6b8-566f-4c7c-ad12-3032eefe9581
-order: 4000

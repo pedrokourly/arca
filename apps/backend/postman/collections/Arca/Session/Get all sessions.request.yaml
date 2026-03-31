@@ -1,4 +1,0 @@
-$kind: http-request
-url: "{{baseURL}}/session"
-method: GET
-order: 2000

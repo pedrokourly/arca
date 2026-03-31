@@ -1,7 +1,0 @@
-$kind: http-request
-name: Get one patiant
-url: "{{baseURL}}/waitlist/:id"
-method: GET
-pathVariables:
-  id: ""
-order: 3000
