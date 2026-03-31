@@ -1,5 +1,6 @@
 $kind: http-request
-url: http://localhost:3000/waitlist/:id
+name: Patch patient info
+url: "{{baseURL}}/waitlist/:id"
 method: PATCH
 pathVariables:
   id: ""

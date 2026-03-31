@@ -1,4 +1,5 @@
 $kind: http-request
-url: http://localhost:3000/waitlist
+name: Get all list
+url: "{{baseURL}}/waitlist"
 method: GET
 order: 2000

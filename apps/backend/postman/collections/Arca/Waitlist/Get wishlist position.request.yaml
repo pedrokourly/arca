@@ -1,4 +1,5 @@
 $kind: http-request
-url: http://localhost:3000/waitlist/stats
+name: Get wishlist position
+url: "{{baseURL}}/waitlist/stats"
 method: GET
 order: 6000
