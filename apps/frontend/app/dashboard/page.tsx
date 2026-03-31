@@ -4,15 +4,15 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { usePermissions } from "@/hooks/usePermissions";
 import { Card } from "@/components/ui/card";
-import { 
-  LayoutDashboard, 
-  Users, 
+import {
+  LayoutDashboard,
+  Users,
   Calendar,
   FileText,
   ClipboardList,
   CalendarClock,
   ArrowUpNarrowWide,
-  Sparkles
+  Sparkles,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -85,13 +85,15 @@ export default function DashboardPage() {
           <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl shadow-2xl shadow-blue-500/30 mb-6">
             <LayoutDashboard className="w-10 h-10 text-white" />
           </div>
-          
+
           <div className="space-y-3">
             <h1 className="text-5xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent">
-              Olá, {session?.user?.name?.split(' ')[0]}! 👋
+              Olá, {session?.user?.name?.split(" ")[0]}! 👋
             </h1>
             <p className="text-xl text-gray-600">
-              {format(new Date(), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+              {format(new Date(), "EEEE, dd 'de' MMMM 'de' yyyy", {
+                locale: ptBR,
+              })}
             </p>
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-50 to-purple-50 rounded-full border border-blue-100">
               <Sparkles className="w-4 h-4 text-purple-600" />
@@ -102,7 +104,8 @@ export default function DashboardPage() {
           </div>
 
           <p className="text-lg text-gray-500 max-w-2xl mx-auto">
-            Bem-vindo ao sistema ARCA. Escolha uma das opções abaixo para começar.
+            Bem-vindo ao sistema ARCA. Escolha uma das opções abaixo para
+            começar.
           </p>
         </div>
 
@@ -117,12 +120,16 @@ export default function DashboardPage() {
                 onClick={() => router.push(action.route)}
               >
                 {/* Gradient Background */}
-                <div className={`absolute inset-0 bg-gradient-to-br ${action.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`} />
-                
+                <div
+                  className={`absolute inset-0 bg-gradient-to-br ${action.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}
+                />
+
                 {/* Content */}
                 <div className="relative p-8 space-y-4">
                   {/* Icon */}
-                  <div className={`inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br ${action.color} rounded-xl shadow-lg transform group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300`}>
+                  <div
+                    className={`inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br ${action.color} rounded-xl shadow-lg transform group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300`}
+                  >
                     <Icon className="w-8 h-8 text-white" />
                   </div>
 
@@ -139,13 +146,18 @@ export default function DashboardPage() {
                   {/* Arrow indicator */}
                   <div className="flex items-center text-sm font-medium text-gray-500 group-hover:text-gray-700 transition-colors">
                     <span>Acessar</span>
-                    <svg 
-                      className="w-4 h-4 ml-2 transform group-hover:translate-x-1 transition-transform" 
-                      fill="none" 
-                      viewBox="0 0 24 24" 
+                    <svg
+                      className="w-4 h-4 ml-2 transform group-hover:translate-x-1 transition-transform"
+                      fill="none"
+                      viewBox="0 0 24 24"
                       stroke="currentColor"
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5l7 7-7 7"
+                      />
                     </svg>
                   </div>
                 </div>

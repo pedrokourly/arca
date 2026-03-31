@@ -1,6 +1,12 @@
 "use client";
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Users, AlertCircle, Loader2 } from "lucide-react";
 import { useWaitlistStats } from "@/hooks/useWaitlistStats";
@@ -65,13 +71,13 @@ export function WaitlistStatsCard() {
             {stats?.qntFila || 0}
           </div>
           <CardDescription className="text-orange-700">
-            {stats?.qntFila === 1 
-              ? "pessoa aguardando atendimento" 
-              : "pessoas aguardando atendimento"
-            }
+            {stats?.qntFila === 1
+              ? "pessoa aguardando atendimento"
+              : "pessoas aguardando atendimento"}
             {stats?.ultimaAtualizacao && (
               <span className="block text-xs text-orange-600 mt-1">
-                Última atualização: {new Date(stats.ultimaAtualizacao).toLocaleString()}
+                Última atualização:{" "}
+                {new Date(stats.ultimaAtualizacao).toLocaleString()}
               </span>
             )}
           </CardDescription>

@@ -1,15 +1,15 @@
-"use client"
+"use client";
 
-import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { GalleryVerticalEnd, Menu, User } from "lucide-react"
-import Link from "next/link"
-import { useState } from "react"
-import { useSession } from "next-auth/react"
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { GalleryVerticalEnd, Menu, User } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
+import { useSession } from "next-auth/react";
 
 export function PublicNavbar() {
-  const [isOpen, setIsOpen] = useState(false)
-  const { status } = useSession()
+  const [isOpen, setIsOpen] = useState(false);
+  const { status } = useSession();
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b">
@@ -24,14 +24,14 @@ export function PublicNavbar() {
 
         {/* Desktop Navigation Links */}
         <div className="hidden md:flex items-center gap-6">
-          <Link 
-            href="/lista-espera/cadastro" 
+          <Link
+            href="/lista-espera/cadastro"
             className="text-muted-foreground hover:text-foreground transition-colors"
           >
             Lista de Espera
           </Link>
-          <Link 
-            href="/lista-espera/consulta" 
+          <Link
+            href="/lista-espera/consulta"
             className="text-muted-foreground hover:text-foreground transition-colors"
           >
             Consultar Posição
@@ -50,11 +50,11 @@ export function PublicNavbar() {
           ) : (
             <>
               <Button asChild variant="outline">
-              <Link href="/login">
-                <User className="w-4 h-4" />
-                Acessar Plataforma
-              </Link>
-            </Button>
+                <Link href="/login">
+                  <User className="w-4 h-4" />
+                  Acessar Plataforma
+                </Link>
+              </Button>
             </>
           )}
         </div>
@@ -68,21 +68,21 @@ export function PublicNavbar() {
           </SheetTrigger>
           <SheetContent side="right" className="w-72">
             <div className="flex flex-col gap-6 mt-8">
-              <Link 
-                href="/lista-espera/cadastro" 
+              <Link
+                href="/lista-espera/cadastro"
                 className="text-lg font-medium hover:text-primary transition-colors"
                 onClick={() => setIsOpen(false)}
               >
                 Lista de Espera
               </Link>
-              <Link 
-                href="/lista-espera/consulta" 
+              <Link
+                href="/lista-espera/consulta"
                 className="text-lg font-medium hover:text-primary transition-colors"
                 onClick={() => setIsOpen(false)}
               >
                 Consultar Posição
               </Link>
-              
+
               <div className="flex flex-col gap-3 mt-6">
                 {status === "authenticated" ? (
                   <Button asChild onClick={() => setIsOpen(false)}>
@@ -93,15 +93,17 @@ export function PublicNavbar() {
                   </Button>
                 ) : (
                   <>
-                    <Button asChild variant="outline" onClick={() => setIsOpen(false)}>
+                    <Button
+                      asChild
+                      variant="outline"
+                      onClick={() => setIsOpen(false)}
+                    >
                       <Link href="/lista-espera/consulta">
                         Consultar Posição
                       </Link>
                     </Button>
                     <Button asChild onClick={() => setIsOpen(false)}>
-                      <Link href="/lista-espera/cadastro">
-                        Entrar na Lista
-                      </Link>
+                      <Link href="/lista-espera/cadastro">Entrar na Lista</Link>
                     </Button>
                   </>
                 )}
@@ -111,5 +113,5 @@ export function PublicNavbar() {
         </Sheet>
       </div>
     </nav>
-  )
+  );
 }

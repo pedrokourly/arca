@@ -14,7 +14,7 @@ export default function UsuariosPage() {
   // Proteção client-side adicional
   useEffect(() => {
     if (status === "loading") return;
-    
+
     if (!session) {
       router.push("/login");
       return;
@@ -61,7 +61,7 @@ export default function UsuariosPage() {
               </div>
             </div>
             <Button
-              onClick={() => router.push('/dashboard/usuarios/cadastro')}
+              onClick={() => router.push("/dashboard/usuarios/cadastro")}
               className="flex items-center gap-2"
             >
               <Plus className="h-4 w-4" />

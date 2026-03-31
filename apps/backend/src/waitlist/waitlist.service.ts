@@ -1,9 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-  InternalServerErrorException,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateWaitlistDto } from './dto/create-waitlist.dto';
 import { UpdateWaitlistDto } from './dto/update-waitlist.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -24,9 +19,7 @@ export class WaitlistService {
     });
 
     if (existingActiveEntry)
-      throw new BadRequestException(
-        'Já existe uma entrada ativa na lista de espera com este CPF. Contate a equipe',
-      );
+      throw new BadRequestException('Já existe uma entrada ativa na lista de espera com este CPF. Contate a equipe');
 
     const newWaitlistEntry = await this.prisma.listaEspera.create({
       data: {
@@ -144,18 +137,13 @@ export class WaitlistService {
         where: { id_Lista: id },
         data: {
           ...body,
-          dataNascimento: body.dataNascimento
-            ? new Date(body.dataNascimento)
-            : waitlistEntry.dataNascimento,
+          dataNascimento: body.dataNascimento ? new Date(body.dataNascimento) : waitlistEntry.dataNascimento,
         },
       });
 
       return updatedWaitlistEntry;
     } catch (error) {
-      throw new InternalServerErrorException(
-        'Erro ao atualizar os dados do paciente.',
-        error.message,
-      );
+      throw new InternalServerErrorException('Erro ao atualizar os dados do paciente.', error.message);
     }
   }
 
@@ -172,34 +160,22 @@ export class WaitlistService {
       throw new NotFoundException('Paciente não encontrado na lista de espera.');
     }
     if (waitlistEntry.id_Status === 7) {
-      throw new BadRequestException(
-        'Paciente já está desativado na lista de espera.',
-      );
+      throw new BadRequestException('Paciente já está desativado na lista de espera.');
     }
     if (waitlistEntry.id_Status === 5 || waitlistEntry.id_Status === 6) {
-      throw new BadRequestException(
-        'Não é possível desativar um paciente que já recebeu alta ou foi encaminhado.',
-      );
+      throw new BadRequestException('Não é possível desativar um paciente que já recebeu alta ou foi encaminhado.');
     }
     if (waitlistEntry.id_Status === 4) {
-      throw new BadRequestException(
-        'Não é possível desativar um paciente que está em psicoterapia.',
-      );
+      throw new BadRequestException('Não é possível desativar um paciente que está em psicoterapia.');
     }
     if (waitlistEntry.id_Status === 3) {
-      throw new BadRequestException(
-        'Não é possível desativar um paciente que está em triagem.',
-      );
+      throw new BadRequestException('Não é possível desativar um paciente que está em triagem.');
     }
     if (waitlistEntry.id_Status === 2) {
-      throw new BadRequestException(
-        'Não é possível desativar um paciente que está em atendimento.',
-      );
+      throw new BadRequestException('Não é possível desativar um paciente que está em atendimento.');
     }
     if (waitlistEntry.id_Status !== 1) {
-      throw new BadRequestException(
-        'Apenas pacientes com status "Em espera" podem ser desativados.',
-      );
+      throw new BadRequestException('Apenas pacientes com status "Em espera" podem ser desativados.');
     }
 
     try {
@@ -212,10 +188,7 @@ export class WaitlistService {
 
       return deactivatedEntry;
     } catch (error) {
-      throw new InternalServerErrorException(
-        'Erro ao desativar o paciente da lista de espera.',
-        error.message,
-      );
+      throw new InternalServerErrorException('Erro ao desativar o paciente da lista de espera.', error.message);
     }
   }
 }

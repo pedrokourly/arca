@@ -1,10 +1,4 @@
-// src/audit/audit.interceptor.ts
-import {
-  Injectable,
-  NestInterceptor,
-  ExecutionContext,
-  CallHandler,
-} from '@nestjs/common';
+import { Injectable, NestInterceptor, ExecutionContext, CallHandler } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { AuditService } from './audit.service';
@@ -16,8 +10,8 @@ export class AuditInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const request = context.switchToHttp().getRequest();
     const user = request.user;
-    
-    if (!user || !user.sub && !user.id_User) {
+
+    if (!user || (!user.sub && !user.id_User)) {
       return next.handle();
     }
 
@@ -34,8 +28,8 @@ export class AuditInterceptor implements NestInterceptor {
 
           await this.auditService.create({
             id_Usuario_Executor: user.id_User || user.sub,
-            nome_Usuario_Executor: user.name || user.nome, 
-            tipoAcao: `${methodName}`, 
+            nome_Usuario_Executor: user.name || user.nome,
+            tipoAcao: `${methodName}`,
             entidade_Afetada: entidade,
             id_Entidade_Afetada: idEntidade,
             endereco_Ip: ip,
@@ -51,10 +45,10 @@ export class AuditInterceptor implements NestInterceptor {
       }),
     );
   }
-  
+
   private sanitizeBody(body: any): any {
     if (!body || typeof body !== 'object') return body;
-    
+
     const sanitizedBody = { ...body };
     const sensitiveKeys = ['senha', 'senhaHash', 'password', 'token'];
 

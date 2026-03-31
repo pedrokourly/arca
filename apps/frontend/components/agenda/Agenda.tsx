@@ -1,25 +1,37 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
-import { Calendar, dateFnsLocalizer, Views } from 'react-big-calendar';
-import { format, parse, startOfWeek, getDay } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import Evento from './Evento';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar as CalendarIcon, Plus, Filter, Users, UserCheck } from 'lucide-react';
-import EventoDetalhes from './EventoDetalhes';
-import { usePermissions } from '@/hooks/usePermissions';
-import api from '@/lib/api';
-import 'react-big-calendar/lib/css/react-big-calendar.css';
-import './agenda.css';
+import { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
+import { Calendar, dateFnsLocalizer, Views } from "react-big-calendar";
+import { format, parse, startOfWeek, getDay } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import Evento from "./Evento";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Calendar as CalendarIcon,
+  Plus,
+  Filter,
+  Users,
+  UserCheck,
+} from "lucide-react";
+import EventoDetalhes from "./EventoDetalhes";
+import { usePermissions } from "@/hooks/usePermissions";
+import api from "@/lib/api";
+import "react-big-calendar/lib/css/react-big-calendar.css";
+import "./agenda.css";
 
 // Configuração do localizador para português brasileiro
 const locales = {
-  'pt-BR': ptBR,
+  "pt-BR": ptBR,
 };
 
 const localizer = dateFnsLocalizer({
@@ -84,8 +96,8 @@ export interface EventoAgenda {
   start: Date;
   end: Date;
   resource: {
-    tipo: 'atendimento' | 'consulta' | 'avaliacao';
-    status: 'agendado' | 'em_andamento' | 'concluido' | 'cancelado';
+    tipo: "atendimento" | "consulta" | "avaliacao";
+    status: "agendado" | "em_andamento" | "concluido" | "cancelado";
     paciente: string;
     estagiario: string;
     supervisor: string;
@@ -95,18 +107,18 @@ export interface EventoAgenda {
 
 // Mensagens em português para o calendário
 const messages = {
-  allDay: 'Dia todo',
-  previous: 'Anterior',
-  next: 'Próximo',
-  today: 'Hoje',
-  month: 'Mês',
-  week: 'Semana',
-  day: 'Dia',
-  agenda: 'Agenda',
-  date: 'Data',
-  time: 'Hora',
-  event: 'Evento',
-  noEventsInRange: 'Não há eventos neste período.',
+  allDay: "Dia todo",
+  previous: "Anterior",
+  next: "Próximo",
+  today: "Hoje",
+  month: "Mês",
+  week: "Semana",
+  day: "Dia",
+  agenda: "Agenda",
+  date: "Data",
+  time: "Hora",
+  event: "Evento",
+  noEventsInRange: "Não há eventos neste período.",
   showMore: (total: number) => `+ Ver mais (${total})`,
 };
 
@@ -117,11 +129,14 @@ const AgendaGeral = () => {
   const [todosEventos, setTodosEventos] = useState<EventoAgenda[]>([]); // Para manter todos os eventos antes da filtragem
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [view, setView] = useState<typeof Views[keyof typeof Views]>(Views.WEEK);
+  const [view, setView] = useState<(typeof Views)[keyof typeof Views]>(
+    Views.WEEK,
+  );
   const [date, setDate] = useState(new Date());
-  const [eventoSelecionado, setEventoSelecionado] = useState<EventoAgenda | null>(null);
+  const [eventoSelecionado, setEventoSelecionado] =
+    useState<EventoAgenda | null>(null);
   const [modalDetalhesAberto, setModalDetalhesAberto] = useState(false);
-  
+
   // Estados para filtros (apenas para admin/secretário)
   const [estagiarios, setEstagiarios] = useState<Usuario[]>([]);
   const [supervisores, setSupervisores] = useState<Usuario[]>([]);
@@ -134,26 +149,30 @@ const AgendaGeral = () => {
   // Função para buscar usuários para filtros (apenas admin/secretário)
   const buscarUsuarios = async () => {
     if (!canAccessUsers()) return;
-    
+
     try {
       setLoadingFiltros(true);
-      const response = await api.get<Usuario[]>('/users');
+      const response = await api.get<Usuario[]>("/users");
       const usuarios = response.data;
-      
+
       // Verificar se a resposta é válida
       if (!usuarios || !Array.isArray(usuarios)) {
-        console.warn('Resposta da API de usuários inválida:', usuarios);
+        console.warn("Resposta da API de usuários inválida:", usuarios);
         return;
       }
-      
+
       // Separar estagiários (roleId 4) e supervisores (roleId 3)
-      const estagiariosList = usuarios.filter(user => user && user.roleId === 4);
-      const supervisoresList = usuarios.filter(user => user && user.roleId === 3);
-      
+      const estagiariosList = usuarios.filter(
+        (user) => user && user.roleId === 4,
+      );
+      const supervisoresList = usuarios.filter(
+        (user) => user && user.roleId === 3,
+      );
+
       setEstagiarios(estagiariosList);
       setSupervisores(supervisoresList);
     } catch (error) {
-      console.error('Erro ao buscar usuários:', error);
+      console.error("Erro ao buscar usuários:", error);
     } finally {
       setLoadingFiltros(false);
     }
@@ -162,27 +181,31 @@ const AgendaGeral = () => {
   // Função para aplicar filtros
   const aplicarFiltros = () => {
     let eventosFiltrados = [...todosEventos];
-    
+
     // Filtrar por supervisor
     if (filtros.supervisorId) {
-      const supervisorSelecionado = supervisores.find(s => s.id_User === filtros.supervisorId);
+      const supervisorSelecionado = supervisores.find(
+        (s) => s.id_User === filtros.supervisorId,
+      );
       if (supervisorSelecionado) {
-        eventosFiltrados = eventosFiltrados.filter(evento => 
-          evento.resource.supervisor === supervisorSelecionado.nome
+        eventosFiltrados = eventosFiltrados.filter(
+          (evento) => evento.resource.supervisor === supervisorSelecionado.nome,
         );
       }
     }
-    
+
     // Filtrar por estagiário
     if (filtros.estagiarioId) {
-      const estagiarioSelecionado = estagiarios.find(e => e.id_User === filtros.estagiarioId);
+      const estagiarioSelecionado = estagiarios.find(
+        (e) => e.id_User === filtros.estagiarioId,
+      );
       if (estagiarioSelecionado) {
-        eventosFiltrados = eventosFiltrados.filter(evento => 
-          evento.resource.estagiario === estagiarioSelecionado.nome
+        eventosFiltrados = eventosFiltrados.filter(
+          (evento) => evento.resource.estagiario === estagiarioSelecionado.nome,
         );
       }
     }
-    
+
     setEventos(eventosFiltrados);
   };
 
@@ -201,68 +224,77 @@ const AgendaGeral = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       // Chamada real para a API de sessões/atendimentos
       // O backend já filtra baseado no papel do usuário
-      const response = await api.get<AtendimentoAPI[]>('/session');
+      const response = await api.get<AtendimentoAPI[]>("/session");
       const atendimentos = response.data;
-      
+
       // Verificar se a resposta é um array
       if (!Array.isArray(atendimentos)) {
-        throw new Error('Formato de dados inválido recebido da API');
+        throw new Error("Formato de dados inválido recebido da API");
       }
-      
+
       // Mapear os atendimentos para o formato do calendário
-      const eventosFormatados: EventoAgenda[] = atendimentos.map((atendimento) => ({
-        id: atendimento.id_Atendimento,
-        title: `${atendimento.ListaEspera.nomeRegistro} - ${atendimento.estagiarioExecutor.nome}`,
-        start: new Date(atendimento.dataHoraInicio),
-        end: new Date(atendimento.dataHoraFim),
-        resource: {
-          tipo: 'atendimento', // Pode ser expandido para diferentes tipos baseado em lógica de negócio
-          status: mapearStatus(atendimento.status.id_Status),
-          paciente: atendimento.ListaEspera.nomeRegistro,
-          estagiario: atendimento.estagiarioExecutor.nome,
-          supervisor: atendimento.supervisorExecutor.nome,
-          observacoes: atendimento.observacoes,
-        },
-      }));
-      
+      const eventosFormatados: EventoAgenda[] = atendimentos.map(
+        (atendimento) => ({
+          id: atendimento.id_Atendimento,
+          title: `${atendimento.ListaEspera.nomeRegistro} - ${atendimento.estagiarioExecutor.nome}`,
+          start: new Date(atendimento.dataHoraInicio),
+          end: new Date(atendimento.dataHoraFim),
+          resource: {
+            tipo: "atendimento", // Pode ser expandido para diferentes tipos baseado em lógica de negócio
+            status: mapearStatus(atendimento.status.id_Status),
+            paciente: atendimento.ListaEspera.nomeRegistro,
+            estagiario: atendimento.estagiarioExecutor.nome,
+            supervisor: atendimento.supervisorExecutor.nome,
+            observacoes: atendimento.observacoes,
+          },
+        }),
+      );
+
       setEventos(eventosFormatados);
       setTodosEventos(eventosFormatados); // Manter cópia de todos os eventos
     } catch (error: any) {
-      console.error('Erro detalhado ao buscar eventos:', error);
-      
+      console.error("Erro detalhado ao buscar eventos:", error);
+
       // Tratamento específico por tipo de erro
       if (error.response) {
         // Erro de resposta do servidor
         const status = error.response.status;
-        const message = error.response.data?.message || error.response.statusText;
-        
+        const message =
+          error.response.data?.message || error.response.statusText;
+
         switch (status) {
           case 401:
-            setError('Sessão expirada. Faça login novamente.');
+            setError("Sessão expirada. Faça login novamente.");
             break;
           case 403:
-            setError('Você não tem permissão para visualizar a agenda.');
+            setError("Você não tem permissão para visualizar a agenda.");
             break;
           case 404:
-            setError('Endpoint da agenda não encontrado. Verifique a configuração da API.');
+            setError(
+              "Endpoint da agenda não encontrado. Verifique a configuração da API.",
+            );
             break;
           case 500:
-            setError('Erro interno do servidor. Tente novamente em alguns minutos.');
+            setError(
+              "Erro interno do servidor. Tente novamente em alguns minutos.",
+            );
             break;
           default:
             setError(`Erro do servidor (${status}): ${message}`);
         }
       } else if (error.request) {
         // Erro de rede
-        setError('Erro de conexão. Verifique sua internet e se o servidor está funcionando.');
+        setError(
+          "Erro de conexão. Verifique sua internet e se o servidor está funcionando.",
+        );
       } else {
         // Outros erros
-        setError(error.message || 'Erro inesperado ao carregar agendamentos.');
+        setError(error.message || "Erro inesperado ao carregar agendamentos.");
       }
-      
+
       setEventos([]);
     } finally {
       setLoading(false);
@@ -270,18 +302,20 @@ const AgendaGeral = () => {
   };
 
   // Função auxiliar para mapear o status numérico para string
-  const mapearStatus = (statusId: number): 'agendado' | 'em_andamento' | 'concluido' | 'cancelado' => {
+  const mapearStatus = (
+    statusId: number,
+  ): "agendado" | "em_andamento" | "concluido" | "cancelado" => {
     switch (statusId) {
       case 1:
-        return 'agendado';
+        return "agendado";
       case 2:
-        return 'em_andamento';
+        return "em_andamento";
       case 3:
-        return 'concluido';
+        return "concluido";
       case 4:
-        return 'cancelado';
+        return "cancelado";
       default:
-        return 'agendado';
+        return "agendado";
     }
   };
 
@@ -296,29 +330,33 @@ const AgendaGeral = () => {
     const startOfWeek = new Date(today);
     startOfWeek.setDate(today.getDate() - today.getDay()); // Domingo da semana atual
     startOfWeek.setHours(0, 0, 0, 0);
-    
+
     const endOfWeek = new Date(startOfWeek);
     endOfWeek.setDate(startOfWeek.getDate() + 6); // Sábado da semana atual
     endOfWeek.setHours(23, 59, 59, 999);
-    
+
     return date >= startOfWeek && date <= endOfWeek;
   };
 
   // Calcular estatísticas baseadas nos eventos
   const calcularEstatisticas = () => {
-    const eventosHoje = eventos.filter(e => isToday(e.start));
-    const eventosSemana = eventos.filter(e => isThisWeek(e.start));
-    
+    const eventosHoje = eventos.filter((e) => isToday(e.start));
+    const eventosSemana = eventos.filter((e) => isThisWeek(e.start));
+
     return {
       hoje: {
-        agendados: eventosHoje.filter(e => e.resource.status === 'agendado').length,
-        emAndamento: eventosHoje.filter(e => e.resource.status === 'em_andamento').length,
-        concluidos: eventosHoje.filter(e => e.resource.status === 'concluido').length,
-        total: eventosHoje.length
+        agendados: eventosHoje.filter((e) => e.resource.status === "agendado")
+          .length,
+        emAndamento: eventosHoje.filter(
+          (e) => e.resource.status === "em_andamento",
+        ).length,
+        concluidos: eventosHoje.filter((e) => e.resource.status === "concluido")
+          .length,
+        total: eventosHoje.length,
       },
       semana: {
-        total: eventosSemana.length
-      }
+        total: eventosSemana.length,
+      },
     };
   };
 
@@ -326,14 +364,14 @@ const AgendaGeral = () => {
 
   useEffect(() => {
     // Só carrega os dados quando a sessão estiver carregada
-    if (status === 'authenticated') {
+    if (status === "authenticated") {
       buscarEventos();
       // Buscar usuários para filtros apenas se for admin ou secretário
       if (canAccessUsers()) {
         buscarUsuarios();
       }
-    } else if (status === 'unauthenticated') {
-      setError('Usuário não autenticado. Faça login para ver a agenda.');
+    } else if (status === "unauthenticated") {
+      setError("Usuário não autenticado. Faça login para ver a agenda.");
       setLoading(false);
     }
     // Se status === 'loading', mantém o loading ativo
@@ -341,31 +379,31 @@ const AgendaGeral = () => {
 
   // Função para definir estilos dos eventos baseado no status
   const eventStyleGetter = (event: EventoAgenda) => {
-    let backgroundColor = '#3174ad';
-    
+    let backgroundColor = "#3174ad";
+
     switch (event.resource.status) {
-      case 'agendado':
-        backgroundColor = '#3b82f6'; // blue-500
+      case "agendado":
+        backgroundColor = "#3b82f6"; // blue-500
         break;
-      case 'em_andamento':
-        backgroundColor = '#f59e0b'; // amber-500
+      case "em_andamento":
+        backgroundColor = "#f59e0b"; // amber-500
         break;
-      case 'concluido':
-        backgroundColor = '#10b981'; // emerald-500
+      case "concluido":
+        backgroundColor = "#10b981"; // emerald-500
         break;
-      case 'cancelado':
-        backgroundColor = '#ef4444'; // red-500
+      case "cancelado":
+        backgroundColor = "#ef4444"; // red-500
         break;
     }
 
     return {
       style: {
         backgroundColor,
-        borderRadius: '8px',
+        borderRadius: "8px",
         opacity: 0.8,
-        color: 'white',
-        border: '0px',
-        display: 'block',
+        color: "white",
+        border: "0px",
+        display: "block",
       },
     };
   };
@@ -387,7 +425,6 @@ const AgendaGeral = () => {
 
   return (
     <div className="space-y-6">
-
       {/* Filtros - apenas para admin e secretário */}
       {canAccessUsers() && (
         <div className="bg-white p-4 rounded-lg shadow mb-6">
@@ -398,11 +435,11 @@ const AgendaGeral = () => {
                 Filtrar por Supervisor
               </label>
               <Select
-                value={filtros.supervisorId ? filtros.supervisorId : 'todos'}
-                onValueChange={(value) => 
-                  setFiltros(prev => ({
+                value={filtros.supervisorId ? filtros.supervisorId : "todos"}
+                onValueChange={(value) =>
+                  setFiltros((prev) => ({
                     ...prev,
-                    supervisorId: value === 'todos' ? undefined : value
+                    supervisorId: value === "todos" ? undefined : value,
                   }))
                 }
               >
@@ -411,11 +448,16 @@ const AgendaGeral = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todos">Todos os supervisores</SelectItem>
-                  {supervisores.filter(supervisor => supervisor && supervisor.id_User).map((supervisor) => (
-                    <SelectItem key={supervisor.id_User} value={supervisor.id_User}>
-                      {supervisor.nome}
-                    </SelectItem>
-                  ))}
+                  {supervisores
+                    .filter((supervisor) => supervisor && supervisor.id_User)
+                    .map((supervisor) => (
+                      <SelectItem
+                        key={supervisor.id_User}
+                        value={supervisor.id_User}
+                      >
+                        {supervisor.nome}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
@@ -425,11 +467,11 @@ const AgendaGeral = () => {
                 Filtrar por Estagiário
               </label>
               <Select
-                value={filtros.estagiarioId ? filtros.estagiarioId : 'todos'}
-                onValueChange={(value) => 
-                  setFiltros(prev => ({
+                value={filtros.estagiarioId ? filtros.estagiarioId : "todos"}
+                onValueChange={(value) =>
+                  setFiltros((prev) => ({
                     ...prev,
-                    estagiarioId: value === 'todos' ? undefined : value
+                    estagiarioId: value === "todos" ? undefined : value,
                   }))
                 }
               >
@@ -438,27 +480,29 @@ const AgendaGeral = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="todos">Todos os estagiários</SelectItem>
-                  {estagiarios.filter(estagiario => estagiario && estagiario.id_User).map((estagiario) => (
-                    <SelectItem key={estagiario.id_User} value={estagiario.id_User}>
-                      {estagiario.nome}
-                    </SelectItem>
-                  ))}
+                  {estagiarios
+                    .filter((estagiario) => estagiario && estagiario.id_User)
+                    .map((estagiario) => (
+                      <SelectItem
+                        key={estagiario.id_User}
+                        value={estagiario.id_User}
+                      >
+                        {estagiario.nome}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
           </div>
 
           <div className="mt-4 flex gap-2">
-            <Button 
+            <Button
               onClick={aplicarFiltros}
               className="bg-blue-600 hover:bg-blue-700 text-white"
             >
               Aplicar Filtros
             </Button>
-            <Button 
-              onClick={limparFiltros}
-              variant="outline"
-            >
+            <Button onClick={limparFiltros} variant="outline">
               Limpar Filtros
             </Button>
           </div>
@@ -471,7 +515,9 @@ const AgendaGeral = () => {
           <Card className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Agendados</p>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Agendados
+                </p>
                 <p className="text-2xl font-bold">
                   {estatisticas.hoje.agendados}
                 </p>
@@ -481,11 +527,13 @@ const AgendaGeral = () => {
               </Badge>
             </div>
           </Card>
-          
+
           <Card className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Em Andamento</p>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Em Andamento
+                </p>
                 <p className="text-2xl font-bold">
                   {estatisticas.hoje.emAndamento}
                 </p>
@@ -499,7 +547,9 @@ const AgendaGeral = () => {
           <Card className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Concluídos</p>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Concluídos
+                </p>
                 <p className="text-2xl font-bold">
                   {estatisticas.hoje.concluidos}
                 </p>
@@ -513,12 +563,14 @@ const AgendaGeral = () => {
           <Card className="p-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Total</p>
-                <p className="text-2xl font-bold">{estatisticas.semana.total}</p>
+                <p className="text-sm font-medium text-muted-foreground">
+                  Total
+                </p>
+                <p className="text-2xl font-bold">
+                  {estatisticas.semana.total}
+                </p>
               </div>
-              <Badge variant="outline">
-                Esta semana
-              </Badge>
+              <Badge variant="outline">Esta semana</Badge>
             </div>
           </Card>
         </div>
@@ -549,7 +601,9 @@ const AgendaGeral = () => {
           <div className="flex items-center justify-center h-96">
             <div className="text-center">
               <CalendarIcon className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-              <p className="text-muted-foreground mb-4">Nenhum agendamento encontrado</p>
+              <p className="text-muted-foreground mb-4">
+                Nenhum agendamento encontrado
+              </p>
               {/* Botão de criar agendamento - apenas para admin e secretário */}
               {canAccessUsers() && (
                 <Button onClick={handleNovoAgendamento}>
@@ -560,14 +614,14 @@ const AgendaGeral = () => {
             </div>
           </div>
         ) : (
-          <div style={{ height: '600px' }}>
+          <div style={{ height: "600px" }}>
             <Calendar
               localizer={localizer}
               events={eventos}
               startAccessor="start"
               endAccessor="end"
-              style={{ height: '100%' }}
-              views={['month', 'week', 'day', 'agenda']}
+              style={{ height: "100%" }}
+              views={["month", "week", "day", "agenda"]}
               view={view}
               onView={setView}
               date={date}
@@ -584,8 +638,26 @@ const AgendaGeral = () => {
               popup
               step={30}
               timeslots={2}
-              min={new Date(date.getFullYear(), date.getMonth(), date.getDate(), 7, 0, 0)} // 7:00 AM
-              max={new Date(date.getFullYear(), date.getMonth(), date.getDate(), 19, 0, 0)} // 7:00 PM
+              min={
+                new Date(
+                  date.getFullYear(),
+                  date.getMonth(),
+                  date.getDate(),
+                  7,
+                  0,
+                  0,
+                )
+              } // 7:00 AM
+              max={
+                new Date(
+                  date.getFullYear(),
+                  date.getMonth(),
+                  date.getDate(),
+                  19,
+                  0,
+                  0,
+                )
+              } // 7:00 PM
             />
           </div>
         )}

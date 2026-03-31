@@ -43,101 +43,107 @@ NEXT_PUBLIC_API_URL=http://localhost:3333
 ### 1. Verificar Status de Autenticação
 
 ```tsx
-import { useAuth } from '@/hooks/useAuth'
+import { useAuth } from "@/hooks/useAuth";
 
 function MyComponent() {
-  const { user, isLoading, isAuthenticated, signOut } = useAuth()
+  const { user, isLoading, isAuthenticated, signOut } = useAuth();
 
-  if (isLoading) return <div>Carregando...</div>
-  if (!isAuthenticated) return <div>Faça login</div>
+  if (isLoading) return <div>Carregando...</div>;
+  if (!isAuthenticated) return <div>Faça login</div>;
 
   return (
     <div>
       <p>Bem-vindo, {user?.name}!</p>
       <button onClick={signOut}>Sair</button>
     </div>
-  )
+  );
 }
 ```
 
 ### 2. Fazer Chamadas Autenticadas para a API
 
 ```tsx
-import api from '@/lib/api'
+import api from "@/lib/api";
 
 // O token será automaticamente incluído nas requisições
 const fetchData = async () => {
   try {
-    const response = await api.get('/protected-endpoint')
-    return response.data
+    const response = await api.get("/protected-endpoint");
+    return response.data;
   } catch (error) {
-    console.error('Erro:', error)
+    console.error("Erro:", error);
   }
-}
+};
 ```
 
 ### 3. Proteger Páginas Server-Side
 
 ```tsx
-import { auth } from '@/auth/auth'
-import { redirect } from 'next/navigation'
+import { auth } from "@/auth/auth";
+import { redirect } from "next/navigation";
 
 export default async function ProtectedPage() {
-  const session = await auth()
-  
+  const session = await auth();
+
   if (!session) {
-    redirect('/login')
+    redirect("/login");
   }
 
-  return <div>Conteúdo protegido</div>
+  return <div>Conteúdo protegido</div>;
 }
 ```
 
 ### 4. Proteger Rotas da API
 
 ```tsx
-import { auth } from '@/auth/auth'
-import { NextRequest, NextResponse } from 'next/server'
+import { auth } from "@/auth/auth";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
-  const session = await auth()
-  
+  const session = await auth();
+
   if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  return NextResponse.json({ data: 'Protected data' })
+  return NextResponse.json({ data: "Protected data" });
 }
 ```
 
 ## Funcionalidades Implementadas
 
 ### ✅ Autenticação com Credentials
+
 - Login com email e senha
 - Integração com API backend (NestJS)
 - Validação de credenciais
 
 ### ✅ Gerenciamento de Sessão
+
 - Sessão baseada em JWT
 - Token de acesso incluído na sessão
 - Expiração automática (24 horas)
 
 ### ✅ Proteção de Rotas
+
 - Middleware para proteção automática
 - Redirecionamento para login
 - Proteção de rotas da API
 
 ### ✅ Interface de Usuário
+
 - Formulário de login responsivo
 - Estados de loading e erro
 - Feedback visual para o usuário
 
 ### ✅ Interceptors HTTP
+
 - Token automático nas requisições
 - Tratamento de erros 401
 - Redirecionamento automático em caso de token expirado
 
 ### ✅ TypeScript
+
 - Tipos personalizados para sessão
 - Intellisense completo
 - Type safety em toda a aplicação
@@ -154,6 +160,7 @@ export async function GET(request: NextRequest) {
 ## Middleware de Proteção
 
 O middleware protege automaticamente todas as rotas exceto:
+
 - `/login`
 - `/api/auth/*` (rotas do NextAuth)
 - Arquivos estáticos
@@ -169,13 +176,16 @@ Para adicionar novos providers ou modificar a configuração:
 ## Troubleshooting
 
 ### Erro "NEXTAUTH_SECRET is not defined"
+
 - Verifique se `.env.local` existe e contém `NEXTAUTH_SECRET`
 
 ### Token não está sendo enviado
+
 - Verifique se `useAuth` está sendo usado em componente cliente
 - Confirme que `SessionProvider` está no layout principal
 
 ### Redirecionamento infinito
+
 - Verifique as configurações do middleware
 - Confirme que a rota de login está nas rotas públicas
 

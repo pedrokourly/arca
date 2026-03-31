@@ -17,7 +17,6 @@ export default function CriarUsuarioPage() {
 
   useEffect(() => {
     if (isLoading) return;
-    
 
     if (!session) {
       router.push("/login");
@@ -27,9 +26,7 @@ export default function CriarUsuarioPage() {
     if (!hasPermission) {
       router.push("/dashboard/unauthorized");
     }
-
   }, [isLoading, session, hasPermission, router]);
-
 
   if (isLoading || !session || !hasPermission) {
     return (

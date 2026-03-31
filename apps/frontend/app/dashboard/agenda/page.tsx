@@ -3,8 +3,8 @@
 import { Button } from "@/components/ui/button";
 import { Plus, BookOpenText } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { AgendaGeral } from '@/components/agenda';
-import { usePermissions } from '@/hooks/usePermissions';
+import { AgendaGeral } from "@/components/agenda";
+import { usePermissions } from "@/hooks/usePermissions";
 
 export default function AtendimentosPage() {
   const router = useRouter();
@@ -31,7 +31,7 @@ export default function AtendimentosPage() {
             {/* Botão de agendar sessão - apenas para admin e secretário */}
             {canAccessUsers() && (
               <Button
-                onClick={() => router.push('/dashboard/atendimento/cadastro')}
+                onClick={() => router.push("/dashboard/atendimento/cadastro")}
                 className="flex items-center gap-2"
               >
                 <Plus className="h-4 w-4" />

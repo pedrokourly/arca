@@ -29,7 +29,7 @@ export default function UnauthorizedPage() {
               Voltar
             </Button>
             <Button
-              onClick={() => router.push('/dashboard')}
+              onClick={() => router.push("/dashboard")}
               className="w-full"
             >
               Ir para Dashboard

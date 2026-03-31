@@ -3,23 +3,29 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { 
-  ArrowLeft, 
-  FileText, 
-  User, 
-  Calendar, 
-  Phone, 
+import {
+  ArrowLeft,
+  FileText,
+  User,
+  Calendar,
+  Phone,
   MapPin,
   CheckCircle2,
   Clock,
   Send,
   Download,
-  Loader2
+  Loader2,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -62,15 +68,27 @@ interface PatientData {
 }
 
 const STATUS_MAP = {
-  1: { label: 'Pendente', color: 'bg-yellow-100 text-yellow-800' },
-  2: { label: 'Aprovado', color: 'bg-green-100 text-green-800' }
+  1: { label: "Pendente", color: "bg-yellow-100 text-yellow-800" },
+  2: { label: "Aprovado", color: "bg-green-100 text-green-800" },
 };
 
 const TIPO_PRONTUARIO_MAP = {
-  1: { label: 'Triagem', color: 'bg-blue-100 text-blue-800', icon: Clock },
-  2: { label: 'Psicoterapia', color: 'bg-purple-100 text-purple-800', icon: User },
-  3: { label: 'Alta', color: 'bg-green-100 text-green-800', icon: CheckCircle2 },
-  4: { label: 'Encaminhamento', color: 'bg-orange-100 text-orange-800', icon: Send }
+  1: { label: "Triagem", color: "bg-blue-100 text-blue-800", icon: Clock },
+  2: {
+    label: "Psicoterapia",
+    color: "bg-purple-100 text-purple-800",
+    icon: User,
+  },
+  3: {
+    label: "Alta",
+    color: "bg-green-100 text-green-800",
+    icon: CheckCircle2,
+  },
+  4: {
+    label: "Encaminhamento",
+    color: "bg-orange-100 text-orange-800",
+    icon: Send,
+  },
 };
 
 export default function PatientDetailsPage() {
@@ -92,7 +110,7 @@ export default function PatientDetailsPage() {
     try {
       setLoading(true);
       const endpoint = `${process.env.NEXT_PUBLIC_API_URL}/medical-record/prontuarios/${patientId}`;
-      
+
       const response = await fetch(endpoint, {
         method: "GET",
         headers: {
@@ -117,16 +135,16 @@ export default function PatientDetailsPage() {
 
   const getProntuariosByType = (tipo: number) => {
     if (!patientData) return [];
-    
+
     const prontuarios: ProntuarioData[] = [];
-    patientData.Atendimento.forEach(atendimento => {
-      atendimento.Prontuario.forEach(prontuario => {
+    patientData.Atendimento.forEach((atendimento) => {
+      atendimento.Prontuario.forEach((prontuario) => {
         if (prontuario.id_Tipo === tipo) {
           prontuarios.push(prontuario);
         }
       });
     });
-    
+
     return prontuarios;
   };
 
@@ -134,14 +152,15 @@ export default function PatientDetailsPage() {
     try {
       let endpoint = "";
       let filename = "";
-      
+
       // Normalizar o nome do paciente para o nome do arquivo (remover espaços e caracteres especiais)
-      const normalizedName = patientData?.nomeRegistro
-        .toLowerCase()
-        .replace(/\s+/g, '_')
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '') || 'paciente';
-      
+      const normalizedName =
+        patientData?.nomeRegistro
+          .toLowerCase()
+          .replace(/\s+/g, "_")
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "") || "paciente";
+
       if (tipo === 3) {
         endpoint = `${process.env.NEXT_PUBLIC_API_URL}/medical-record/prontuarios/alta/pdf/${id}`;
         filename = `relatorio_alta_${normalizedName}.pdf`;
@@ -191,7 +210,9 @@ export default function PatientDetailsPage() {
       <div className="flex items-center justify-center min-h-screen">
         <div className="flex flex-col items-center gap-2">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">Carregando dados do paciente...</p>
+          <p className="text-sm text-muted-foreground">
+            Carregando dados do paciente...
+          </p>
         </div>
       </div>
     );
@@ -279,7 +300,9 @@ export default function PatientDetailsPage() {
           </CardHeader>
           <CardContent>
             <p className="text-base font-medium">
-              {format(new Date(patientData.dataNascimento), "dd/MM/yyyy", { locale: ptBR })}
+              {format(new Date(patientData.dataNascimento), "dd/MM/yyyy", {
+                locale: ptBR,
+              })}
             </p>
           </CardContent>
         </Card>
@@ -294,7 +317,9 @@ export default function PatientDetailsPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <p className="text-base font-medium">{patientData.telefonePessoal}</p>
+            <p className="text-base font-medium">
+              {patientData.telefonePessoal}
+            </p>
           </CardContent>
         </Card>
 
@@ -421,12 +446,23 @@ export default function PatientDetailsPage() {
           <Tabs defaultValue="all" className="w-full">
             <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="all">
-                Todos ({patientData.Atendimento.reduce((acc, atd) => acc + atd.Prontuario.length, 0)})
+                Todos (
+                {patientData.Atendimento.reduce(
+                  (acc, atd) => acc + atd.Prontuario.length,
+                  0,
+                )}
+                )
               </TabsTrigger>
-              <TabsTrigger value="triagem">Triagens ({totalTriagens})</TabsTrigger>
-              <TabsTrigger value="psicoterapia">Psicoterapias ({totalPsicoterapias})</TabsTrigger>
+              <TabsTrigger value="triagem">
+                Triagens ({totalTriagens})
+              </TabsTrigger>
+              <TabsTrigger value="psicoterapia">
+                Psicoterapias ({totalPsicoterapias})
+              </TabsTrigger>
               <TabsTrigger value="alta">Altas ({totalAltas})</TabsTrigger>
-              <TabsTrigger value="encaminhamento">Encaminhamentos ({totalEncaminhamentos})</TabsTrigger>
+              <TabsTrigger value="encaminhamento">
+                Encaminhamentos ({totalEncaminhamentos})
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="all" className="space-y-4 mt-4">
@@ -436,10 +472,16 @@ export default function PatientDetailsPage() {
                     <div className="flex justify-between items-start">
                       <div>
                         <CardTitle className="text-lg">
-                          Atendimento - {format(new Date(atendimento.dataHoraInicio), "dd/MM/yyyy", { locale: ptBR })}
+                          Atendimento -{" "}
+                          {format(
+                            new Date(atendimento.dataHoraInicio),
+                            "dd/MM/yyyy",
+                            { locale: ptBR },
+                          )}
                         </CardTitle>
                         <CardDescription>
-                          Supervisor: {atendimento.supervisorExecutor.nome} (CRP: {atendimento.supervisorExecutor.CRP})
+                          Supervisor: {atendimento.supervisorExecutor.nome}{" "}
+                          (CRP: {atendimento.supervisorExecutor.CRP})
                           <br />
                           Estagiário: {atendimento.estagiarioExecutor.nome}
                         </CardDescription>
@@ -448,48 +490,76 @@ export default function PatientDetailsPage() {
                   </CardHeader>
                   <CardContent className="space-y-3">
                     {atendimento.Prontuario.map((prontuario) => {
-                      const tipoInfo = TIPO_PRONTUARIO_MAP[prontuario.id_Tipo as keyof typeof TIPO_PRONTUARIO_MAP];
-                      const statusInfo = STATUS_MAP[prontuario.id_Status as keyof typeof STATUS_MAP];
+                      const tipoInfo =
+                        TIPO_PRONTUARIO_MAP[
+                          prontuario.id_Tipo as keyof typeof TIPO_PRONTUARIO_MAP
+                        ];
+                      const statusInfo =
+                        STATUS_MAP[
+                          prontuario.id_Status as keyof typeof STATUS_MAP
+                        ];
                       const Icon = tipoInfo?.icon || FileText;
 
                       return (
-                        <div key={prontuario.id_Registro} className="border rounded-lg p-4">
+                        <div
+                          key={prontuario.id_Registro}
+                          className="border rounded-lg p-4"
+                        >
                           <div className="flex items-start gap-2 mb-3">
                             <Icon className="h-5 w-5 mt-0.5" />
                             <div>
                               <Badge className={tipoInfo?.color}>
-                                {tipoInfo?.label || prontuario.TipoProntuario.nome}
+                                {tipoInfo?.label ||
+                                  prontuario.TipoProntuario.nome}
                               </Badge>
                               <Badge className={`ml-2 ${statusInfo?.color}`}>
                                 {statusInfo?.label || prontuario.status.nome}
                               </Badge>
                             </div>
                           </div>
-                          
+
                           <Separator className="my-3" />
-                          
+
                           <div className="space-y-2 text-sm">
                             <p className="text-muted-foreground">
-                              Data de Emissão: {format(new Date(prontuario.dataEmissao), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                              Data de Emissão:{" "}
+                              {format(
+                                new Date(prontuario.dataEmissao),
+                                "dd/MM/yyyy 'às' HH:mm",
+                                { locale: ptBR },
+                              )}
                             </p>
-                            
+
                             {/* Conteúdo específico por tipo */}
-                            {prontuario.id_Tipo === 1 || prontuario.id_Tipo === 2 ? (
+                            {prontuario.id_Tipo === 1 ||
+                            prontuario.id_Tipo === 2 ? (
                               <div className="mt-3">
-                                <p className="font-medium mb-1">Relatório da Sessão:</p>
+                                <p className="font-medium mb-1">
+                                  Relatório da Sessão:
+                                </p>
                                 <div className="bg-muted p-3 rounded-md whitespace-pre-wrap">
                                   {prontuario.conteudo.relatorioDaSessao}
                                 </div>
                                 <p className="mt-2">
                                   <span className="font-medium">Presença:</span>{" "}
-                                  <Badge variant={prontuario.conteudo.presente ? "default" : "destructive"}>
-                                    {prontuario.conteudo.presente ? "Presente" : "Ausente"}
+                                  <Badge
+                                    variant={
+                                      prontuario.conteudo.presente
+                                        ? "default"
+                                        : "destructive"
+                                    }
+                                  >
+                                    {prontuario.conteudo.presente
+                                      ? "Presente"
+                                      : "Ausente"}
                                   </Badge>
                                 </p>
                               </div>
                             ) : prontuario.id_Tipo === 3 ? (
                               <div className="mt-3">
-                                <p className="font-medium mb-1">Finalidade da Alta:</p>
+                                <p className="font-medium mb-1">
+                                  Finalidade da Alta:
+                                </p>
                                 <div className="bg-muted p-3 rounded-md whitespace-pre-wrap">
                                   {prontuario.conteudo.finalidade}
                                 </div>
@@ -498,10 +568,14 @@ export default function PatientDetailsPage() {
                               <div className="mt-3 space-y-2">
                                 <div>
                                   <p className="font-medium">Instituição:</p>
-                                  <p className="text-muted-foreground">{prontuario.conteudo.instituicaoEncaminhada}</p>
+                                  <p className="text-muted-foreground">
+                                    {prontuario.conteudo.instituicaoEncaminhada}
+                                  </p>
                                 </div>
                                 <div>
-                                  <p className="font-medium mb-1">Motivo do Encaminhamento:</p>
+                                  <p className="font-medium mb-1">
+                                    Motivo do Encaminhamento:
+                                  </p>
                                   <div className="bg-muted p-3 rounded-md whitespace-pre-wrap">
                                     {prontuario.conteudo.motivoEncaminhamento}
                                   </div>
@@ -515,26 +589,45 @@ export default function PatientDetailsPage() {
                   </CardContent>
                 </Card>
               ))}
-              
+
               {patientData.Atendimento.length === 0 && (
                 <div className="text-center py-12">
                   <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">Nenhum registro encontrado</p>
+                  <p className="text-muted-foreground">
+                    Nenhum registro encontrado
+                  </p>
                 </div>
               )}
             </TabsContent>
 
             {/* Filtros por tipo */}
             {[1, 2, 3, 4].map((tipo) => {
-              const tabValue = tipo === 1 ? 'triagem' : tipo === 2 ? 'psicoterapia' : tipo === 3 ? 'alta' : 'encaminhamento';
+              const tabValue =
+                tipo === 1
+                  ? "triagem"
+                  : tipo === 2
+                    ? "psicoterapia"
+                    : tipo === 3
+                      ? "alta"
+                      : "encaminhamento";
               const prontuarios = getProntuariosByType(tipo);
-              
+
               return (
-                <TabsContent key={tipo} value={tabValue} className="space-y-4 mt-4">
+                <TabsContent
+                  key={tipo}
+                  value={tabValue}
+                  className="space-y-4 mt-4"
+                >
                   {prontuarios.length > 0 ? (
                     prontuarios.map((prontuario) => {
-                      const tipoInfo = TIPO_PRONTUARIO_MAP[prontuario.id_Tipo as keyof typeof TIPO_PRONTUARIO_MAP];
-                      const statusInfo = STATUS_MAP[prontuario.id_Status as keyof typeof STATUS_MAP];
+                      const tipoInfo =
+                        TIPO_PRONTUARIO_MAP[
+                          prontuario.id_Tipo as keyof typeof TIPO_PRONTUARIO_MAP
+                        ];
+                      const statusInfo =
+                        STATUS_MAP[
+                          prontuario.id_Status as keyof typeof STATUS_MAP
+                        ];
                       const Icon = tipoInfo?.icon || FileText;
 
                       return (
@@ -544,39 +637,60 @@ export default function PatientDetailsPage() {
                               <Icon className="h-5 w-5 mt-0.5" />
                               <div>
                                 <Badge className={tipoInfo?.color}>
-                                  {tipoInfo?.label || prontuario.TipoProntuario.nome}
+                                  {tipoInfo?.label ||
+                                    prontuario.TipoProntuario.nome}
                                 </Badge>
                                 <Badge className={`ml-2 ${statusInfo?.color}`}>
                                   {statusInfo?.label || prontuario.status.nome}
                                 </Badge>
                               </div>
                             </div>
-                            
+
                             <Separator className="my-3" />
-                            
+
                             <div className="space-y-2 text-sm">
                               <p className="text-muted-foreground">
-                                Data de Emissão: {format(new Date(prontuario.dataEmissao), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                                Data de Emissão:{" "}
+                                {format(
+                                  new Date(prontuario.dataEmissao),
+                                  "dd/MM/yyyy 'às' HH:mm",
+                                  { locale: ptBR },
+                                )}
                               </p>
-                              
+
                               {/* Conteúdo específico por tipo */}
-                              {(prontuario.id_Tipo === 1 || prontuario.id_Tipo === 2) && (
+                              {(prontuario.id_Tipo === 1 ||
+                                prontuario.id_Tipo === 2) && (
                                 <div className="mt-3">
-                                  <p className="font-medium mb-1">Relatório da Sessão:</p>
+                                  <p className="font-medium mb-1">
+                                    Relatório da Sessão:
+                                  </p>
                                   <div className="bg-muted p-3 rounded-md whitespace-pre-wrap">
                                     {prontuario.conteudo.relatorioDaSessao}
                                   </div>
                                   <p className="mt-2">
-                                    <span className="font-medium">Presença:</span>{" "}
-                                    <Badge variant={prontuario.conteudo.presente ? "default" : "destructive"}>
-                                      {prontuario.conteudo.presente ? "Presente" : "Ausente"}
+                                    <span className="font-medium">
+                                      Presença:
+                                    </span>{" "}
+                                    <Badge
+                                      variant={
+                                        prontuario.conteudo.presente
+                                          ? "default"
+                                          : "destructive"
+                                      }
+                                    >
+                                      {prontuario.conteudo.presente
+                                        ? "Presente"
+                                        : "Ausente"}
                                     </Badge>
                                   </p>
                                 </div>
                               )}
                               {prontuario.id_Tipo === 3 && (
                                 <div className="mt-3">
-                                  <p className="font-medium mb-1">Finalidade da Alta:</p>
+                                  <p className="font-medium mb-1">
+                                    Finalidade da Alta:
+                                  </p>
                                   <div className="bg-muted p-3 rounded-md whitespace-pre-wrap">
                                     {prontuario.conteudo.finalidade}
                                   </div>
@@ -586,10 +700,17 @@ export default function PatientDetailsPage() {
                                 <div className="mt-3 space-y-2">
                                   <div>
                                     <p className="font-medium">Instituição:</p>
-                                    <p className="text-muted-foreground">{prontuario.conteudo.instituicaoEncaminhada}</p>
+                                    <p className="text-muted-foreground">
+                                      {
+                                        prontuario.conteudo
+                                          .instituicaoEncaminhada
+                                      }
+                                    </p>
                                   </div>
                                   <div>
-                                    <p className="font-medium mb-1">Motivo do Encaminhamento:</p>
+                                    <p className="font-medium mb-1">
+                                      Motivo do Encaminhamento:
+                                    </p>
                                     <div className="bg-muted p-3 rounded-md whitespace-pre-wrap">
                                       {prontuario.conteudo.motivoEncaminhamento}
                                     </div>
@@ -604,7 +725,9 @@ export default function PatientDetailsPage() {
                   ) : (
                     <div className="text-center py-12">
                       <FileText className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                      <p className="text-muted-foreground">Nenhum registro deste tipo encontrado</p>
+                      <p className="text-muted-foreground">
+                        Nenhum registro deste tipo encontrado
+                      </p>
                     </div>
                   )}
                 </TabsContent>

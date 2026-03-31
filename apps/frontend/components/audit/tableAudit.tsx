@@ -26,7 +26,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { apiService } from "@/utils/apiHandler";
@@ -102,22 +108,25 @@ export function AuditTable() {
     // Filtro por busca textual
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
-      filtered = filtered.filter(log =>
-        log.nome_Usuario_Executor.toLowerCase().includes(searchLower) ||
-        log.tipoAcao.toLowerCase().includes(searchLower) ||
-        log.entidade_Afetada.toLowerCase().includes(searchLower) ||
-        log.endereco_Ip.includes(searchTerm)
+      filtered = filtered.filter(
+        (log) =>
+          log.nome_Usuario_Executor.toLowerCase().includes(searchLower) ||
+          log.tipoAcao.toLowerCase().includes(searchLower) ||
+          log.entidade_Afetada.toLowerCase().includes(searchLower) ||
+          log.endereco_Ip.includes(searchTerm),
       );
     }
 
     // Filtro por tipo de ação
     if (actionFilter !== "all") {
-      filtered = filtered.filter(log => log.tipoAcao === actionFilter);
+      filtered = filtered.filter((log) => log.tipoAcao === actionFilter);
     }
 
     // Filtro por entidade afetada
     if (entityFilter !== "all") {
-      filtered = filtered.filter(log => log.entidade_Afetada === entityFilter);
+      filtered = filtered.filter(
+        (log) => log.entidade_Afetada === entityFilter,
+      );
     }
 
     setFilteredLogs(filtered);
@@ -130,7 +139,7 @@ export function AuditTable() {
   };
 
   const handleView = (logId: string) => {
-    const log = auditLogs.find(l => l.id_Log === logId);
+    const log = auditLogs.find((l) => l.id_Log === logId);
     if (log) {
       setLogToView(log);
       setViewDialogOpen(true);
@@ -138,10 +147,14 @@ export function AuditTable() {
   };
 
   // Obter lista única de ações para o filtro
-  const uniqueActions = Array.from(new Set(auditLogs.map(log => log.tipoAcao))).sort();
-  
+  const uniqueActions = Array.from(
+    new Set(auditLogs.map((log) => log.tipoAcao)),
+  ).sort();
+
   // Obter lista única de entidades para o filtro
-  const uniqueEntities = Array.from(new Set(auditLogs.map(log => log.entidade_Afetada))).sort();
+  const uniqueEntities = Array.from(
+    new Set(auditLogs.map((log) => log.entidade_Afetada)),
+  ).sort();
 
   // Skeleton para carregamento da sessão
   if (status === "loading") {
@@ -210,10 +223,7 @@ export function AuditTable() {
     return (
       <div className="w-full p-6 text-center">
         <p className="text-red-600 mb-4">{error}</p>
-        <Button 
-          onClick={() => window.location.reload()} 
-          variant="outline"
-        >
+        <Button onClick={() => window.location.reload()} variant="outline">
           Tentar novamente
         </Button>
       </div>
@@ -235,7 +245,7 @@ export function AuditTable() {
             />
           </div>
         </div>
-        
+
         <div className="flex flex-col sm:flex-row gap-2">
           <Select value={actionFilter} onValueChange={setActionFilter}>
             <SelectTrigger className="w-full sm:w-[180px]">
@@ -244,8 +254,10 @@ export function AuditTable() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas as ações</SelectItem>
-              {uniqueActions.map(action => (
-                <SelectItem key={action} value={action}>{action}</SelectItem>
+              {uniqueActions.map((action) => (
+                <SelectItem key={action} value={action}>
+                  {action}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -257,12 +269,14 @@ export function AuditTable() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todas as entidades</SelectItem>
-              {uniqueEntities.map(entity => (
-                <SelectItem key={entity} value={entity}>{entity}</SelectItem>
+              {uniqueEntities.map((entity) => (
+                <SelectItem key={entity} value={entity}>
+                  {entity}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
-          
+
           {(searchTerm || actionFilter !== "all" || entityFilter !== "all") && (
             <Button
               variant="outline"
@@ -280,10 +294,16 @@ export function AuditTable() {
       {/* Estatísticas */}
       <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
         <span>
-          Total: <span className="font-medium text-foreground">{auditLogs.length}</span>
+          Total:{" "}
+          <span className="font-medium text-foreground">
+            {auditLogs.length}
+          </span>
         </span>
         <span>
-          Filtrados: <span className="font-medium text-foreground">{filteredLogs.length}</span>
+          Filtrados:{" "}
+          <span className="font-medium text-foreground">
+            {filteredLogs.length}
+          </span>
         </span>
       </div>
 
@@ -310,7 +330,9 @@ export function AuditTable() {
               <TableCell>
                 <div>
                   <p className="font-medium">{log.nome_Usuario_Executor}</p>
-                  <p className="text-xs text-muted-foreground">{log.id_Usuario_Executor}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {log.id_Usuario_Executor}
+                  </p>
                 </div>
               </TableCell>
               <TableCell>
@@ -322,7 +344,9 @@ export function AuditTable() {
                 <div>
                   <p className="font-medium">{log.entidade_Afetada}</p>
                   {log.id_Entidade_Afetada && (
-                    <p className="text-xs text-muted-foreground">{log.id_Entidade_Afetada}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {log.id_Entidade_Afetada}
+                    </p>
                   )}
                 </div>
               </TableCell>
@@ -332,7 +356,9 @@ export function AuditTable() {
                 </code>
               </TableCell>
               <TableCell>
-                {format(new Date(log.acessoEm), "dd/MM/yyyy HH:mm:ss", { locale: ptBR })}
+                {format(new Date(log.acessoEm), "dd/MM/yyyy HH:mm:ss", {
+                  locale: ptBR,
+                })}
               </TableCell>
               <TableCell className="text-center">
                 <Button
@@ -363,36 +389,58 @@ export function AuditTable() {
             <div className="space-y-6">
               {/* Informações Básicas */}
               <div className="space-y-3">
-                <h4 className="font-semibold text-sm text-primary">Informações Básicas</h4>
+                <h4 className="font-semibold text-sm text-primary">
+                  Informações Básicas
+                </h4>
                 <div className="grid grid-cols-2 gap-4 text-sm">
                   <div>
                     <Label className="text-muted-foreground">ID do Log</Label>
-                    <p className="font-mono text-xs bg-muted p-2 rounded">{logToView.id_Log}</p>
+                    <p className="font-mono text-xs bg-muted p-2 rounded">
+                      {logToView.id_Log}
+                    </p>
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">Usuário Executor</Label>
-                    <p className="font-medium">{logToView.nome_Usuario_Executor}</p>
-                    <p className="text-xs text-muted-foreground">{logToView.id_Usuario_Executor}</p>
+                    <Label className="text-muted-foreground">
+                      Usuário Executor
+                    </Label>
+                    <p className="font-medium">
+                      {logToView.nome_Usuario_Executor}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {logToView.id_Usuario_Executor}
+                    </p>
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">Tipo de Ação</Label>
+                    <Label className="text-muted-foreground">
+                      Tipo de Ação
+                    </Label>
                     <Badge variant="secondary">{logToView.tipoAcao}</Badge>
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">Entidade Afetada</Label>
+                    <Label className="text-muted-foreground">
+                      Entidade Afetada
+                    </Label>
                     <p className="font-medium">{logToView.entidade_Afetada}</p>
                     {logToView.id_Entidade_Afetada && (
-                      <p className="text-xs text-muted-foreground">{logToView.id_Entidade_Afetada}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {logToView.id_Entidade_Afetada}
+                      </p>
                     )}
                   </div>
                   <div>
                     <Label className="text-muted-foreground">Endereço IP</Label>
-                    <code className="text-xs bg-muted px-2 py-1 rounded">{logToView.endereco_Ip}</code>
+                    <code className="text-xs bg-muted px-2 py-1 rounded">
+                      {logToView.endereco_Ip}
+                    </code>
                   </div>
                   <div>
                     <Label className="text-muted-foreground">Data e Hora</Label>
                     <p className="font-medium">
-                      {format(new Date(logToView.acessoEm), "dd/MM/yyyy 'às' HH:mm:ss", { locale: ptBR })}
+                      {format(
+                        new Date(logToView.acessoEm),
+                        "dd/MM/yyyy 'às' HH:mm:ss",
+                        { locale: ptBR },
+                      )}
                     </p>
                   </div>
                 </div>
@@ -400,11 +448,15 @@ export function AuditTable() {
 
               {/* Detalhes da Requisição */}
               <div className="space-y-3">
-                <h4 className="font-semibold text-sm text-primary">Detalhes da Requisição</h4>
+                <h4 className="font-semibold text-sm text-primary">
+                  Detalhes da Requisição
+                </h4>
                 <div className="space-y-3">
                   <div>
                     <Label className="text-muted-foreground">Endpoint</Label>
-                    <p className="font-mono text-sm bg-muted p-2 rounded">{logToView.detalhes.path}</p>
+                    <p className="font-mono text-sm bg-muted p-2 rounded">
+                      {logToView.detalhes.path}
+                    </p>
                   </div>
                   <div>
                     <Label className="text-muted-foreground">Método HTTP</Label>
@@ -412,22 +464,37 @@ export function AuditTable() {
                   </div>
                   {logToView.detalhes.requestBody && (
                     <div>
-                      <Label className="text-muted-foreground">Dados da Requisição</Label>
+                      <Label className="text-muted-foreground">
+                        Dados da Requisição
+                      </Label>
                       <pre className="text-xs bg-muted p-3 rounded overflow-x-auto">
-                        {JSON.stringify(logToView.detalhes.requestBody, null, 2)}
+                        {JSON.stringify(
+                          logToView.detalhes.requestBody,
+                          null,
+                          2,
+                        )}
                       </pre>
                     </div>
                   )}
-                  {Object.keys(logToView.detalhes).filter(key => !['path', 'method', 'requestBody'].includes(key)).length > 0 && (
+                  {Object.keys(logToView.detalhes).filter(
+                    (key) => !["path", "method", "requestBody"].includes(key),
+                  ).length > 0 && (
                     <div>
-                      <Label className="text-muted-foreground">Dados Adicionais</Label>
+                      <Label className="text-muted-foreground">
+                        Dados Adicionais
+                      </Label>
                       <pre className="text-xs bg-muted p-3 rounded overflow-x-auto">
                         {JSON.stringify(
                           Object.fromEntries(
-                            Object.entries(logToView.detalhes).filter(([key]) => !['path', 'method', 'requestBody'].includes(key))
+                            Object.entries(logToView.detalhes).filter(
+                              ([key]) =>
+                                !["path", "method", "requestBody"].includes(
+                                  key,
+                                ),
+                            ),
                           ),
                           null,
-                          2
+                          2,
                         )}
                       </pre>
                     </div>
@@ -437,9 +504,7 @@ export function AuditTable() {
             </div>
           )}
           <DialogFooter>
-            <Button onClick={() => setViewDialogOpen(false)}>
-              Fechar
-            </Button>
+            <Button onClick={() => setViewDialogOpen(false)}>Fechar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

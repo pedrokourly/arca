@@ -5,19 +5,25 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { 
-  FileText, 
-  ClipboardCheck, 
-  Edit, 
+import {
+  FileText,
+  ClipboardCheck,
+  Edit,
   CheckCircle2,
   Calendar,
   User,
   Users,
-  Clock
+  Clock,
 } from "lucide-react";
 import { toast } from "sonner";
 import { apiService } from "@/utils/apiHandler";
@@ -60,7 +66,11 @@ interface SessionData {
   }>;
 }
 
-type TabType = "triagem-pendente" | "triagem-aprovacao" | "psicoterapia-pendente" | "psicoterapia-aprovacao";
+type TabType =
+  | "triagem-pendente"
+  | "triagem-aprovacao"
+  | "psicoterapia-pendente"
+  | "psicoterapia-aprovacao";
 
 export default function RelatoriosPage() {
   const { data: session } = useSession();
@@ -80,13 +90,13 @@ export default function RelatoriosPage() {
   const fetchSessions = async () => {
     try {
       setLoading(true);
-      
+
       if (!session?.token) {
         throw new Error("Token de autenticação não encontrado");
       }
 
       const data = await apiService.getSessions(session.token);
-      
+
       setSessions(data);
     } catch (error) {
       console.error("Erro ao carregar sessões:", error);
@@ -111,43 +121,47 @@ export default function RelatoriosPage() {
       }
     };
 
-    window.addEventListener('focus', handleFocus);
-    return () => window.removeEventListener('focus', handleFocus);
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
   }, [session]);
 
   // Filtrar sessões de triagem que precisam de relatório (status 1 = agendada, sem prontuário)
   const getTriagemPendente = () => {
-    return sessions.filter(s => 
-      s.id_Tipo_Atendimento === 1 && // Triagem
-      s.id_Status === 1 && // Agendada
-      (!s.Prontuario || s.Prontuario.length === 0) // Sem prontuário
+    return sessions.filter(
+      (s) =>
+        s.id_Tipo_Atendimento === 1 && // Triagem
+        s.id_Status === 1 && // Agendada
+        (!s.Prontuario || s.Prontuario.length === 0), // Sem prontuário
     );
   };
 
   // Filtrar relatórios de triagem que precisam ser aprovados (status 1 = prontuário pendente)
   const getTriagemAprovacao = () => {
-    return sessions.filter(s => 
-      s.id_Tipo_Atendimento === 1 && // Triagem
-      s.Prontuario && 
-      s.Prontuario.some(p => p.id_Status === 1 && p.id_Tipo === 1) // Prontuário de triagem pendente
+    return sessions.filter(
+      (s) =>
+        s.id_Tipo_Atendimento === 1 && // Triagem
+        s.Prontuario &&
+        s.Prontuario.some((p) => p.id_Status === 1 && p.id_Tipo === 1), // Prontuário de triagem pendente
     );
   };
 
   // Filtrar sessões de psicoterapia que precisam de relatório
   const getPsicoterapiaPendente = () => {
-    return sessions.filter(s => 
-      s.id_Tipo_Atendimento === 2 && // Psicoterapia
-      s.id_Status === 1 && // Agendada
-      (!s.Prontuario || !s.Prontuario.some(p => p.id_Tipo === 2)) // Sem prontuário de psicoterapia
+    return sessions.filter(
+      (s) =>
+        s.id_Tipo_Atendimento === 2 && // Psicoterapia
+        s.id_Status === 1 && // Agendada
+        (!s.Prontuario || !s.Prontuario.some((p) => p.id_Tipo === 2)), // Sem prontuário de psicoterapia
     );
   };
 
   // Filtrar relatórios de psicoterapia que precisam ser aprovados
   const getPsicoterapiaAprovacao = () => {
-    return sessions.filter(s => 
-      s.id_Tipo_Atendimento === 2 && // Psicoterapia
-      s.Prontuario && 
-      s.Prontuario.some(p => p.id_Status === 1 && p.id_Tipo === 2) // Prontuário de psicoterapia pendente
+    return sessions.filter(
+      (s) =>
+        s.id_Tipo_Atendimento === 2 && // Psicoterapia
+        s.Prontuario &&
+        s.Prontuario.some((p) => p.id_Status === 1 && p.id_Tipo === 2), // Prontuário de psicoterapia pendente
     );
   };
 
@@ -158,14 +172,23 @@ export default function RelatoriosPage() {
     psicoterapiaAprovacao: getPsicoterapiaAprovacao().length,
   };
 
-  const SessionCard = ({ session, showApprovalActions = false }: { session: SessionData; showApprovalActions?: boolean }) => {
+  const SessionCard = ({
+    session,
+    showApprovalActions = false,
+  }: {
+    session: SessionData;
+    showApprovalActions?: boolean;
+  }) => {
     const isEstagiario = userRole === 4;
     const isSupervisor = userRole === 3;
     const hasProntuario = session.Prontuario && session.Prontuario.length > 0;
-    const prontuarioPendente = session.Prontuario?.find(p => p.id_Status === 1);
-    
+    const prontuarioPendente = session.Prontuario?.find(
+      (p) => p.id_Status === 1,
+    );
+
     // Determina o tipo de relatório baseado no tipo de atendimento
-    const reportType = session.id_Tipo_Atendimento === 1 ? 'triagem' : 'psicoterapia';
+    const reportType =
+      session.id_Tipo_Atendimento === 1 ? "triagem" : "psicoterapia";
 
     return (
       <Card className="mb-4 hover:shadow-md transition-shadow">
@@ -173,7 +196,9 @@ export default function RelatoriosPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <User className="h-4 w-4 text-muted-foreground" />
-              <CardTitle className="text-lg">{session.ListaEspera.nomeRegistro}</CardTitle>
+              <CardTitle className="text-lg">
+                {session.ListaEspera.nomeRegistro}
+              </CardTitle>
               {session.ListaEspera.nomeSocial && (
                 <Badge variant="outline" className="text-xs">
                   {session.ListaEspera.nomeSocial}
@@ -191,27 +216,39 @@ export default function RelatoriosPage() {
               <div>
                 <span className="font-medium">Data/Hora:</span>
                 <p className="text-muted-foreground">
-                  {format(new Date(session.dataHoraInicio), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                  {format(
+                    new Date(session.dataHoraInicio),
+                    "dd/MM/yyyy 'às' HH:mm",
+                    { locale: ptBR },
+                  )}
                 </p>
               </div>
               <div>
                 <span className="font-medium">Telefone:</span>
-                <p className="text-muted-foreground">{session.ListaEspera.telefonePessoal}</p>
+                <p className="text-muted-foreground">
+                  {session.ListaEspera.telefonePessoal}
+                </p>
               </div>
               <div>
                 <span className="font-medium">Estagiário:</span>
-                <p className="text-muted-foreground">{session.estagiarioExecutor.nome}</p>
+                <p className="text-muted-foreground">
+                  {session.estagiarioExecutor.nome}
+                </p>
               </div>
               <div>
                 <span className="font-medium">Supervisor:</span>
-                <p className="text-muted-foreground">{session.supervisorExecutor.nome}</p>
+                <p className="text-muted-foreground">
+                  {session.supervisorExecutor.nome}
+                </p>
               </div>
             </div>
 
             {session.observacoes && (
               <div className="text-sm">
                 <span className="font-medium">Observações:</span>
-                <p className="text-muted-foreground mt-1">{session.observacoes}</p>
+                <p className="text-muted-foreground mt-1">
+                  {session.observacoes}
+                </p>
               </div>
             )}
 
@@ -221,11 +258,15 @@ export default function RelatoriosPage() {
                 <>
                   {/* Estagiário pode editar relatório pendente */}
                   {isEstagiario && (
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       variant="outline"
                       className="flex-1"
-                      onClick={() => router.push(`/dashboard/relatorios/${reportType}/${session.id_Atendimento}/edit`)}
+                      onClick={() =>
+                        router.push(
+                          `/dashboard/relatorios/${reportType}/${session.id_Atendimento}/edit`,
+                        )
+                      }
                     >
                       Editar Relatório
                     </Button>
@@ -234,19 +275,27 @@ export default function RelatoriosPage() {
                   {/* Supervisor pode editar ou aprovar */}
                   {isSupervisor && (
                     <>
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
+                      <Button
+                        size="sm"
+                        variant="outline"
                         className="flex-1"
-                        onClick={() => router.push(`/dashboard/relatorios/${reportType}/${session.id_Atendimento}/edit`)}
+                        onClick={() =>
+                          router.push(
+                            `/dashboard/relatorios/${reportType}/${session.id_Atendimento}/edit`,
+                          )
+                        }
                       >
                         Editar Relatório
                       </Button>
-                      <Button 
-                        size="sm" 
-                        variant="default" 
+                      <Button
+                        size="sm"
+                        variant="default"
                         className="flex-1"
-                        onClick={() => router.push(`/dashboard/relatorios/${reportType}/aprovar/${session.id_Atendimento}`)}
+                        onClick={() =>
+                          router.push(
+                            `/dashboard/relatorios/${reportType}/aprovar/${session.id_Atendimento}`,
+                          )
+                        }
                       >
                         Prosseguir para Aprovação
                       </Button>
@@ -256,19 +305,27 @@ export default function RelatoriosPage() {
                   {/* Admin/Secretário podem ver ambas ações */}
                   {userRole && userRole <= 2 && (
                     <>
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
+                      <Button
+                        size="sm"
+                        variant="outline"
                         className="flex-1"
-                        onClick={() => router.push(`/dashboard/relatorios/${reportType}/${session.id_Atendimento}/edit`)}
+                        onClick={() =>
+                          router.push(
+                            `/dashboard/relatorios/${reportType}/${session.id_Atendimento}/edit`,
+                          )
+                        }
                       >
                         Editar
                       </Button>
-                      <Button 
-                        size="sm" 
-                        variant="default" 
+                      <Button
+                        size="sm"
+                        variant="default"
                         className="flex-1"
-                        onClick={() => router.push(`/dashboard/relatorios/${reportType}/aprovar/${session.id_Atendimento}`)}
+                        onClick={() =>
+                          router.push(
+                            `/dashboard/relatorios/${reportType}/aprovar/${session.id_Atendimento}`,
+                          )
+                        }
                       >
                         Prosseguir para Aprovação
                       </Button>
@@ -279,12 +336,18 @@ export default function RelatoriosPage() {
                 <>
                   {/* Na aba de pendentes, mostrar botão de preencher/editar */}
                   {isEstagiario && !prontuarioPendente && (
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       className="flex-1"
-                      onClick={() => router.push(`/dashboard/relatorios/${reportType}/${session.id_Atendimento}${hasProntuario ? '/edit' : ''}`)}
+                      onClick={() =>
+                        router.push(
+                          `/dashboard/relatorios/${reportType}/${session.id_Atendimento}${hasProntuario ? "/edit" : ""}`,
+                        )
+                      }
                     >
-                      {hasProntuario ? "Editar Relatório" : "Preencher Relatório"}
+                      {hasProntuario
+                        ? "Editar Relatório"
+                        : "Preencher Relatório"}
                     </Button>
                   )}
 
@@ -298,11 +361,15 @@ export default function RelatoriosPage() {
 
                   {/* Supervisor pode aprovar se há prontuário pendente */}
                   {isSupervisor && prontuarioPendente && (
-                    <Button 
-                      size="sm" 
-                      variant="default" 
+                    <Button
+                      size="sm"
+                      variant="default"
                       className="flex-1"
-                      onClick={() => router.push(`/dashboard/relatorios/${reportType}/aprovar/${session.id_Atendimento}`)}
+                      onClick={() =>
+                        router.push(
+                          `/dashboard/relatorios/${reportType}/aprovar/${session.id_Atendimento}`,
+                        )
+                      }
                     >
                       Prosseguir para Aprovação
                     </Button>
@@ -310,11 +377,15 @@ export default function RelatoriosPage() {
 
                   {/* Admin/Secretário podem aprovar se há prontuário pendente */}
                   {userRole && userRole <= 2 && prontuarioPendente && (
-                    <Button 
-                      size="sm" 
-                      variant="default" 
+                    <Button
+                      size="sm"
+                      variant="default"
                       className="flex-1"
-                      onClick={() => router.push(`/dashboard/relatorios/${reportType}/aprovar/${session.id_Atendimento}`)}
+                      onClick={() =>
+                        router.push(
+                          `/dashboard/relatorios/${reportType}/aprovar/${session.id_Atendimento}`,
+                        )
+                      }
                     >
                       Prosseguir para Aprovação
                     </Button>
@@ -350,17 +421,23 @@ export default function RelatoriosPage() {
             Gestão de Relatórios
           </h1>
           <p className="text-muted-foreground text-lg">
-            {userRole === 4 && "Preencha e edite os relatórios das suas sessões"}
-            {userRole === 3 && "Revise e aprove os relatórios das sessões supervisionadas"}
-            {userRole && userRole <= 2 && "Gerencie todos os relatórios do sistema"}
+            {userRole === 4 &&
+              "Preencha e edite os relatórios das suas sessões"}
+            {userRole === 3 &&
+              "Revise e aprove os relatórios das sessões supervisionadas"}
+            {userRole &&
+              userRole <= 2 &&
+              "Gerencie todos os relatórios do sistema"}
           </p>
         </div>
       </div>
 
       {/* Cards de resumo */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <Card className="cursor-pointer hover:shadow-md transition-shadow"
-              onClick={() => setActiveTab("triagem-pendente")}>
+        <Card
+          className="cursor-pointer hover:shadow-md transition-shadow"
+          onClick={() => setActiveTab("triagem-pendente")}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Triagem Pendente
@@ -375,8 +452,10 @@ export default function RelatoriosPage() {
           </CardContent>
         </Card>
 
-        <Card className="cursor-pointer hover:shadow-md transition-shadow"
-              onClick={() => setActiveTab("triagem-aprovacao")}>
+        <Card
+          className="cursor-pointer hover:shadow-md transition-shadow"
+          onClick={() => setActiveTab("triagem-aprovacao")}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Triagem - Aprovação
@@ -391,8 +470,10 @@ export default function RelatoriosPage() {
           </CardContent>
         </Card>
 
-        <Card className="cursor-pointer hover:shadow-md transition-shadow"
-              onClick={() => setActiveTab("psicoterapia-pendente")}>
+        <Card
+          className="cursor-pointer hover:shadow-md transition-shadow"
+          onClick={() => setActiveTab("psicoterapia-pendente")}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Psicoterapia Pendente
@@ -400,15 +481,19 @@ export default function RelatoriosPage() {
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{counts.psicoterapiaPendente}</div>
+            <div className="text-2xl font-bold">
+              {counts.psicoterapiaPendente}
+            </div>
             <p className="text-xs text-muted-foreground mt-1">
               Sessões sem relatório
             </p>
           </CardContent>
         </Card>
 
-        <Card className="cursor-pointer hover:shadow-md transition-shadow"
-              onClick={() => setActiveTab("psicoterapia-aprovacao")}>
+        <Card
+          className="cursor-pointer hover:shadow-md transition-shadow"
+          onClick={() => setActiveTab("psicoterapia-aprovacao")}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
               Psicoterapia - Aprovação
@@ -416,7 +501,9 @@ export default function RelatoriosPage() {
             <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{counts.psicoterapiaAprovacao}</div>
+            <div className="text-2xl font-bold">
+              {counts.psicoterapiaAprovacao}
+            </div>
             <p className="text-xs text-muted-foreground mt-1">
               Aguardando aprovação
             </p>
@@ -425,21 +512,37 @@ export default function RelatoriosPage() {
       </div>
 
       {/* Tabs para visualizar sessões por categoria */}
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as TabType)} className="w-full">
+      <Tabs
+        value={activeTab}
+        onValueChange={(v) => setActiveTab(v as TabType)}
+        className="w-full"
+      >
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="triagem-pendente" className="flex items-center gap-2">
+          <TabsTrigger
+            value="triagem-pendente"
+            className="flex items-center gap-2"
+          >
             <FileText className="w-4 h-4" />
             Triagem ({counts.triagemPendente})
           </TabsTrigger>
-          <TabsTrigger value="triagem-aprovacao" className="flex items-center gap-2">
+          <TabsTrigger
+            value="triagem-aprovacao"
+            className="flex items-center gap-2"
+          >
             <ClipboardCheck className="w-4 h-4" />
             Aprovação ({counts.triagemAprovacao})
           </TabsTrigger>
-          <TabsTrigger value="psicoterapia-pendente" className="flex items-center gap-2">
+          <TabsTrigger
+            value="psicoterapia-pendente"
+            className="flex items-center gap-2"
+          >
             <Calendar className="w-4 h-4" />
             Psicoterapia ({counts.psicoterapiaPendente})
           </TabsTrigger>
-          <TabsTrigger value="psicoterapia-aprovacao" className="flex items-center gap-2">
+          <TabsTrigger
+            value="psicoterapia-aprovacao"
+            className="flex items-center gap-2"
+          >
             <CheckCircle2 className="w-4 h-4" />
             Aprovação ({counts.psicoterapiaAprovacao})
           </TabsTrigger>
@@ -453,7 +556,8 @@ export default function RelatoriosPage() {
                 Sessões de Triagem Pendentes de Relatório
               </CardTitle>
               <CardDescription>
-                Sessões agendadas que precisam ter o relatório de triagem preenchido
+                Sessões agendadas que precisam ter o relatório de triagem
+                preenchido
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -467,7 +571,10 @@ export default function RelatoriosPage() {
               ) : (
                 <div className="space-y-4">
                   {getTriagemPendente().map((session) => (
-                    <SessionCard key={session.id_Atendimento} session={session} />
+                    <SessionCard
+                      key={session.id_Atendimento}
+                      session={session}
+                    />
                   ))}
                 </div>
               )}
@@ -483,7 +590,8 @@ export default function RelatoriosPage() {
                 Relatórios de Triagem Aguardando Aprovação
               </CardTitle>
               <CardDescription>
-                Relatórios preenchidos que precisam ser revisados e aprovados pelo supervisor
+                Relatórios preenchidos que precisam ser revisados e aprovados
+                pelo supervisor
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -497,7 +605,11 @@ export default function RelatoriosPage() {
               ) : (
                 <div className="space-y-4">
                   {getTriagemAprovacao().map((session) => (
-                    <SessionCard key={session.id_Atendimento} session={session} showApprovalActions={true} />
+                    <SessionCard
+                      key={session.id_Atendimento}
+                      session={session}
+                      showApprovalActions={true}
+                    />
                   ))}
                 </div>
               )}
@@ -513,7 +625,8 @@ export default function RelatoriosPage() {
                 Sessões de Psicoterapia Pendentes de Relatório
               </CardTitle>
               <CardDescription>
-                Sessões agendadas que precisam ter o relatório de evolução preenchido
+                Sessões agendadas que precisam ter o relatório de evolução
+                preenchido
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -527,7 +640,10 @@ export default function RelatoriosPage() {
               ) : (
                 <div className="space-y-4">
                   {getPsicoterapiaPendente().map((session) => (
-                    <SessionCard key={session.id_Atendimento} session={session} />
+                    <SessionCard
+                      key={session.id_Atendimento}
+                      session={session}
+                    />
                   ))}
                 </div>
               )}
@@ -543,7 +659,8 @@ export default function RelatoriosPage() {
                 Relatórios de Psicoterapia Aguardando Aprovação
               </CardTitle>
               <CardDescription>
-                Relatórios de evolução que precisam ser revisados e aprovados pelo supervisor
+                Relatórios de evolução que precisam ser revisados e aprovados
+                pelo supervisor
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -557,7 +674,11 @@ export default function RelatoriosPage() {
               ) : (
                 <div className="space-y-4">
                   {getPsicoterapiaAprovacao().map((session) => (
-                    <SessionCard key={session.id_Atendimento} session={session} showApprovalActions={true} />
+                    <SessionCard
+                      key={session.id_Atendimento}
+                      session={session}
+                      showApprovalActions={true}
+                    />
                   ))}
                 </div>
               )}

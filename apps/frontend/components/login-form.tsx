@@ -1,52 +1,52 @@
-"use client"
+"use client";
 
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { LogIn } from "lucide-react"
-import { signIn } from "next-auth/react"
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { LogIn } from "lucide-react";
+import { signIn } from "next-auth/react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"form">) {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
-  const router = useRouter()
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError("")
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
 
     try {
       const result = await signIn("credentials", {
         email,
         password,
         redirect: false,
-      })
+      });
 
       if (result?.error) {
-        setError("Credenciais inválidas. Verifique seu email e senha.")
+        setError("Credenciais inválidas. Verifique seu email e senha.");
       } else {
-        router.push("/")
-        router.refresh()
+        router.push("/");
+        router.refresh();
       }
     } catch (error) {
-      setError("Erro ao fazer login. Tente novamente.")
+      setError("Erro ao fazer login. Tente novamente.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
-    <form 
-      className={cn("flex flex-col gap-6", className)} 
+    <form
+      className={cn("flex flex-col gap-6", className)}
       onSubmit={handleSubmit}
       {...props}
     >
@@ -59,23 +59,23 @@ export function LoginForm({
           Digite o email e a senha da sua conta para acessar o sistema.
         </p>
       </div>
-      
+
       {error && (
         <div className="text-red-500 text-sm text-center bg-red-50 p-3 rounded-md">
           {error}
         </div>
       )}
-      
+
       <div className="grid gap-6">
         <div className="grid gap-3">
           <Label htmlFor="email">Email</Label>
-          <Input 
-            id="email" 
-            type="email" 
-            placeholder="email@exemplo.com" 
+          <Input
+            id="email"
+            type="email"
+            placeholder="email@exemplo.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            required 
+            required
             disabled={isLoading}
           />
         </div>
@@ -89,12 +89,12 @@ export function LoginForm({
               Esqueceu sua senha?
             </a>
           </div>
-          <Input 
-            id="password" 
-            type="password" 
+          <Input
+            id="password"
+            type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            required 
+            required
             disabled={isLoading}
           />
         </div>
@@ -109,5 +109,5 @@ export function LoginForm({
         </a>
       </div>
     </form>
-  )
+  );
 }

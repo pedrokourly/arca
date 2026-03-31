@@ -1,5 +1,11 @@
 import CreateSessionForm from "@/components/session/CreateSessionForm";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Calendar, Clock, Shield, UserCheck } from "lucide-react";
 
 export default function CreateSessionPage() {
@@ -16,7 +22,8 @@ export default function CreateSessionPage() {
               Agendar Nova Sessão
             </h1>
             <p className="text-muted-foreground text-lg">
-              Agende triagens ou sessões de psicoterapia conforme o status do paciente
+              Agende triagens ou sessões de psicoterapia conforme o status do
+              paciente
             </p>
           </div>
         </div>
@@ -66,7 +73,8 @@ export default function CreateSessionPage() {
             </CardHeader>
             <CardContent className="pt-0">
               <CardDescription className="text-green-700">
-                Sistema verifica status do paciente e tipo de atendimento permitido
+                Sistema verifica status do paciente e tipo de atendimento
+                permitido
               </CardDescription>
             </CardContent>
           </Card>
@@ -88,7 +96,7 @@ export default function CreateSessionPage() {
           </Card>
         </div>
       </div>
-      
+
       {/* Formulário */}
       <CreateSessionForm />
     </div>

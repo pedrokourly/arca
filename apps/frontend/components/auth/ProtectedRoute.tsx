@@ -1,28 +1,28 @@
-import { usePermissions } from '@/hooks/usePermissions'
-import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { usePermissions } from "@/hooks/usePermissions";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 interface ProtectedRouteProps {
-  children: React.ReactNode
-  requiredMaxRole?: number
-  fallbackPath?: string
-  showMessage?: boolean
+  children: React.ReactNode;
+  requiredMaxRole?: number;
+  fallbackPath?: string;
+  showMessage?: boolean;
 }
 
-export function ProtectedRoute({ 
-  children, 
-  requiredMaxRole, 
-  fallbackPath = '/dashboard',
-  showMessage = true 
+export function ProtectedRoute({
+  children,
+  requiredMaxRole,
+  fallbackPath = "/dashboard",
+  showMessage = true,
 }: ProtectedRouteProps) {
-  const { hasPermission, userRole } = usePermissions()
-  const router = useRouter()
+  const { hasPermission, userRole } = usePermissions();
+  const router = useRouter();
 
   useEffect(() => {
     if (requiredMaxRole && !hasPermission(requiredMaxRole)) {
-      router.push(fallbackPath)
+      router.push(fallbackPath);
     }
-  }, [requiredMaxRole, hasPermission, router, fallbackPath])
+  }, [requiredMaxRole, hasPermission, router, fallbackPath]);
 
   if (requiredMaxRole && !hasPermission(requiredMaxRole)) {
     if (showMessage) {
@@ -32,14 +32,14 @@ export function ProtectedRoute({
             Acesso Negado
           </h2>
           <p className="text-gray-600">
-            Você não tem permissão para acessar esta página.
-            Nível necessário: {requiredMaxRole}, seu nível: {userRole}
+            Você não tem permissão para acessar esta página. Nível necessário:{" "}
+            {requiredMaxRole}, seu nível: {userRole}
           </p>
         </div>
-      )
+      );
     }
-    return null
+    return null;
   }
 
-  return <>{children}</>
+  return <>{children}</>;
 }

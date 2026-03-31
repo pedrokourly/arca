@@ -15,17 +15,8 @@ Handlebars.registerHelper('or', (...args) => {
 
 @Injectable()
 export class PdfService {
-  async generatePdfFromTemplate(
-    templateName: string,
-    data: any,
-  ): Promise<Buffer> {
-    const templatePath = path.resolve(
-      process.cwd(),
-      'src',
-      'pdf',
-      'templates',
-      `${templateName}.hbs`,
-    );
+  async generatePdfFromTemplate(templateName: string, data: any): Promise<Buffer> {
+    const templatePath = path.resolve(process.cwd(), 'src', 'pdf', 'templates', `${templateName}.hbs`);
     const htmlTemplate = fs.readFileSync(templatePath, 'utf-8');
 
     const compiledTemplate = Handlebars.compile(htmlTemplate);
@@ -37,7 +28,7 @@ export class PdfService {
     });
 
     const page = await browser.newPage();
-    
+
     await page.setContent(htmlContent, {
       waitUntil: 'networkidle0',
     });

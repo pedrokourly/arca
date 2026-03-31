@@ -27,7 +27,7 @@ export default function AtendimentosPage() {
               </div>
             </div>
             <Button
-              onClick={() => router.push('/dashboard/atendimento/cadastro')}
+              onClick={() => router.push("/dashboard/atendimento/cadastro")}
               className="flex items-center gap-2"
             >
               <Plus className="h-4 w-4" />

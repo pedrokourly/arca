@@ -6,9 +6,29 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge, Calendar, CalendarIcon, Clock, User, UserCheck, Users } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Badge,
+  Calendar,
+  CalendarIcon,
+  Clock,
+  User,
+  UserCheck,
+  Users,
+} from "lucide-react";
 import { toast } from "sonner";
 import { usePermissions } from "@/hooks/usePermissions";
 import { API_ENDPOINTS, apiRequest } from "@/utils/apiHandler";
@@ -16,42 +36,51 @@ import { getErrorMessage } from "@/utils/toastErrorHandler";
 import { z } from "zod";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 
 // Schema de validação Zod
-const createSessionSchema = z.object({
-  dataHoraInicio: z
-    .date({ message: "Data e hora de início são obrigatórias" }),
-  dataHoraFim: z
-    .date({ message: "Data e hora de fim são obrigatórias" }),
-  id_Lista: z
-    .string()
-    .uuid("ID da lista deve ser um UUID válido")
-    .min(1, "Paciente é obrigatório"),
-  id_Tipo_Atendimento: z
-    .number()
-    .min(1, "Tipo de atendimento é obrigatório")
-    .max(2, "Tipo de atendimento inválido"),
-  id_Estagiario_Executor: z
-    .string()
-    .uuid("ID do estagiário deve ser um UUID válido")
-    .min(1, "Estagiário é obrigatório"),
-  id_Supervisor_Executor: z
-    .string()
-    .uuid("ID do supervisor deve ser um UUID válido")
-    .min(1, "Supervisor é obrigatório"),
-  observacoes: z
-    .string()
-    .max(1000, "Observações devem ter no máximo 1000 caracteres")
-    .optional()
-}).refine((data) => {
-  return data.dataHoraInicio < data.dataHoraFim;
-}, {
-  message: "Data e hora de início devem ser anteriores ao fim",
-  path: ["dataHoraFim"],
-});
+const createSessionSchema = z
+  .object({
+    dataHoraInicio: z.date({
+      message: "Data e hora de início são obrigatórias",
+    }),
+    dataHoraFim: z.date({ message: "Data e hora de fim são obrigatórias" }),
+    id_Lista: z
+      .string()
+      .uuid("ID da lista deve ser um UUID válido")
+      .min(1, "Paciente é obrigatório"),
+    id_Tipo_Atendimento: z
+      .number()
+      .min(1, "Tipo de atendimento é obrigatório")
+      .max(2, "Tipo de atendimento inválido"),
+    id_Estagiario_Executor: z
+      .string()
+      .uuid("ID do estagiário deve ser um UUID válido")
+      .min(1, "Estagiário é obrigatório"),
+    id_Supervisor_Executor: z
+      .string()
+      .uuid("ID do supervisor deve ser um UUID válido")
+      .min(1, "Supervisor é obrigatório"),
+    observacoes: z
+      .string()
+      .max(1000, "Observações devem ter no máximo 1000 caracteres")
+      .optional(),
+  })
+  .refine(
+    (data) => {
+      return data.dataHoraInicio < data.dataHoraFim;
+    },
+    {
+      message: "Data e hora de início devem ser anteriores ao fim",
+      path: ["dataHoraFim"],
+    },
+  );
 
 interface CreateSessionData {
   dataHoraInicio: Date | null;
@@ -85,19 +114,27 @@ type CreateSessionFormErrors = {
 
 // Mapeamento dos tipos de atendimento
 const TIPO_ATENDIMENTO_MAP = {
-  1: { label: 'Triagem', variant: 'default' as const, color: 'bg-blue-100 text-blue-800' },
-  2: { label: 'Psicoterapia', variant: 'secondary' as const, color: 'bg-purple-100 text-purple-800' }
+  1: {
+    label: "Triagem",
+    variant: "default" as const,
+    color: "bg-blue-100 text-blue-800",
+  },
+  2: {
+    label: "Psicoterapia",
+    variant: "secondary" as const,
+    color: "bg-purple-100 text-purple-800",
+  },
 };
 
 // Mapeamento dos status da lista de espera
 const STATUS_MAP_WAITLIST = {
-  1: { label: 'Em Espera', variant: 'secondary' as const },
-  2: { label: 'Em Triagem', variant: 'default' as const },
-  3: { label: 'Triagem Aprovada', variant: 'default' as const },
-  4: { label: 'Em Psicoterapia', variant: 'default' as const },
-  5: { label: 'Recebeu Alta', variant: 'outline' as const },
-  6: { label: 'Encaminhado', variant: 'outline' as const },
-  7: { label: 'Desativado', variant: 'destructive' as const }
+  1: { label: "Em Espera", variant: "secondary" as const },
+  2: { label: "Em Triagem", variant: "default" as const },
+  3: { label: "Triagem Aprovada", variant: "default" as const },
+  4: { label: "Em Psicoterapia", variant: "default" as const },
+  5: { label: "Recebeu Alta", variant: "outline" as const },
+  6: { label: "Encaminhado", variant: "outline" as const },
+  7: { label: "Desativado", variant: "destructive" as const },
 };
 
 export default function CreateSessionForm() {
@@ -114,19 +151,19 @@ export default function CreateSessionForm() {
     id_Tipo_Atendimento: 1, // Default para triagem
     id_Estagiario_Executor: "",
     id_Supervisor_Executor: "",
-    observacoes: ""
+    observacoes: "",
   });
-  
+
   // Estados para dados das APIs
   const [waitlistEntries, setWaitlistEntries] = useState<WaitlistEntry[]>([]);
   const [estagiarios, setEstagiarios] = useState<User[]>([]);
   const [supervisores, setSupervisores] = useState<User[]>([]);
-  
+
   // Estados de controle
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [formErrors, setFormErrors] = useState<CreateSessionFormErrors>({});
-  
+
   // Estados para calendário
   const [startCalendarOpen, setStartCalendarOpen] = useState(false);
   const [endCalendarOpen, setEndCalendarOpen] = useState(false);
@@ -135,7 +172,7 @@ export default function CreateSessionForm() {
   useEffect(() => {
     const loadData = async () => {
       if (!session?.token) return;
-      
+
       setIsLoadingData(true);
       try {
         // Carregar lista de espera (filtrada por status baseado no tipo de atendimento)
@@ -148,7 +185,10 @@ export default function CreateSessionForm() {
           headers: { Authorization: `Bearer ${session.token}` },
         });
 
-        const [waitlistData, usersData] = await Promise.all([waitlistPromise, usersPromise]);
+        const [waitlistData, usersData] = await Promise.all([
+          waitlistPromise,
+          usersPromise,
+        ]);
 
         // Definir lista completa de espera para filtrar posteriormente baseado no tipo
         setWaitlistEntries(waitlistData);
@@ -156,7 +196,6 @@ export default function CreateSessionForm() {
         // Separar usuários por função
         setEstagiarios(usersData.filter((user: User) => user.roleId === 4)); // Estagiários
         setSupervisores(usersData.filter((user: User) => user.roleId === 3)); // Supervisores
-
       } catch (error) {
         console.error("Erro ao carregar dados:", error);
         const { title, description } = getErrorMessage(error);
@@ -171,15 +210,17 @@ export default function CreateSessionForm() {
 
   // Pré-selecionar paciente se vier da URL
   useEffect(() => {
-    const patientId = searchParams.get('patientId');
+    const patientId = searchParams.get("patientId");
     if (patientId && waitlistEntries.length > 0) {
       // Encontrar o paciente na lista
-      const patient = waitlistEntries.find(entry => entry.id_Lista === patientId);
-      
+      const patient = waitlistEntries.find(
+        (entry) => entry.id_Lista === patientId,
+      );
+
       if (patient) {
         // Determinar o tipo de atendimento baseado no status do paciente
         let tipoAtendimento = 1; // Default: Triagem
-        
+
         if (patient.id_Status === 3 || patient.id_Status === 4) {
           // Status 3 (Triagem Aprovada) ou 4 (Em Psicoterapia) = Psicoterapia
           tipoAtendimento = 2;
@@ -187,16 +228,16 @@ export default function CreateSessionForm() {
           // Status 1 (Em Espera) = Triagem
           tipoAtendimento = 1;
         }
-        
+
         // Atualizar formulário com o paciente selecionado
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
           id_Lista: patientId,
-          id_Tipo_Atendimento: tipoAtendimento
+          id_Tipo_Atendimento: tipoAtendimento,
         }));
 
         toast.success("Paciente selecionado", {
-          description: `${patient.nomeRegistro} foi pré-selecionado para agendamento.`
+          description: `${patient.nomeRegistro} foi pré-selecionado para agendamento.`,
         });
       }
     }
@@ -205,50 +246,52 @@ export default function CreateSessionForm() {
   // Filtrar pacientes baseado no tipo de atendimento selecionado
   const getFilteredWaitlist = () => {
     if (!waitlistEntries) return [];
-    
+
     if (formData.id_Tipo_Atendimento === 1) {
       // Triagem: apenas pacientes "Em Espera" (status 1)
-      return waitlistEntries.filter(entry => entry.id_Status === 1);
+      return waitlistEntries.filter((entry) => entry.id_Status === 1);
     } else if (formData.id_Tipo_Atendimento === 2) {
       // Psicoterapia: pacientes com "Triagem aprovada" (status 3) ou "Em Psicoterapia" (status 4)
-      return waitlistEntries.filter(entry => entry.id_Status === 3 || entry.id_Status === 4);
+      return waitlistEntries.filter(
+        (entry) => entry.id_Status === 3 || entry.id_Status === 4,
+      );
     }
-    
+
     return [];
   };
 
   const handleInputChange = (field: keyof CreateSessionData, value: any) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
-    
+
     // Limpa o erro do campo quando o usuário faz alterações
     if (formErrors[field]) {
-      setFormErrors(prev => ({
+      setFormErrors((prev) => ({
         ...prev,
-        [field]: undefined
+        [field]: undefined,
       }));
     }
 
     // Se mudou o tipo de atendimento, limpar seleção de paciente
-    if (field === 'id_Tipo_Atendimento') {
-      setFormData(prev => ({
+    if (field === "id_Tipo_Atendimento") {
+      setFormData((prev) => ({
         ...prev,
         id_Lista: "", // Reset paciente quando muda o tipo
-        [field]: value
+        [field]: value,
       }));
       return;
     }
 
     // Se mudou a data/hora de início, ajustar automaticamente o fim para 1 hora depois
-    if (field === 'dataHoraInicio' && value) {
+    if (field === "dataHoraInicio" && value) {
       const endTime = new Date(value);
       endTime.setHours(endTime.getHours() + 1);
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         dataHoraInicio: value,
-        dataHoraFim: endTime
+        dataHoraFim: endTime,
       }));
     }
   };
@@ -266,7 +309,7 @@ export default function CreateSessionForm() {
         dataHoraInicio: formData.dataHoraInicio!,
         dataHoraFim: formData.dataHoraFim!,
       };
-      
+
       createSessionSchema.parse(dataToValidate);
       setFormErrors({});
       return true;
@@ -285,11 +328,11 @@ export default function CreateSessionForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
 
     setIsLoading(true);
-    
+
     try {
       const sessionData = {
         dataHoraInicio: formData.dataHoraInicio!.toISOString(),
@@ -302,20 +345,19 @@ export default function CreateSessionForm() {
       };
 
       await apiRequest(API_ENDPOINTS.sessions, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${session!.token}`,
         },
         body: JSON.stringify(sessionData),
       });
-      
+
       toast.success("Sessão agendada com sucesso!", {
         description: `${TIPO_ATENDIMENTO_MAP[formData.id_Tipo_Atendimento as keyof typeof TIPO_ATENDIMENTO_MAP]?.label} agendada para ${format(formData.dataHoraInicio!, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`,
       });
-      
+
       router.push("/dashboard/atendimento"); // Ajustar para a rota correta
-      
     } catch (error: any) {
       console.error("Erro ao criar sessão:", error);
       const { title, description } = getErrorMessage(error);
@@ -328,11 +370,12 @@ export default function CreateSessionForm() {
   // Componente para mostrar informações sobre duração
   const getDuration = () => {
     if (!formData.dataHoraInicio || !formData.dataHoraFim) return null;
-    
+
     const diffInMinutes = Math.round(
-      (formData.dataHoraFim.getTime() - formData.dataHoraInicio.getTime()) / (1000 * 60)
+      (formData.dataHoraFim.getTime() - formData.dataHoraInicio.getTime()) /
+        (1000 * 60),
     );
-    
+
     if (diffInMinutes < 60) {
       return `${diffInMinutes} minutos`;
     } else {
@@ -348,9 +391,7 @@ export default function CreateSessionForm() {
       <Card>
         <CardContent className="pt-6">
           <p className="text-center text-muted-foreground">
-            Você não tem permissão para agendar sessões.
-
-            Contate um secretário
+            Você não tem permissão para agendar sessões. Contate um secretário
           </p>
         </CardContent>
       </Card>
@@ -375,23 +416,33 @@ export default function CreateSessionForm() {
       <CardHeader>
         <CardTitle>Agendar Nova Sessão</CardTitle>
         <CardDescription>
-          Preencha os dados para agendar uma nova sessão de atendimento. Todos os campos marcados com * são obrigatórios.
+          Preencha os dados para agendar uma nova sessão de atendimento. Todos
+          os campos marcados com * são obrigatórios.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Seleção do Tipo de Atendimento */}
           <div className="space-y-2">
-            <Label htmlFor="id_Tipo_Atendimento" className="flex items-center gap-2">
+            <Label
+              htmlFor="id_Tipo_Atendimento"
+              className="flex items-center gap-2"
+            >
               <Calendar className="h-4 w-4" />
               Tipo de Atendimento <span className="text-destructive">*</span>
             </Label>
             <Select
               value={formData.id_Tipo_Atendimento.toString()}
-              onValueChange={(value) => handleInputChange("id_Tipo_Atendimento", parseInt(value))}
+              onValueChange={(value) =>
+                handleInputChange("id_Tipo_Atendimento", parseInt(value))
+              }
               disabled={isLoading}
             >
-              <SelectTrigger className={formErrors.id_Tipo_Atendimento ? "border-destructive" : ""}>
+              <SelectTrigger
+                className={
+                  formErrors.id_Tipo_Atendimento ? "border-destructive" : ""
+                }
+              >
                 <SelectValue placeholder="Selecione o tipo de atendimento" />
               </SelectTrigger>
               <SelectContent>
@@ -400,13 +451,14 @@ export default function CreateSessionForm() {
               </SelectContent>
             </Select>
             {formErrors.id_Tipo_Atendimento && (
-              <p className="text-xs text-destructive">{formErrors.id_Tipo_Atendimento}</p>
+              <p className="text-xs text-destructive">
+                {formErrors.id_Tipo_Atendimento}
+              </p>
             )}
             <p className="text-xs text-muted-foreground">
-              {formData.id_Tipo_Atendimento === 1 
+              {formData.id_Tipo_Atendimento === 1
                 ? "Triagem: primeira avaliação para pacientes em espera"
-                : "Psicoterapia: sessões de acompanhamento para pacientes com triagem aprovada"
-              }
+                : "Psicoterapia: sessões de acompanhamento para pacientes com triagem aprovada"}
             </p>
           </div>
 
@@ -421,7 +473,9 @@ export default function CreateSessionForm() {
               onValueChange={(value) => handleInputChange("id_Lista", value)}
               disabled={isLoading}
             >
-              <SelectTrigger className={formErrors.id_Lista ? "border-destructive" : ""}>
+              <SelectTrigger
+                className={formErrors.id_Lista ? "border-destructive" : ""}
+              >
                 <SelectValue placeholder="Selecione um paciente" />
               </SelectTrigger>
               <SelectContent>
@@ -429,8 +483,7 @@ export default function CreateSessionForm() {
                   <SelectItem value="no-patients" disabled>
                     {formData.id_Tipo_Atendimento === 1
                       ? "Nenhum paciente em espera disponível para triagem"
-                      : "Nenhum paciente com triagem aprovada disponível para psicoterapia"
-                    }
+                      : "Nenhum paciente com triagem aprovada disponível para psicoterapia"}
                   </SelectItem>
                 ) : (
                   getFilteredWaitlist().map((patient) => (
@@ -445,7 +498,11 @@ export default function CreateSessionForm() {
                           )}
                         </div>
                         <Badge className="text-xs">
-                          {STATUS_MAP_WAITLIST[patient.id_Status as keyof typeof STATUS_MAP_WAITLIST]?.label}
+                          {
+                            STATUS_MAP_WAITLIST[
+                              patient.id_Status as keyof typeof STATUS_MAP_WAITLIST
+                            ]?.label
+                          }
                         </Badge>
                       </div>
                     </SelectItem>
@@ -459,8 +516,7 @@ export default function CreateSessionForm() {
             <p className="text-xs text-muted-foreground">
               {formData.id_Tipo_Atendimento === 1
                 ? "Apenas pacientes em espera são exibidos para triagem"
-                : "Apenas pacientes com triagem aprovada ou em psicoterapia são exibidos"
-              }
+                : "Apenas pacientes com triagem aprovada ou em psicoterapia são exibidos"}
             </p>
           </div>
 
@@ -470,25 +526,29 @@ export default function CreateSessionForm() {
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
-                Data e Hora de Início <span className="text-destructive">*</span>
+                Data e Hora de Início{" "}
+                <span className="text-destructive">*</span>
               </Label>
               <div className="flex gap-2">
-                <Popover open={startCalendarOpen} onOpenChange={setStartCalendarOpen}>
+                <Popover
+                  open={startCalendarOpen}
+                  onOpenChange={setStartCalendarOpen}
+                >
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
                       className={cn(
                         "w-[180px] justify-start text-left font-normal",
                         !formData.dataHoraInicio && "text-muted-foreground",
-                        formErrors.dataHoraInicio && "border-destructive"
+                        formErrors.dataHoraInicio && "border-destructive",
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {formData.dataHoraInicio ? (
-                        format(formData.dataHoraInicio, "dd/MM/yyyy", { locale: ptBR })
-                      ) : (
-                        "Selecione a data"
-                      )}
+                      {formData.dataHoraInicio
+                        ? format(formData.dataHoraInicio, "dd/MM/yyyy", {
+                            locale: ptBR,
+                          })
+                        : "Selecione a data"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
@@ -497,9 +557,13 @@ export default function CreateSessionForm() {
                       selected={formData.dataHoraInicio || undefined}
                       onSelect={(date) => {
                         if (date) {
-                          const currentTime = formData.dataHoraInicio || new Date();
+                          const currentTime =
+                            formData.dataHoraInicio || new Date();
                           const newDate = new Date(date);
-                          newDate.setHours(currentTime.getHours(), currentTime.getMinutes());
+                          newDate.setHours(
+                            currentTime.getHours(),
+                            currentTime.getMinutes(),
+                          );
                           handleInputChange("dataHoraInicio", newDate);
                         }
                         setStartCalendarOpen(false);
@@ -511,21 +575,32 @@ export default function CreateSessionForm() {
                 </Popover>
                 <Input
                   type="time"
-                  value={formData.dataHoraInicio ? format(formData.dataHoraInicio, "HH:mm") : ""}
+                  value={
+                    formData.dataHoraInicio
+                      ? format(formData.dataHoraInicio, "HH:mm")
+                      : ""
+                  }
                   onChange={(e) => {
                     if (e.target.value && formData.dataHoraInicio) {
-                      const [hours, minutes] = e.target.value.split(":").map(Number);
+                      const [hours, minutes] = e.target.value
+                        .split(":")
+                        .map(Number);
                       const newDate = new Date(formData.dataHoraInicio);
                       newDate.setHours(hours, minutes);
                       handleInputChange("dataHoraInicio", newDate);
                     }
                   }}
-                  className={cn("w-32", formErrors.dataHoraInicio && "border-destructive")}
+                  className={cn(
+                    "w-32",
+                    formErrors.dataHoraInicio && "border-destructive",
+                  )}
                   disabled={isLoading}
                 />
               </div>
               {formErrors.dataHoraInicio && (
-                <p className="text-xs text-destructive">{formErrors.dataHoraInicio}</p>
+                <p className="text-xs text-destructive">
+                  {formErrors.dataHoraInicio}
+                </p>
               )}
             </div>
 
@@ -536,22 +611,25 @@ export default function CreateSessionForm() {
                 Data e Hora de Fim <span className="text-destructive">*</span>
               </Label>
               <div className="flex gap-2">
-                <Popover open={endCalendarOpen} onOpenChange={setEndCalendarOpen}>
+                <Popover
+                  open={endCalendarOpen}
+                  onOpenChange={setEndCalendarOpen}
+                >
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
                       className={cn(
                         "w-[180px] justify-start text-left font-normal",
                         !formData.dataHoraFim && "text-muted-foreground",
-                        formErrors.dataHoraFim && "border-destructive"
+                        formErrors.dataHoraFim && "border-destructive",
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {formData.dataHoraFim ? (
-                        format(formData.dataHoraFim, "dd/MM/yyyy", { locale: ptBR })
-                      ) : (
-                        "Selecione a data"
-                      )}
+                      {formData.dataHoraFim
+                        ? format(formData.dataHoraFim, "dd/MM/yyyy", {
+                            locale: ptBR,
+                          })
+                        : "Selecione a data"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
@@ -560,9 +638,13 @@ export default function CreateSessionForm() {
                       selected={formData.dataHoraFim || undefined}
                       onSelect={(date) => {
                         if (date) {
-                          const currentTime = formData.dataHoraFim || new Date();
+                          const currentTime =
+                            formData.dataHoraFim || new Date();
                           const newDate = new Date(date);
-                          newDate.setHours(currentTime.getHours(), currentTime.getMinutes());
+                          newDate.setHours(
+                            currentTime.getHours(),
+                            currentTime.getMinutes(),
+                          );
                           handleInputChange("dataHoraFim", newDate);
                         }
                         setEndCalendarOpen(false);
@@ -574,24 +656,37 @@ export default function CreateSessionForm() {
                 </Popover>
                 <Input
                   type="time"
-                  value={formData.dataHoraFim ? format(formData.dataHoraFim, "HH:mm") : ""}
+                  value={
+                    formData.dataHoraFim
+                      ? format(formData.dataHoraFim, "HH:mm")
+                      : ""
+                  }
                   onChange={(e) => {
                     if (e.target.value && formData.dataHoraFim) {
-                      const [hours, minutes] = e.target.value.split(":").map(Number);
+                      const [hours, minutes] = e.target.value
+                        .split(":")
+                        .map(Number);
                       const newDate = new Date(formData.dataHoraFim);
                       newDate.setHours(hours, minutes);
                       handleInputChange("dataHoraFim", newDate);
                     }
                   }}
-                  className={cn("w-32", formErrors.dataHoraFim && "border-destructive")}
+                  className={cn(
+                    "w-32",
+                    formErrors.dataHoraFim && "border-destructive",
+                  )}
                   disabled={isLoading}
                 />
               </div>
               {formErrors.dataHoraFim && (
-                <p className="text-xs text-destructive">{formErrors.dataHoraFim}</p>
+                <p className="text-xs text-destructive">
+                  {formErrors.dataHoraFim}
+                </p>
               )}
               {getDuration() && (
-                <p className="text-xs text-muted-foreground">Duração: {getDuration()}</p>
+                <p className="text-xs text-muted-foreground">
+                  Duração: {getDuration()}
+                </p>
               )}
             </div>
           </div>
@@ -600,16 +695,27 @@ export default function CreateSessionForm() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Estagiário */}
             <div className="space-y-2">
-              <Label htmlFor="id_Estagiario_Executor" className="flex items-center gap-2">
+              <Label
+                htmlFor="id_Estagiario_Executor"
+                className="flex items-center gap-2"
+              >
                 <User className="h-4 w-4" />
                 Estagiário <span className="text-destructive">*</span>
               </Label>
               <Select
                 value={formData.id_Estagiario_Executor}
-                onValueChange={(value) => handleInputChange("id_Estagiario_Executor", value)}
+                onValueChange={(value) =>
+                  handleInputChange("id_Estagiario_Executor", value)
+                }
                 disabled={isLoading}
               >
-                <SelectTrigger className={formErrors.id_Estagiario_Executor ? "border-destructive" : ""}>
+                <SelectTrigger
+                  className={
+                    formErrors.id_Estagiario_Executor
+                      ? "border-destructive"
+                      : ""
+                  }
+                >
                   <SelectValue placeholder="Selecione um estagiário" />
                 </SelectTrigger>
                 <SelectContent>
@@ -619,7 +725,10 @@ export default function CreateSessionForm() {
                     </SelectItem>
                   ) : (
                     estagiarios.map((estagiario) => (
-                      <SelectItem key={estagiario.id_User} value={estagiario.id_User}>
+                      <SelectItem
+                        key={estagiario.id_User}
+                        value={estagiario.id_User}
+                      >
                         <div className="flex flex-col">
                           <span>{estagiario.nome}</span>
                           <span className="text-xs text-muted-foreground">
@@ -632,22 +741,35 @@ export default function CreateSessionForm() {
                 </SelectContent>
               </Select>
               {formErrors.id_Estagiario_Executor && (
-                <p className="text-xs text-destructive">{formErrors.id_Estagiario_Executor}</p>
+                <p className="text-xs text-destructive">
+                  {formErrors.id_Estagiario_Executor}
+                </p>
               )}
             </div>
 
             {/* Supervisor */}
             <div className="space-y-2">
-              <Label htmlFor="id_Supervisor_Executor" className="flex items-center gap-2">
+              <Label
+                htmlFor="id_Supervisor_Executor"
+                className="flex items-center gap-2"
+              >
                 <UserCheck className="h-4 w-4" />
                 Supervisor <span className="text-destructive">*</span>
               </Label>
               <Select
                 value={formData.id_Supervisor_Executor}
-                onValueChange={(value) => handleInputChange("id_Supervisor_Executor", value)}
+                onValueChange={(value) =>
+                  handleInputChange("id_Supervisor_Executor", value)
+                }
                 disabled={isLoading}
               >
-                <SelectTrigger className={formErrors.id_Supervisor_Executor ? "border-destructive" : ""}>
+                <SelectTrigger
+                  className={
+                    formErrors.id_Supervisor_Executor
+                      ? "border-destructive"
+                      : ""
+                  }
+                >
                   <SelectValue placeholder="Selecione um supervisor" />
                 </SelectTrigger>
                 <SelectContent>
@@ -657,7 +779,10 @@ export default function CreateSessionForm() {
                     </SelectItem>
                   ) : (
                     supervisores.map((supervisor) => (
-                      <SelectItem key={supervisor.id_User} value={supervisor.id_User}>
+                      <SelectItem
+                        key={supervisor.id_User}
+                        value={supervisor.id_User}
+                      >
                         <div className="flex flex-col">
                           <span>{supervisor.nome}</span>
                           <span className="text-xs text-muted-foreground">
@@ -670,7 +795,9 @@ export default function CreateSessionForm() {
                 </SelectContent>
               </Select>
               {formErrors.id_Supervisor_Executor && (
-                <p className="text-xs text-destructive">{formErrors.id_Supervisor_Executor}</p>
+                <p className="text-xs text-destructive">
+                  {formErrors.id_Supervisor_Executor}
+                </p>
               )}
             </div>
           </div>
@@ -681,14 +808,18 @@ export default function CreateSessionForm() {
             <Input
               id="observacoes"
               value={formData.observacoes}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange("observacoes", e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                handleInputChange("observacoes", e.target.value)
+              }
               placeholder="Observações sobre a sessão (opcional)"
               maxLength={1000}
               disabled={isLoading}
               className={formErrors.observacoes ? "border-destructive" : ""}
             />
             {formErrors.observacoes && (
-              <p className="text-xs text-destructive">{formErrors.observacoes}</p>
+              <p className="text-xs text-destructive">
+                {formErrors.observacoes}
+              </p>
             )}
             <p className="text-xs text-muted-foreground">
               Máximo 1000 caracteres ({formData.observacoes.length}/1000)
@@ -700,20 +831,53 @@ export default function CreateSessionForm() {
             <div className="p-4 bg-muted/50 rounded-lg">
               <h4 className="font-medium mb-2">Resumo da Sessão:</h4>
               <div className="space-y-1 text-sm text-muted-foreground">
-                <p>• <strong>Data:</strong> {format(formData.dataHoraInicio, "dd/MM/yyyy", { locale: ptBR })}</p>
-                <p>• <strong>Horário:</strong> {format(formData.dataHoraInicio, "HH:mm", { locale: ptBR })} às {format(formData.dataHoraFim, "HH:mm", { locale: ptBR })}</p>
-                <p>• <strong>Duração:</strong> {getDuration()}</p>
+                <p>
+                  • <strong>Data:</strong>{" "}
+                  {format(formData.dataHoraInicio, "dd/MM/yyyy", {
+                    locale: ptBR,
+                  })}
+                </p>
+                <p>
+                  • <strong>Horário:</strong>{" "}
+                  {format(formData.dataHoraInicio, "HH:mm", { locale: ptBR })}{" "}
+                  às {format(formData.dataHoraFim, "HH:mm", { locale: ptBR })}
+                </p>
+                <p>
+                  • <strong>Duração:</strong> {getDuration()}
+                </p>
                 {formData.id_Lista && (
-                  <p>• <strong>Paciente:</strong> {getFilteredWaitlist().find(p => p.id_Lista === formData.id_Lista)?.nomeRegistro || "Selecionado"}</p>
+                  <p>
+                    • <strong>Paciente:</strong>{" "}
+                    {getFilteredWaitlist().find(
+                      (p) => p.id_Lista === formData.id_Lista,
+                    )?.nomeRegistro || "Selecionado"}
+                  </p>
                 )}
                 {formData.id_Tipo_Atendimento && (
-                  <p>• <strong>Tipo:</strong> {TIPO_ATENDIMENTO_MAP[formData.id_Tipo_Atendimento as keyof typeof TIPO_ATENDIMENTO_MAP]?.label}</p>
+                  <p>
+                    • <strong>Tipo:</strong>{" "}
+                    {
+                      TIPO_ATENDIMENTO_MAP[
+                        formData.id_Tipo_Atendimento as keyof typeof TIPO_ATENDIMENTO_MAP
+                      ]?.label
+                    }
+                  </p>
                 )}
                 {formData.id_Estagiario_Executor && (
-                  <p>• <strong>Estagiário:</strong> {estagiarios.find(e => e.id_User === formData.id_Estagiario_Executor)?.nome || "Selecionado"}</p>
+                  <p>
+                    • <strong>Estagiário:</strong>{" "}
+                    {estagiarios.find(
+                      (e) => e.id_User === formData.id_Estagiario_Executor,
+                    )?.nome || "Selecionado"}
+                  </p>
                 )}
                 {formData.id_Supervisor_Executor && (
-                  <p>• <strong>Supervisor:</strong> {supervisores.find(s => s.id_User === formData.id_Supervisor_Executor)?.nome || "Selecionado"}</p>
+                  <p>
+                    • <strong>Supervisor:</strong>{" "}
+                    {supervisores.find(
+                      (s) => s.id_User === formData.id_Supervisor_Executor,
+                    )?.nome || "Selecionado"}
+                  </p>
                 )}
               </div>
             </div>
@@ -731,7 +895,12 @@ export default function CreateSessionForm() {
             </Button>
             <Button
               type="submit"
-              disabled={isLoading || getFilteredWaitlist().length === 0 || estagiarios.length === 0 || supervisores.length === 0}
+              disabled={
+                isLoading ||
+                getFilteredWaitlist().length === 0 ||
+                estagiarios.length === 0 ||
+                supervisores.length === 0
+              }
               className="flex items-center gap-2"
             >
               {isLoading ? (

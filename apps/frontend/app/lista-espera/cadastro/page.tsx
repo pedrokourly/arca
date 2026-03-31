@@ -1,14 +1,20 @@
-import { PublicNavbar } from "@/components/public-navbar"
+import { PublicNavbar } from "@/components/public-navbar";
 import { WaitlistForm } from "@/components/waitlist/formList";
 import { WaitlistStatsCard } from "@/components/waitlist/WaitlistStatsCard";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { UserPlus, Clock, Shield } from "lucide-react";
 
 export default function CreatePacientForm() {
   return (
     <div className="min-h-screen bg-background">
       <PublicNavbar />
-      
+
       <div className="container mx-auto px-4 pt-24 pb-6 max-w-5xl">
         {/* Header da página */}
         <div className="mb-8">
@@ -21,7 +27,8 @@ export default function CreatePacientForm() {
                 Cadastro na Lista de Espera
               </h1>
               <p className="text-muted-foreground text-lg">
-                Cadastre-se na lista de espera do ARCA para acompanhamento psicológico
+                Cadastre-se na lista de espera do ARCA para acompanhamento
+                psicológico
               </p>
             </div>
           </div>
@@ -29,7 +36,7 @@ export default function CreatePacientForm() {
           {/* Cards informativos */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             <WaitlistStatsCard />
-            
+
             <Card className="border-blue-200 bg-blue-50/50">
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2">
@@ -57,7 +64,8 @@ export default function CreatePacientForm() {
               </CardHeader>
               <CardContent className="pt-0">
                 <CardDescription className="text-green-700">
-                  Suas informações são protegidas e usadas apenas para atendimento
+                  Suas informações são protegidas e usadas apenas para
+                  atendimento
                 </CardDescription>
               </CardContent>
             </Card>
@@ -79,7 +87,7 @@ export default function CreatePacientForm() {
             </Card>
           </div>
         </div>
-        
+
         {/* Formulário */}
         <WaitlistForm />
       </div>

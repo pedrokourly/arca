@@ -5,6 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project Overview
 
 **ARCA** is a psychology clinic management system (Brazilian Portuguese UI) built as a Turborepo monorepo with two apps:
+
 - `apps/backend` — NestJS REST API on port 3333
 - `apps/frontend` — Next.js 15 web app on port 3000
 
@@ -13,6 +14,7 @@ Domain: patient waitlist, therapy sessions (atendimentos), medical records (pron
 ## Commands
 
 ### Root (runs both apps via Turborepo)
+
 ```bash
 npm run dev          # Start backend (port 3333) + frontend (port 3000) concurrently
 npm run build        # Build all apps
@@ -22,6 +24,7 @@ npm run check-types  # TypeScript type checking across all apps
 ```
 
 ### Backend only
+
 ```bash
 npm run -w backend start:dev      # Watch mode dev server
 npm run -w backend test           # Run unit tests
@@ -32,11 +35,13 @@ npm run -w backend db:seed        # Seed database
 ```
 
 To run a single test file:
+
 ```bash
 cd apps/backend && npx jest src/path/to/file.spec.ts
 ```
 
 ### Database (from `apps/backend/`)
+
 ```bash
 npx prisma migrate dev            # Apply migrations
 npx prisma migrate deploy         # Deploy to production
@@ -50,25 +55,27 @@ npx prisma generate               # Regenerate Prisma client
 
 Standard NestJS modular architecture. Each domain is a self-contained module in `apps/backend/src/`:
 
-| Module | Purpose |
-|---|---|
-| `auth/` | JWT + Local strategies, Passport guards, login endpoint |
-| `users/` | User CRUD (estagiários/supervisors) |
-| `waitlist/` | Patient waiting list (lista de espera) |
-| `session/` | Therapy sessions (atendimentos) |
-| `medical_record/` | Session records (prontuários) with encryption |
-| `audit/` | Audit log — global interceptor captures all operations |
-| `crypto/` | AES encryption service used by medical_record |
-| `pdf/` | PDF generation from templates |
-| `prisma/` | PrismaService (extends PrismaClient with lifecycle hooks) |
+| Module            | Purpose                                                   |
+| ----------------- | --------------------------------------------------------- |
+| `auth/`           | JWT + Local strategies, Passport guards, login endpoint   |
+| `users/`          | User CRUD (estagiários/supervisors)                       |
+| `waitlist/`       | Patient waiting list (lista de espera)                    |
+| `session/`        | Therapy sessions (atendimentos)                           |
+| `medical_record/` | Session records (prontuários) with encryption             |
+| `audit/`          | Audit log — global interceptor captures all operations    |
+| `crypto/`         | AES encryption service used by medical_record             |
+| `pdf/`            | PDF generation from templates                             |
+| `prisma/`         | PrismaService (extends PrismaClient with lifecycle hooks) |
 
 **Key patterns:**
+
 - All input validation via class-validator DTOs
 - `AuditInterceptor` is registered globally — logs user, action, entity, IP, timestamp to `LogAuditoria` table
 - Role-based access controlled via `roleId` on `Usuario` model
 - Medical record `conteudo` field is encrypted at rest using `CryptoService`
 
 **Medical record types** (DTOs in `medical_record/dto/`):
+
 - `triagem` — initial triage record
 - `evolucao` — session evolution note
 - `alta` — discharge report
@@ -86,6 +93,7 @@ Authentication uses **NextAuth v4** with a Credentials provider that calls the b
 **Auth flow:** Login form → NextAuth CredentialsProvider → backend `/auth/login` → JWT stored in session → Axios interceptor adds token to all API calls.
 
 **Route structure:**
+
 ```
 app/
 ├── login/                          # Public login page
@@ -111,6 +119,7 @@ app/
 ```
 
 **Auth components** (`components/auth/`):
+
 - `ConditionalRender.tsx` — renders children only if user has required role
 - `ProtectedRoute.tsx` — client-side route guard
 - `withRoleProtection.tsx` — HOC for role-based page protection
@@ -118,6 +127,7 @@ app/
 ### Database Schema (Prisma / PostgreSQL)
 
 Core entities:
+
 - `Usuario` — clinic users with `roleId`, `CRP` (psychologist registration number), `isActive`
 - `ListaEspera` — patients on the waiting list with demographic data
 - `Atendimento` — therapy session linking an intern + supervisor + patient
@@ -144,14 +154,15 @@ Understanding this flow is essential — the entire system models it:
 
 Four roles with decreasing privileges (stored as `roleId` on `Usuario`):
 
-| Role | PT Name | Key Permissions |
-|---|---|---|
-| `ADMIN` | Coordenador | Full access including audit logs, fluxo-atendimento dashboard, user management |
-| `SECRETARIO` | Secretário | Schedule sessions, manage waitlist, view fluxo-atendimento, manage patients |
-| `SUPERVISOR` | Supervisor | Approve/reject intern reports, generate alta/encaminhamento, see own patients only |
-| `ESTAGIARIO` | Estagiário | Fill session reports, see own patients only |
+| Role         | PT Name     | Key Permissions                                                                    |
+| ------------ | ----------- | ---------------------------------------------------------------------------------- |
+| `ADMIN`      | Coordenador | Full access including audit logs, fluxo-atendimento dashboard, user management     |
+| `SECRETARIO` | Secretário  | Schedule sessions, manage waitlist, view fluxo-atendimento, manage patients        |
+| `SUPERVISOR` | Supervisor  | Approve/reject intern reports, generate alta/encaminhamento, see own patients only |
+| `ESTAGIARIO` | Estagiário  | Fill session reports, see own patients only                                        |
 
 Critical access rules:
+
 - **Audit logs** (`/dashboard/auditoria`): Coordinator only
 - **Fluxo de atendimento** (`/dashboard/fluxo-atendimento`): Coordinator + Secretary only
 - **Patient visibility**: Coordinator/Secretary see all patients; Supervisor/Estagiário see only their assigned patients
@@ -168,6 +179,7 @@ Critical access rules:
 ## Environment Variables
 
 **Backend** (`apps/backend/.env`):
+
 ```
 DATABASE_URL=           # Supabase connection pooling URL
 DIRECT_URL=             # Direct URL for Prisma migrations
@@ -179,6 +191,7 @@ ENCRYPTION_KEY=         # AES key for medical record encryption
 ```
 
 **Frontend** (`apps/frontend/.env`):
+
 ```
 NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=

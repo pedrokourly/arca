@@ -6,8 +6,20 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { UserPlus, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { usePermissions } from "@/hooks/usePermissions";
@@ -37,8 +49,11 @@ const createUserSchema = z.object({
     .int("Função deve ser um número inteiro"),
   crp: z
     .string()
-    .regex(/^\d{2}\/\d{5,6}$/, "O CRP é inválido. O formato esperado é XX/XXXXX ou XX/XXXXXX (ex: 06/12345)")
-    .optional()
+    .regex(
+      /^\d{2}\/\d{5,6}$/,
+      "O CRP é inválido. O formato esperado é XX/XXXXX ou XX/XXXXXX (ex: 06/12345)",
+    )
+    .optional(),
 });
 
 interface CreateUserData {
@@ -70,42 +85,54 @@ export default function CreateUserForm() {
     nome: "",
     email: "",
     senha: "",
-    roleId: 4, 
-    crp: ""
+    roleId: 4,
+    crp: "",
   });
-  
+
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [formErrors, setFormErrors] = useState<CreateUserFormErrors>({});
-  const [reactivationOption, setReactivationOption] = useState<ReactivationOption>({
-    show: false
-  });
+  const [reactivationOption, setReactivationOption] =
+    useState<ReactivationOption>({
+      show: false,
+    });
 
   // Mapear roles baseado no nível de acesso do usuário logado
   const getAvailableRoles = () => {
     const userRoleId = session?.user?.roleId;
     const roles = [
       { value: 1, label: "Coordenador/Admin", disabled: userRoleId !== 1 },
-      { value: 2, label: "Secretário", disabled: userRoleId === undefined || userRoleId > 2 },
-      { value: 3, label: "Supervisor", disabled: userRoleId === undefined || userRoleId > 2 },
-      { value: 4, label: "Estagiário", disabled: false }
+      {
+        value: 2,
+        label: "Secretário",
+        disabled: userRoleId === undefined || userRoleId > 2,
+      },
+      {
+        value: 3,
+        label: "Supervisor",
+        disabled: userRoleId === undefined || userRoleId > 2,
+      },
+      { value: 4, label: "Estagiário", disabled: false },
     ];
-    
+
     // Filtrar apenas roles que o usuário pode criar
-    return roles.filter(role => !role.disabled);
+    return roles.filter((role) => !role.disabled);
   };
 
-  const handleInputChange = (field: keyof CreateUserData, value: string | number) => {
-    setFormData(prev => ({
+  const handleInputChange = (
+    field: keyof CreateUserData,
+    value: string | number,
+  ) => {
+    setFormData((prev) => ({
       ...prev,
-      [field]: field === 'roleId' ? Number(value) : value
+      [field]: field === "roleId" ? Number(value) : value,
     }));
-    
+
     // Limpa o erro do campo quando o usuário começa a digitar
     if (formErrors[field]) {
-      setFormErrors(prev => ({
+      setFormErrors((prev) => ({
         ...prev,
-        [field]: undefined
+        [field]: undefined,
       }));
     }
   };
@@ -115,32 +142,34 @@ export default function CreateUserForm() {
       // Garantir que roleId seja um número
       const dataToValidate = {
         ...formData,
-        roleId: Number(formData.roleId)
+        roleId: Number(formData.roleId),
       };
-      
+
       // Validação customizada para CRP
       if (dataToValidate.roleId === 3) {
         // Se for supervisor, CRP é obrigatório
-        if (!dataToValidate.crp || dataToValidate.crp.trim() === '') {
-          setFormErrors({ crp: 'O CRP é obrigatório para Supervisores' });
+        if (!dataToValidate.crp || dataToValidate.crp.trim() === "") {
+          setFormErrors({ crp: "O CRP é obrigatório para Supervisores" });
           return false;
         }
         // Validar formato do CRP
         const crpRegex = /^\d{2}\/\d{5,6}$/;
         if (!crpRegex.test(dataToValidate.crp)) {
-          setFormErrors({ crp: 'O CRP é inválido. O formato esperado é XX/XXXXX ou XX/XXXXXX (ex: 06/12345)' });
+          setFormErrors({
+            crp: "O CRP é inválido. O formato esperado é XX/XXXXX ou XX/XXXXXX (ex: 06/12345)",
+          });
           return false;
         }
       }
-      
+
       // Se não for supervisor, remover CRP da validação
       if (dataToValidate.roleId !== 3) {
         delete dataToValidate.crp;
       }
-      
+
       createUserSchema.parse(dataToValidate);
       setFormErrors({});
-      
+
       // Atualizar formData com roleId como número
       setFormData(dataToValidate);
       return true;
@@ -159,11 +188,11 @@ export default function CreateUserForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
 
     setIsLoading(true);
-    
+
     try {
       // Preparar dados para envio
       const dataToSend: any = {
@@ -174,28 +203,29 @@ export default function CreateUserForm() {
       };
 
       // Adicionar CRP apenas se for supervisor E tiver valor
-      if (formData.roleId === 3 && formData.crp && formData.crp.trim() !== '') {
+      if (formData.roleId === 3 && formData.crp && formData.crp.trim() !== "") {
         dataToSend.crp = formData.crp;
       }
-      
+
       const newUser = await apiService.createUser(dataToSend, session!.token);
-      
+
       toast.success("Usuário criado com sucesso!");
       router.push("/dashboard/usuarios");
-      
     } catch (error: any) {
       console.error("Erro ao criar usuário:", error);
-      
+
       // Verifica se é um conflito (usuário desativado)
       if (error?.status === 409) {
         setReactivationOption({
           show: true,
           userId: error.userId,
           userName: error.userName || "usuário desconhecido",
-          message: error.message || "Usuário desativado encontrado"
+          message: error.message || "Usuário desativado encontrado",
         });
       } else {
-        toast.error(error instanceof Error ? error.message : "Erro ao criar usuário");
+        toast.error(
+          error instanceof Error ? error.message : "Erro ao criar usuário",
+        );
       }
     } finally {
       setIsLoading(false);
@@ -209,17 +239,23 @@ export default function CreateUserForm() {
     }
 
     setIsLoading(true);
-    
+
     try {
       // Usa o ID retornado diretamente pelo backend
-      await apiService.reactivateUser(reactivationOption.userId, session!.token);
-      
-      toast.success(`Usuário ${reactivationOption.userName} reativado com sucesso!`);
+      await apiService.reactivateUser(
+        reactivationOption.userId,
+        session!.token,
+      );
+
+      toast.success(
+        `Usuário ${reactivationOption.userName} reativado com sucesso!`,
+      );
       router.push("/dashboard/usuarios");
-      
     } catch (error: any) {
       console.error("Erro ao reativar usuário:", error);
-      toast.error(error instanceof Error ? error.message : "Erro ao reativar usuário");
+      toast.error(
+        error instanceof Error ? error.message : "Erro ao reativar usuário",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -250,7 +286,9 @@ export default function CreateUserForm() {
       {reactivationOption.show ? (
         <Card className="border-orange-200 bg-orange-50">
           <CardHeader>
-            <CardTitle className="text-orange-800">Usuário Desativado Encontrado</CardTitle>
+            <CardTitle className="text-orange-800">
+              Usuário Desativado Encontrado
+            </CardTitle>
             <CardDescription className="text-orange-700">
               {reactivationOption.message}
             </CardDescription>
@@ -258,10 +296,19 @@ export default function CreateUserForm() {
           <CardContent>
             <div className="space-y-4">
               <div className="p-4 bg-orange-100 rounded-lg">
-                <h4 className="font-medium text-orange-800 mb-2">O que você gostaria de fazer?</h4>
+                <h4 className="font-medium text-orange-800 mb-2">
+                  O que você gostaria de fazer?
+                </h4>
                 <ul className="text-sm text-orange-700 space-y-1">
-                  <li>• <strong>Reativar:</strong> O usuário {reactivationOption.userName} voltará a ter acesso ao sistema</li>
-                  <li>• <strong>Cancelar:</strong> Voltar ao formulário de criação para escolher outro email</li>
+                  <li>
+                    • <strong>Reativar:</strong> O usuário{" "}
+                    {reactivationOption.userName} voltará a ter acesso ao
+                    sistema
+                  </li>
+                  <li>
+                    • <strong>Cancelar:</strong> Voltar ao formulário de criação
+                    para escolher outro email
+                  </li>
                 </ul>
               </div>
 
@@ -299,7 +346,8 @@ export default function CreateUserForm() {
           <CardHeader>
             <CardTitle>Informações do Usuário</CardTitle>
             <CardDescription>
-              Preencha os dados do novo usuário. Todos os campos são obrigatórios.
+              Preencha os dados do novo usuário. Todos os campos são
+              obrigatórios.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -322,7 +370,9 @@ export default function CreateUserForm() {
                     className={formErrors.nome ? "border-destructive" : ""}
                   />
                   {formErrors.nome && (
-                    <p className="text-xs text-destructive">{formErrors.nome}</p>
+                    <p className="text-xs text-destructive">
+                      {formErrors.nome}
+                    </p>
                   )}
                   <p className="text-xs text-muted-foreground">
                     Máximo 50 caracteres
@@ -345,7 +395,9 @@ export default function CreateUserForm() {
                     className={formErrors.email ? "border-destructive" : ""}
                   />
                   {formErrors.email && (
-                    <p className="text-xs text-destructive">{formErrors.email}</p>
+                    <p className="text-xs text-destructive">
+                      {formErrors.email}
+                    </p>
                   )}
                   <p className="text-xs text-muted-foreground">
                     Máximo 100 caracteres
@@ -361,25 +413,35 @@ export default function CreateUserForm() {
                   </Label>
                   <Select
                     value={formData.roleId?.toString()}
-                    onValueChange={(value) => handleInputChange("roleId", parseInt(value))}
+                    onValueChange={(value) =>
+                      handleInputChange("roleId", parseInt(value))
+                    }
                     disabled={isLoading}
                   >
-                    <SelectTrigger className={formErrors.roleId ? "border-destructive" : ""}>
+                    <SelectTrigger
+                      className={formErrors.roleId ? "border-destructive" : ""}
+                    >
                       <SelectValue placeholder="Selecione uma função" />
                     </SelectTrigger>
                     <SelectContent>
                       {availableRoles.map((role) => (
-                        <SelectItem key={role.value} value={role.value.toString()}>
+                        <SelectItem
+                          key={role.value}
+                          value={role.value.toString()}
+                        >
                           {role.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                   {formErrors.roleId && (
-                    <p className="text-xs text-destructive">{formErrors.roleId}</p>
+                    <p className="text-xs text-destructive">
+                      {formErrors.roleId}
+                    </p>
                   )}
                   <p className="text-xs text-muted-foreground">
-                    Você só pode criar usuários com nível igual ou inferior ao seu
+                    Você só pode criar usuários com nível igual ou inferior ao
+                    seu
                   </p>
                 </div>
 
@@ -392,7 +454,9 @@ export default function CreateUserForm() {
                       id="senha"
                       type={showPassword ? "text" : "password"}
                       value={formData.senha}
-                      onChange={(e) => handleInputChange("senha", e.target.value)}
+                      onChange={(e) =>
+                        handleInputChange("senha", e.target.value)
+                      }
                       placeholder="Digite uma senha temporária"
                       minLength={8}
                       maxLength={255}
@@ -416,10 +480,13 @@ export default function CreateUserForm() {
                     </Button>
                   </div>
                   {formErrors.senha && (
-                    <p className="text-xs text-destructive">{formErrors.senha}</p>
+                    <p className="text-xs text-destructive">
+                      {formErrors.senha}
+                    </p>
                   )}
                   <p className="text-xs text-muted-foreground">
-                    Mínimo 8 caracteres. O usuário deverá alterar no primeiro acesso.
+                    Mínimo 8 caracteres. O usuário deverá alterar no primeiro
+                    acesso.
                   </p>
                 </div>
               </div>
@@ -429,7 +496,8 @@ export default function CreateUserForm() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label htmlFor="crp">
-                      CRP (Conselho Regional de Psicologia) <span className="text-destructive">*</span>
+                      CRP (Conselho Regional de Psicologia){" "}
+                      <span className="text-destructive">*</span>
                     </Label>
                     <Input
                       id="crp"
@@ -443,7 +511,9 @@ export default function CreateUserForm() {
                       className={formErrors.crp ? "border-destructive" : ""}
                     />
                     {formErrors.crp && (
-                      <p className="text-xs text-destructive">{formErrors.crp}</p>
+                      <p className="text-xs text-destructive">
+                        {formErrors.crp}
+                      </p>
                     )}
                     <p className="text-xs text-muted-foreground">
                       Formato: XX/XXXXX ou XX/XXXXXX (ex: 06/12345)
@@ -459,10 +529,16 @@ export default function CreateUserForm() {
               <div className="p-4 bg-muted/50 rounded-lg">
                 <h4 className="font-medium mb-2">Informações Importantes:</h4>
                 <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>• O usuário receberá as credenciais por email (quando implementado)</li>
+                  <li>
+                    • O usuário receberá as credenciais por email (quando
+                    implementado)
+                  </li>
                   <li>• A senha deverá ser alterada no primeiro acesso</li>
                   <li>• O usuário será criado com status ativo por padrão</li>
-                  <li>• Apenas usuários com permissão adequada podem criar outros usuários</li>
+                  <li>
+                    • Apenas usuários com permissão adequada podem criar outros
+                    usuários
+                  </li>
                 </ul>
               </div>
 

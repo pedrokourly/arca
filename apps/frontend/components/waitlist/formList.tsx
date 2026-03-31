@@ -12,7 +12,13 @@ import { cn } from "@/lib/utils";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Form,
   FormControl,
@@ -35,11 +41,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Dialog,
   DialogContent,
@@ -66,11 +68,9 @@ const formSchema = z.object({
     })
     .optional()
     .or(z.literal("")),
-  CPF: z
-    .string()
-    .regex(/^\d{11}$/, {
-      message: "CPF deve conter exatamente 11 dígitos.",
-    }),
+  CPF: z.string().regex(/^\d{11}$/, {
+    message: "CPF deve conter exatamente 11 dígitos.",
+  }),
   dataNascimento: z.date({
     message: "Data de nascimento é obrigatória.",
   }),
@@ -183,7 +183,10 @@ export function WaitlistForm() {
       // Formatar dados para envio
       const payload = {
         nomeRegistro: values.nomeRegistro,
-        nomeSocial: values.nomeSocial && values.nomeSocial.trim() !== "" ? values.nomeSocial : undefined,
+        nomeSocial:
+          values.nomeSocial && values.nomeSocial.trim() !== ""
+            ? values.nomeSocial
+            : undefined,
         CPF: values.CPF,
         dataNascimento: values.dataNascimento.toISOString().split("T")[0], // Formato YYYY-MM-DD
         telefonePessoal: values.telefonePessoal,
@@ -256,7 +259,10 @@ export function WaitlistForm() {
                     <FormItem>
                       <FormLabel>Nome de Registro *</FormLabel>
                       <FormControl>
-                        <Input placeholder="Digite seu nome completo" {...field} />
+                        <Input
+                          placeholder="Digite seu nome completo"
+                          {...field}
+                        />
                       </FormControl>
                       <FormDescription>
                         Seu nome completo conforme documento oficial.
@@ -327,11 +333,13 @@ export function WaitlistForm() {
                               variant={"outline"}
                               className={cn(
                                 "w-full pl-3 text-left font-normal",
-                                !field.value && "text-muted-foreground"
+                                !field.value && "text-muted-foreground",
                               )}
                             >
                               {field.value ? (
-                                format(field.value, "dd/MM/yyyy", { locale: ptBR })
+                                format(field.value, "dd/MM/yyyy", {
+                                  locale: ptBR,
+                                })
                               ) : (
                                 <span>Selecione a data de nascimento</span>
                               )}
@@ -369,7 +377,9 @@ export function WaitlistForm() {
                         <FormControl>
                           <Input placeholder="(11) 99999-9999" {...field} />
                         </FormControl>
-                        <FormDescription>Seu telefone para contato.</FormDescription>
+                        <FormDescription>
+                          Seu telefone para contato.
+                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -419,7 +429,10 @@ export function WaitlistForm() {
                       <FormItem>
                         <FormLabel>Endereço (Rua) *</FormLabel>
                         <FormControl>
-                          <Input placeholder="Digite o nome da rua" {...field} />
+                          <Input
+                            placeholder="Digite o nome da rua"
+                            {...field}
+                          />
                         </FormControl>
                         <FormDescription>
                           Nome da rua, avenida ou logradouro.
@@ -511,9 +524,7 @@ export function WaitlistForm() {
                             }}
                           />
                         </FormControl>
-                        <FormDescription>
-                          CEP (apenas números).
-                        </FormDescription>
+                        <FormDescription>CEP (apenas números).</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -559,10 +570,14 @@ export function WaitlistForm() {
                           <SelectItem value="1">Masculino</SelectItem>
                           <SelectItem value="2">Feminino</SelectItem>
                           <SelectItem value="3">Não-binário</SelectItem>
-                          <SelectItem value="4">Prefiro não informar</SelectItem>
+                          <SelectItem value="4">
+                            Prefiro não informar
+                          </SelectItem>
                         </SelectContent>
                       </Select>
-                      <FormDescription>Seu gênero (obrigatório).</FormDescription>
+                      <FormDescription>
+                        Seu gênero (obrigatório).
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -591,10 +606,14 @@ export function WaitlistForm() {
                           <SelectItem value="3">Parda</SelectItem>
                           <SelectItem value="4">Amarela</SelectItem>
                           <SelectItem value="5">Indígena</SelectItem>
-                          <SelectItem value="6">Prefiro não informar</SelectItem>
+                          <SelectItem value="6">
+                            Prefiro não informar
+                          </SelectItem>
                         </SelectContent>
                       </Select>
-                      <FormDescription>Sua Etnia (obrigatório).</FormDescription>
+                      <FormDescription>
+                        Sua Etnia (obrigatório).
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -621,17 +640,29 @@ export function WaitlistForm() {
                           <SelectItem value="1">
                             Ensino Fundamental Incompleto
                           </SelectItem>
-                          <SelectItem value="2">Ensino Fundamental Completo</SelectItem>
-                          <SelectItem value="3">Ensino Médio Incompleto</SelectItem>
-                          <SelectItem value="4">Ensino Médio Completo</SelectItem>
-                          <SelectItem value="5">Ensino Superior Incompleto</SelectItem>
-                          <SelectItem value="6">Ensino Superior Completo</SelectItem>
+                          <SelectItem value="2">
+                            Ensino Fundamental Completo
+                          </SelectItem>
+                          <SelectItem value="3">
+                            Ensino Médio Incompleto
+                          </SelectItem>
+                          <SelectItem value="4">
+                            Ensino Médio Completo
+                          </SelectItem>
+                          <SelectItem value="5">
+                            Ensino Superior Incompleto
+                          </SelectItem>
+                          <SelectItem value="6">
+                            Ensino Superior Completo
+                          </SelectItem>
                           <SelectItem value="7">Pós-graduação</SelectItem>
                           <SelectItem value="8">Mestrado</SelectItem>
                           <SelectItem value="9">Doutorado</SelectItem>
                         </SelectContent>
                       </Select>
-                      <FormDescription>Sua escolaridade (obrigatório).</FormDescription>
+                      <FormDescription>
+                        Sua escolaridade (obrigatório).
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -642,8 +673,8 @@ export function WaitlistForm() {
 
           {/* Botão de Submit */}
           <div className="flex justify-end">
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={isLoading}
               size="lg"
               className="w-full md:w-auto md:min-w-48"
@@ -656,7 +687,7 @@ export function WaitlistForm() {
 
       {/* Modal de Sucesso com ID da lista de espera */}
       <Dialog open={showSuccessModal} onOpenChange={setShowSuccessModal}>
-        <DialogContent 
+        <DialogContent
           className="sm:max-w-md"
           onInteractOutside={(e) => e.preventDefault()}
           onEscapeKeyDown={(e) => e.preventDefault()}
@@ -672,7 +703,7 @@ export function WaitlistForm() {
               Informações sobre o ID da lista de espera
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4 py-4">
             <div className="space-y-3">
               <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4">
@@ -685,7 +716,7 @@ export function WaitlistForm() {
                   </code>
                 </div>
               </div>
-              
+
               <Alert className="border-amber-200 bg-amber-50">
                 <InfoIcon className="h-4 w-4 text-amber-600" />
                 <AlertTitle className="text-amber-900 font-semibold">
