@@ -385,7 +385,7 @@ export class SessionService {
 
     if (session.id_Status !== StatusAtendimento.ATIVO) {
       throw new BadRequestException(
-        'Só é possivel cancelar uma sessão que esteja agendada.',
+        'Só é possível cancelar uma sessão que esteja agendada.',
       );
     }
 
