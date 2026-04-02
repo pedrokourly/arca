@@ -3,18 +3,23 @@ import { CreateWaitlistDto } from './dto/create-waitlist.dto';
 import { UpdateWaitlistDto } from './dto/update-waitlist.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UUID } from 'node:crypto';
-import { validate as isUUID } from 'uuid';
+import { StatusListaEspera } from 'src/common/enums/status.enum';
 
 @Injectable()
 export class WaitlistService {
   constructor(private prisma: PrismaService) {}
 
   async create(body: CreateWaitlistDto) {
-    // Verifica se há alguma entrada ativa com o mesmo CPF
+
     const existingActiveEntry = await this.prisma.listaEspera.findFirst({
       where: {
         CPF: body.CPF,
-        id_Status: { in: [1, 2, 3, 4] }, // Em espera, Em triagem, Em psicoterapia
+        id_Status: { in: [
+          StatusListaEspera.EM_ESPERA, 
+          StatusListaEspera.EM_TRIAGEM, 
+          StatusListaEspera.TRIAGEM_APROVADA, 
+          StatusListaEspera.EM_PSICOTERAPIA
+        ] },
       },
     });
 
@@ -68,7 +73,7 @@ export class WaitlistService {
         createdAt: {
           lt: waitlistEntry.createdAt,
         },
-        id_Status: 1,
+        id_Status: StatusListaEspera.EM_ESPERA,
       },
     });
 
@@ -77,7 +82,7 @@ export class WaitlistService {
     return {
       ...waitlistEntry,
       posicaoNaLista: posicao,
-      situacao: waitlistEntry.id_Status === 1 ? 'Ativo' : 'Inativo',
+      situacao: waitlistEntry.id_Status === StatusListaEspera.EM_ESPERA ? 'Ativo' : 'Inativo',
     };
   }
 
@@ -101,14 +106,14 @@ export class WaitlistService {
     const posicaoNaLista = await this.prisma.listaEspera.count({
       where: {
         createdAt: { lt: waitlistEntry.createdAt },
-        id_Status: 1,
+        id_Status: StatusListaEspera.EM_ESPERA,
       },
     });
 
     return {
       ...waitlistEntry,
       posicaoNaLista: posicaoNaLista + 1,
-      situacao: waitlistEntry.id_Status === 1 ? 'Ativo' : 'Inativo',
+      situacao: waitlistEntry.id_Status === StatusListaEspera.EM_ESPERA ? 'Ativo' : 'Inativo',
     };
   }
 
@@ -118,7 +123,7 @@ export class WaitlistService {
         createdAt: true,
       },
       where: {
-        id_Status: 1,
+        id_Status: StatusListaEspera.EM_ESPERA,
       },
       orderBy: {
         createdAt: 'desc',
@@ -145,9 +150,6 @@ export class WaitlistService {
   }
 
   async update(id: UUID, body: UpdateWaitlistDto) {
-    if (!isUUID(id)) {
-      throw new BadRequestException('Formato de UUID inválido.');
-    }
 
     const waitlistEntry = await this.prisma.listaEspera.findUnique({
       where: { id_Lista: id },
@@ -173,9 +175,6 @@ export class WaitlistService {
   }
 
   async remove(id: UUID) {
-    if (!isUUID(id)) {
-      throw new BadRequestException('Formato de UUID inválido.');
-    }
 
     const waitlistEntry = await this.prisma.listaEspera.findUnique({
       where: { id_Lista: id },
@@ -184,22 +183,22 @@ export class WaitlistService {
     if (!waitlistEntry) {
       throw new NotFoundException('Paciente não encontrado na lista de espera.');
     }
-    if (waitlistEntry.id_Status === 7) {
+    if (waitlistEntry.id_Status === StatusListaEspera.DESATIVADO) {
       throw new BadRequestException('Paciente já está desativado na lista de espera.');
     }
-    if (waitlistEntry.id_Status === 5 || waitlistEntry.id_Status === 6) {
+    if (waitlistEntry.id_Status === StatusListaEspera.RECEBEU_ALTA || waitlistEntry.id_Status === StatusListaEspera.ENCAMINHADO) {
       throw new BadRequestException('Não é possível desativar um paciente que já recebeu alta ou foi encaminhado.');
     }
-    if (waitlistEntry.id_Status === 4) {
+    if (waitlistEntry.id_Status === StatusListaEspera.EM_PSICOTERAPIA) {
       throw new BadRequestException('Não é possível desativar um paciente que está em psicoterapia.');
     }
-    if (waitlistEntry.id_Status === 3) {
+    if (waitlistEntry.id_Status === StatusListaEspera.TRIAGEM_APROVADA) {
+      throw new BadRequestException('Não é possível desativar um paciente com triagem aprovada');
+    }
+    if (waitlistEntry.id_Status === StatusListaEspera.EM_TRIAGEM) {
       throw new BadRequestException('Não é possível desativar um paciente que está em triagem.');
     }
-    if (waitlistEntry.id_Status === 2) {
-      throw new BadRequestException('Não é possível desativar um paciente que está em atendimento.');
-    }
-    if (waitlistEntry.id_Status !== 1) {
+    if (waitlistEntry.id_Status !== StatusListaEspera.EM_ESPERA) {
       throw new BadRequestException('Apenas pacientes com status "Em espera" podem ser desativados.');
     }
 
@@ -207,7 +206,7 @@ export class WaitlistService {
       const deactivatedEntry = await this.prisma.listaEspera.update({
         where: { id_Lista: id },
         data: {
-          id_Status: 7, // Desativado
+          id_Status: StatusListaEspera.DESATIVADO,
         },
       });
 

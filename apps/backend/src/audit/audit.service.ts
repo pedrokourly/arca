@@ -1,10 +1,7 @@
-// src/audit/audit.service.ts
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Prisma } from '@prisma/client'; // Importa o tipo JsonValue
-import { TokenDto } from 'src/common/dto/token.dto';
 
-// DTO atualizado
 export class CreateAuditLogDto {
   id_Usuario_Executor: string;
   nome_Usuario_Executor: string;
@@ -25,11 +22,7 @@ export class AuditService {
     });
   }
 
-  async findAll(user: TokenDto) {
-    if (user.access !== 1) {
-      throw new UnauthorizedException('Acesso negado.');
-    }
-
+  async findAll() {
     return await this.prisma.logAuditoria.findMany();
   }
 }

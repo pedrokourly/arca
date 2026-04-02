@@ -18,6 +18,7 @@ import { CreateEncaminhamentoDto } from './dto/create-encaminhamento.dto';
 import { CreateAltaDto } from './dto/create-alta.dtos';
 import { PdfService } from 'src/pdf/pdf.service';
 import { CryptoService } from 'src/crypto/crypto.service';
+import { RoleAccess, StatusAtendimento, StatusListaEspera, StatusProntuario, TipoAtendimento, TipoProntuario } from 'src/common/enums/status.enum';
 
 @Injectable()
 export class MedicalRecordService {
@@ -52,20 +53,20 @@ export class MedicalRecordService {
       },
     });
     if (!atendimento) throw new NotFoundException('Atendimento não encontrado.');
-    if (atendimento?.id_Tipo_Atendimento !== 1) throw new BadRequestException('Atendimento não é de triagem.');
-    if (atendimento.id_Status !== 1) throw new BadRequestException('Atendimento não está ativo ou já foi concluido.');
-    if (atendimento.ListaEspera?.id_Status !== 2)
+    if (atendimento?.id_Tipo_Atendimento !== TipoAtendimento.TRIAGEM) throw new BadRequestException('Atendimento não é de triagem.');
+    if (atendimento.id_Status !== StatusAtendimento.ATIVO) throw new BadRequestException('Atendimento não está ativo ou já foi concluido.');
+    if (atendimento.ListaEspera?.id_Status !== StatusListaEspera.EM_TRIAGEM)
       throw new BadRequestException(
         'Paciente ja possuí triagem concluída ou em andamento. Não é possível criar outra triagem.',
       );
-    if (atendimento.id_Estagiario_Executor === null || atendimento.id_Supervisor_Executor === null) {
+    if (!atendimento.id_Estagiario_Executor || !atendimento.id_Supervisor_Executor) {
       throw new InternalServerErrorException('Estagiário ou supervisor não atribuídos para este atendimento.');
     }
 
-    if (user.access > 2) {
-      const isEstagiario = atendimento.id_Estagiario_Executor === user.sub;
-      const isSupervisor = atendimento.id_Supervisor_Executor === user.sub;
-      if (!isEstagiario && !isSupervisor)
+    if (user.access > RoleAccess.SECRETARIO) {
+      const isEstagiarioResponsavel = atendimento.id_Estagiario_Executor === user.sub;
+      const isSupervisorResponsavel = atendimento.id_Supervisor_Executor === user.sub;
+      if (!isEstagiarioResponsavel && !isSupervisorResponsavel)
         throw new UnauthorizedException(
           'Você não tem permissão para criar um relatório de triagem para este atendimento.',
         );
@@ -79,15 +80,15 @@ export class MedicalRecordService {
 
             conteudo: this.encrypt(CreateTriagemProntuarioDto.conteudo),
 
-            id_Status: 1, // Em aprovação
-            id_Tipo: 1, // Triagem
+            id_Status: StatusProntuario.EM_APROVACAO,
+            id_Tipo: TipoProntuario.TRIAGEM,
           },
         }),
 
         this.prisma.atendimento.update({
           where: { id_Atendimento: CreateTriagemProntuarioDto.id_Sessao },
           data: {
-            id_Status: 2, // Em andamento
+            id_Status: StatusAtendimento.EM_ANDAMENTO,
           },
         }),
       ]);
@@ -113,17 +114,17 @@ export class MedicalRecordService {
     });
 
     if (!prontuario) throw new NotFoundException('Registro não encontrado.');
-    if (prontuario.id_Tipo !== 1) throw new BadRequestException('Registro não é de triagem.');
-    if (prontuario.id_Status !== 1)
+    if (prontuario.id_Tipo !== TipoProntuario.TRIAGEM) throw new BadRequestException('Registro não é de triagem.');
+    if (prontuario.id_Status !== StatusProntuario.EM_APROVACAO)
       throw new BadRequestException('Triagem já foi aprovada, não é possível alterar os dados.');
 
     if (!prontuario.atendimento?.id_Supervisor_Executor)
       throw new InternalServerErrorException('Dados do atendimento inválidos.');
 
-    if (user.access === 3 && user.sub !== prontuario.atendimento.id_Supervisor_Executor)
+    if (user.access === RoleAccess.SUPERVISOR && user.sub !== prontuario.atendimento.id_Supervisor_Executor)
       throw new UnauthorizedException('Apenas o supervisor responsável pode editar essa triagem.');
 
-    if (user.access === 4 && user.sub !== prontuario.atendimento.id_Estagiario_Executor)
+    if (user.access === RoleAccess.ESTAGIARIO && user.sub !== prontuario.atendimento.id_Estagiario_Executor)
       throw new UnauthorizedException('Apenas o estagiario responsável pode editar essa triagem.');
 
     return await this.prisma.prontuario.update({
@@ -149,12 +150,11 @@ export class MedicalRecordService {
     });
 
     if (!prontuario) throw new NotFoundException('Registro não encontrado.');
-    if (prontuario.id_Tipo !== 1) throw new BadRequestException('Registro não é de triagem.');
-    if (prontuario.id_Status !== 1) throw new BadRequestException('Triagem já foi aprovada.');
-    if (user.access > 3) throw new UnauthorizedException('Este usuário não tem permissão para aprovar triagens.');
+    if (prontuario.id_Tipo !== TipoProntuario.TRIAGEM) throw new BadRequestException('Registro não é de triagem.');
+    if (prontuario.id_Status !== StatusProntuario.EM_APROVACAO) throw new BadRequestException('Triagem já foi aprovada.');
     if (!prontuario.atendimento?.id_Supervisor_Executor)
       throw new InternalServerErrorException('Dados do atendimento inválidos.');
-    if (user.access === 3 && user.sub !== prontuario.atendimento.id_Supervisor_Executor)
+    if (user.access === RoleAccess.SUPERVISOR && user.sub !== prontuario.atendimento.id_Supervisor_Executor)
       throw new UnauthorizedException('Apenas o supervisor responsável pode aprovar esta triagem.');
 
     const transactionPromises: Prisma.PrismaPromise<any>[] = [];
@@ -163,7 +163,7 @@ export class MedicalRecordService {
       this.prisma.prontuario.update({
         where: { id_Registro: id },
         data: {
-          id_Status: 2, // Aprovado
+          id_Status: StatusProntuario.APROVADO,
         },
       }),
     );
@@ -172,7 +172,7 @@ export class MedicalRecordService {
       this.prisma.atendimento.update({
         where: { id_Atendimento: prontuario.id_Atendimento },
         data: {
-          id_Status: 3, // Concluido
+          id_Status: StatusAtendimento.CONCLUIDO,
         },
       }),
     );
@@ -192,7 +192,7 @@ export class MedicalRecordService {
         this.prisma.listaEspera.update({
           where: { id_Lista: prontuario.atendimento.id_Lista },
           data: {
-            id_Status: 6, // Encaminhado
+            id_Status: StatusListaEspera.ENCAMINHADO,
           },
         }),
       );
@@ -202,8 +202,8 @@ export class MedicalRecordService {
           data: {
             id_Atendimento: prontuario.id_Atendimento,
             conteudo: this.encrypt({ instituicaoEncaminhada, motivoEncaminhamento }),
-            id_Status: 2, // Aprovado
-            id_Tipo: 4, // Encaminhamento
+            id_Status: StatusProntuario.APROVADO,
+            id_Tipo: TipoProntuario.ENCAMINHAMENTO,
           },
         }),
       );
@@ -212,7 +212,7 @@ export class MedicalRecordService {
         this.prisma.listaEspera.update({
           where: { id_Lista: prontuario.atendimento.id_Lista },
           data: {
-            id_Status: 3, // Triagem aprovada
+            id_Status: StatusListaEspera.TRIAGEM_APROVADA,
           },
         }),
       );
@@ -237,24 +237,21 @@ export class MedicalRecordService {
       },
     });
     if (!atendimento) throw new NotFoundException('Atendimento não encontrado.');
-    if (atendimento?.id_Tipo_Atendimento !== 2)
-      // Psicoterapia
+    if (atendimento?.id_Tipo_Atendimento !== TipoAtendimento.PSICOTERAPIA)
       throw new BadRequestException('Atendimento não é de psicoterapia');
-    if (atendimento.id_Status !== 1)
-      // Ativo
+    if (atendimento.id_Status !== StatusAtendimento.ATIVO)
       throw new BadRequestException('Atendimento não está ativo ou já foi concluido.');
 
     const status = atendimento.ListaEspera?.id_Status;
-    if (status !== 3 && status !== 4)
-      // Triagem aprovada ou Psicoterapia em andamento
+    if (status !== StatusListaEspera.TRIAGEM_APROVADA && status !== StatusListaEspera.EM_PSICOTERAPIA)
       throw new BadRequestException(
         'Paciente não possuí triagem aprovada. Não é possível criar um registro de psicoterapia.',
       );
-    if (atendimento.id_Estagiario_Executor === null || atendimento.id_Supervisor_Executor === null) {
+    if (!atendimento.id_Estagiario_Executor || !atendimento.id_Supervisor_Executor) {
       throw new InternalServerErrorException('Estagiário ou supervisor não atribuídos para este atendimento.');
     }
 
-    if (user.access > 2) {
+    if (user.access > RoleAccess.SECRETARIO) {
       const isEstagiario = atendimento.id_Estagiario_Executor === user.sub;
       const isSupervisor = atendimento.id_Supervisor_Executor === user.sub;
       if (!isEstagiario && !isSupervisor)
@@ -271,15 +268,15 @@ export class MedicalRecordService {
 
             conteudo: this.encrypt(CreateEvolucaoProntuarioDto.conteudo),
 
-            id_Status: 1, // Em aprovação
-            id_Tipo: 2, // Evolução
+            id_Status: StatusProntuario.EM_APROVACAO,
+            id_Tipo: TipoProntuario.PSICOTERAPIA,
           },
         }),
 
         this.prisma.atendimento.update({
           where: { id_Atendimento: CreateEvolucaoProntuarioDto.id_Sessao },
           data: {
-            id_Status: 2, // Em andamento
+            id_Status: StatusAtendimento.EM_ANDAMENTO,
           },
         }),
       ]);
@@ -307,17 +304,17 @@ export class MedicalRecordService {
     });
 
     if (!prontuario) throw new NotFoundException('Registro não encontrado.');
-    if (prontuario.id_Tipo !== 2) throw new BadRequestException('Registro não é de triagem.');
-    if (prontuario.id_Status !== 1)
+    if (prontuario.id_Tipo !== TipoProntuario.PSICOTERAPIA) throw new BadRequestException('Registro não é de evolução/psicoterapia.');
+    if (prontuario.id_Status !== StatusProntuario.EM_APROVACAO)
       throw new BadRequestException('Registro de evolução já foi aprovado, não é possível alterar os dados.');
 
     if (!prontuario.atendimento?.id_Supervisor_Executor)
       throw new InternalServerErrorException('Dados do atendimento inválidos.');
 
-    if (user.access === 3 && user.sub !== prontuario.atendimento.id_Supervisor_Executor)
+    if (user.access === RoleAccess.SUPERVISOR && user.sub !== prontuario.atendimento.id_Supervisor_Executor)
       throw new UnauthorizedException('Apenas o supervisor responsável pode editar esse registro de evolução.');
 
-    if (user.access === 4 && user.sub !== prontuario.atendimento.id_Estagiario_Executor)
+    if (user.access === RoleAccess.ESTAGIARIO && user.sub !== prontuario.atendimento.id_Estagiario_Executor)
       throw new UnauthorizedException('Apenas o estagiario responsável pode editar esse registro de evolução.');
 
     return await this.prisma.prontuario.update({
@@ -343,13 +340,11 @@ export class MedicalRecordService {
     });
 
     if (!prontuario) throw new NotFoundException('Registro não encontrado.');
-    if (prontuario.id_Tipo !== 2) throw new BadRequestException('Registro não é de registro em psicoterapia.');
-    if (prontuario.id_Status !== 1) throw new BadRequestException('Registro de psicoterapia já foi aprovado.');
-    if (user.access > 3)
-      throw new UnauthorizedException('Este usuário não tem permissão para aprovar registro de psicoterapia.');
+    if (prontuario.id_Tipo !== TipoProntuario.PSICOTERAPIA) throw new BadRequestException('Registro não é de registro em psicoterapia.');
+    if (prontuario.id_Status !== StatusProntuario.EM_APROVACAO) throw new BadRequestException('Registro de psicoterapia já foi aprovado.');
     if (!prontuario.atendimento?.id_Supervisor_Executor)
       throw new InternalServerErrorException('Dados do atendimento inválidos.');
-    if (user.access === 3 && user.sub !== prontuario.atendimento.id_Supervisor_Executor)
+    if (user.access === RoleAccess.SUPERVISOR && user.sub !== prontuario.atendimento.id_Supervisor_Executor)
       throw new UnauthorizedException('Apenas o supervisor responsável pode aprovar este registro de psicoterapia.');
 
     const transactionPromises: Prisma.PrismaPromise<any>[] = [];
@@ -360,7 +355,7 @@ export class MedicalRecordService {
       this.prisma.prontuario.update({
         where: { id_Registro: id },
         data: {
-          id_Status: 2, // Aprovado
+          id_Status: StatusProntuario.APROVADO,
         },
       }),
     );
@@ -369,7 +364,7 @@ export class MedicalRecordService {
       this.prisma.atendimento.update({
         where: { id_Atendimento: prontuario.id_Atendimento },
         data: {
-          id_Status: 3, // Concluido
+          id_Status: StatusAtendimento.CONCLUIDO,
         },
       }),
     );
@@ -385,8 +380,8 @@ export class MedicalRecordService {
           data: {
             id_Atendimento: prontuario.id_Atendimento,
             conteudo: this.encrypt({ finalidade }),
-            id_Status: 2,
-            id_Tipo: 3, // Alta
+            id_Status: StatusProntuario.APROVADO,
+            id_Tipo: TipoProntuario.ALTA,
           },
         }),
       );
@@ -396,7 +391,7 @@ export class MedicalRecordService {
         this.prisma.listaEspera.update({
           where: { id_Lista: prontuario.atendimento.id_Lista },
           data: {
-            id_Status: 5, // Recebeu alta
+            id_Status: StatusListaEspera.RECEBEU_ALTA,
           },
         }),
       );
@@ -418,8 +413,8 @@ export class MedicalRecordService {
           data: {
             id_Atendimento: prontuario.id_Atendimento,
             conteudo: this.encrypt({ instituicaoEncaminhada, motivoEncaminhamento }),
-            id_Status: 2,
-            id_Tipo: 4, // Encaminhamento
+            id_Status: StatusProntuario.APROVADO,
+            id_Tipo: TipoProntuario.ENCAMINHAMENTO,
           },
         }),
       );
@@ -436,7 +431,7 @@ export class MedicalRecordService {
       } else if (encaminhamentoCriado) {
         return 'Evolução aprovada. Encaminhamento gerado com sucesso.';
       } else {
-        return 'Evolução aprovada com sucesso.'; // Caso só aprove a sessão
+        return 'Evolução aprovada com sucesso.';
       }
     } catch (error) {
       throw new InternalServerErrorException('Erro no banco de dados. Falha ao aprovar a evolução. Tente novamente.');
@@ -495,17 +490,17 @@ export class MedicalRecordService {
     let supervisorCRP = 'N/A';
 
     for (const atd of paciente.Atendimento) {
-      const found = atd.Prontuario.find((p) => p.id_Tipo === 3); // 3 = Alta
+      const found = atd.Prontuario.find((p) => p.id_Tipo === TipoProntuario.ALTA);
       if (found) {
         altaRecord = found;
         supervisorNome = atd.supervisorExecutor?.nome || 'N/A';
         supervisorCRP = atd.supervisorExecutor?.CRP || 'N/A';
-        break;
+        break; 
       }
     }
 
     if (!altaRecord) {
-      throw new NotFoundException('Registro de Alta (Tipo 3) não encontrado para este paciente.');
+      throw new NotFoundException('Registro de Alta não encontrado para este paciente.');
     }
 
     const datasAtendimento = paciente.Atendimento.map((atd) => new Date(atd.dataHoraInicio).getTime());
@@ -559,17 +554,17 @@ export class MedicalRecordService {
       throw new NotFoundException('Registro de Encaminhamento não encontrado.');
     }
 
-    if (encaminhamentoRecord.id_Tipo !== 4) {
+    if (encaminhamentoRecord.id_Tipo !== TipoProntuario.ENCAMINHAMENTO) {
       throw new BadRequestException('O registro fornecido não é do tipo Encaminhamento.');
     }
 
-    if (user.access === 3) {
+    if (user.access === RoleAccess.SUPERVISOR) {
       if (encaminhamentoRecord.atendimento.id_Supervisor_Executor !== user.sub) {
         throw new ForbiddenException('Você não tem permissão para acessar este registro.');
       }
     }
 
-    if (user.access === 4) {
+    if (user.access === RoleAccess.ESTAGIARIO) {
       if (encaminhamentoRecord.atendimento.id_Estagiario_Executor !== user.sub) {
         throw new ForbiddenException('Você não tem permissão para acessar este registro.');
       }
@@ -579,14 +574,13 @@ export class MedicalRecordService {
     const supervisorNome = encaminhamentoRecord.atendimento.supervisorExecutor?.nome || 'N/A';
     const supervisorCRP = encaminhamentoRecord.atendimento.supervisorExecutor?.CRP || 'N/A';
 
-    // Buscar a triagem do paciente para complementar informações
     const pacienteCompleto = await this.prisma.listaEspera.findUnique({
       where: { id_Lista: paciente.id_Lista },
       include: {
         Atendimento: {
           include: {
             Prontuario: {
-              where: { id_Tipo: 1 }, // Triagem
+              where: { id_Tipo: TipoProntuario.TRIAGEM },
             },
           },
         },
@@ -607,11 +601,10 @@ export class MedicalRecordService {
 
     if (!triagemRecord) {
       throw new NotFoundException(
-        'Registro de Triagem (Tipo 1) não encontrado. Não é possível gerar o encaminhamento.',
+        'Registro de Triagem não encontrado. Não é possível gerar o encaminhamento.',
       );
     }
 
-    // Cast do conteúdo para acessar as propriedades
     const conteudoEncaminhamento = encaminhamentoRecord.conteudo as any;
 
     const dataForPdf = {
@@ -677,7 +670,7 @@ export class MedicalRecordService {
       },
     };
 
-    if (user.access === 3) {
+    if (user.access === RoleAccess.SUPERVISOR) {
       // Supervisor
       // Filtra a lista de pacientes
       if (whereCondition.Atendimento?.some) {
@@ -687,7 +680,7 @@ export class MedicalRecordService {
       if (includeAtendimentos.where) {
         includeAtendimentos.where.id_Supervisor_Executor = user.sub;
       }
-    } else if (user.access === 4) {
+    } else if (user.access === RoleAccess.ESTAGIARIO) {
       // Estagiário
       // Filtra a lista de pacientes
       if (whereCondition.Atendimento?.some) {
@@ -697,8 +690,8 @@ export class MedicalRecordService {
       if (includeAtendimentos.where) {
         includeAtendimentos.where.id_Estagiario_Executor = user.sub;
       }
-    } else if (user.access > 4) {
-      return []; // Nível de acesso inválido
+    } else if (user.access > RoleAccess.ESTAGIARIO) {
+      return [];
     }
 
     const pacientes = await this.prisma.listaEspera.findMany({
@@ -767,20 +760,19 @@ export class MedicalRecordService {
 
     const includeAtendimentosOrderBy: Prisma.AtendimentoOrderByWithRelationInput[] = [{ dataHoraInicio: 'asc' }];
 
-    if (user.access === 3) {
+    if (user.access === RoleAccess.SUPERVISOR) {
       if (whereCondition.Atendimento?.some) {
         whereCondition.Atendimento.some.id_Supervisor_Executor = user.sub;
       }
 
       includeAtendimentosWhere.id_Supervisor_Executor = user.sub;
-    } else if (user.access === 4) {
-      // Estagiário
+    } else if (user.access === RoleAccess.ESTAGIARIO) {
       if (whereCondition.Atendimento?.some) {
         whereCondition.Atendimento.some.id_Estagiario_Executor = user.sub;
       }
 
       includeAtendimentosWhere.id_Estagiario_Executor = user.sub;
-    } else if (user.access > 4) {
+    } else if (user.access > RoleAccess.ESTAGIARIO) {
       throw new NotFoundException(`Paciente com ID ${id} não encontrado.`);
     }
 
