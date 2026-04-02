@@ -193,10 +193,10 @@ export class WaitlistService {
       throw new BadRequestException('Não é possível desativar um paciente que está em psicoterapia.');
     }
     if (waitlistEntry.id_Status === StatusListaEspera.TRIAGEM_APROVADA) {
-      throw new BadRequestException('Não é possível desativar um paciente que está em triagem.');
+      throw new BadRequestException('Não é possível desativar um paciente com triagem aprovada');
     }
     if (waitlistEntry.id_Status === StatusListaEspera.EM_TRIAGEM) {
-      throw new BadRequestException('Não é possível desativar um paciente que está em atendimento.');
+      throw new BadRequestException('Não é possível desativar um paciente que está em triagem.');
     }
     if (waitlistEntry.id_Status !== StatusListaEspera.EM_ESPERA) {
       throw new BadRequestException('Apenas pacientes com status "Em espera" podem ser desativados.');

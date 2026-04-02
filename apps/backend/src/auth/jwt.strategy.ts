@@ -32,8 +32,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     return {
-    sub: user.id_User,
-    access: user.roleId,
+    ... payload
   } as TokenDto;
   }
 }

@@ -16,7 +16,8 @@ export class RolesGuard implements CanActivate {
     if (!requiredRoles) return true;
 
     const { user } = context.switchToHttp().getRequest();
+    if (!user) throw new Error('User não encontrado na requisição.');
 
-    return requiredRoles.includes(user.roleId);
+    return requiredRoles.includes(user.access);
   }
 }

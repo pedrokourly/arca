@@ -304,7 +304,7 @@ export class MedicalRecordService {
     });
 
     if (!prontuario) throw new NotFoundException('Registro não encontrado.');
-    if (prontuario.id_Tipo !== TipoProntuario.PSICOTERAPIA) throw new BadRequestException('Registro não é de triagem.');
+    if (prontuario.id_Tipo !== TipoProntuario.PSICOTERAPIA) throw new BadRequestException('Registro não é de evolução/psicoterapia.');
     if (prontuario.id_Status !== StatusProntuario.EM_APROVACAO)
       throw new BadRequestException('Registro de evolução já foi aprovado, não é possível alterar os dados.');
 
@@ -445,15 +445,15 @@ export class MedicalRecordService {
       paciente: {
         nome: paciente.nomeRegistro,
         nomeSocial: paciente.nomeSocial,
-        cpf: paciente.CPF,
+        cpf: paciente.CPF || 'N/A',
         dataNascimento: new Date(paciente.dataNascimento).toLocaleDateString('pt-BR'),
         status: paciente.Status.nome,
       },
       atendimentos: paciente.Atendimento.map((atd) => ({
         data: new Date(atd.dataHoraInicio).toLocaleDateString('pt-BR'),
-        supervisor: atd.supervisorExecutor.nome,
-        estagiario: atd.estagiarioExecutor.nome,
-        supervisorCRP: atd.supervisorExecutor.CRP,
+        supervisor: atd.supervisorExecutor?.nome || 'N/A',
+        estagiario: atd.estagiarioExecutor?.nome || 'N/A',
+        supervisorCRP: atd.supervisorExecutor?.CRP || 'N/A',
         prontuarios: atd.Prontuario.map((p) => {
           return {
             id_Registro: p.id_Registro,
