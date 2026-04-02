@@ -6,6 +6,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import { UUID } from 'node:crypto';
 import { CryptoService } from 'src/crypto/crypto.service';
+import { RoleAccess, StatusAtendimento, StatusListaEspera, StatusProntuario, TipoAtendimento, TipoProntuario } from 'src/common/enums/status.enum';
 
 @Injectable()
 export class SessionService {
@@ -69,12 +70,7 @@ export class SessionService {
   }
 
   async create(session: CreateSessionDto, user: TokenDto) {
-    // Verifica se o usuário tem permissão para criar uma sessão
-    if (user.access > 2) {
-      throw new ForbiddenException('Você não tem permissão para criar uma sessão.');
-    }
 
-    // Verifica se o paciente existe
     const paciente = await this.prisma.listaEspera.findUnique({
       where: { id_Lista: session.id_Lista },
     });
@@ -82,35 +78,37 @@ export class SessionService {
       throw new BadRequestException('Paciente não encontrado.');
     }
 
-    const statusFinais = [5, 6, 7]; // [Recebeu Alta, Encaminhado, Desativado]
+    const statusFinais = [StatusListaEspera.RECEBEU_ALTA, StatusListaEspera.ENCAMINHADO, StatusListaEspera.DESATIVADO];
     if (statusFinais.includes(paciente.id_Status)) {
       throw new BadRequestException(
-        'Paciente está com status "Recebeu Alta", "Encaminhado" ou "Desativado" e não pode ter novas sessões agendadas.',
+        'Paciente está com um status final e não pode ter novas sessões agendadas.',
       );
     }
 
-    if (session.id_Tipo_Atendimento !== 1 && session.id_Tipo_Atendimento !== 2) {
+    if (session.id_Tipo_Atendimento !== TipoAtendimento.TRIAGEM && session.id_Tipo_Atendimento !== TipoAtendimento.PSICOTERAPIA) {
       throw new BadRequestException('Tipo de atendimento inválido.');
     }
 
-    if (session.id_Tipo_Atendimento === 1) {
+    if (session.id_Tipo_Atendimento === TipoAtendimento.TRIAGEM) {
+
       // 1 = Triagem
-      if (paciente.id_Status !== 1) {
+      if (paciente.id_Status !== StatusListaEspera.EM_ESPERA) {
         throw new BadRequestException('Este paciente não está "Em Espera". Não é possível agendar uma nova triagem.');
       }
-    } else if (session.id_Tipo_Atendimento === 2) {
+
+    } else if (session.id_Tipo_Atendimento === TipoAtendimento.PSICOTERAPIA) {
       // 2 = Psicoterapia
-      // Se o paciente está tentando agendar Psicoterapia, ele DEVE ter o status "Em Triagem" (2) ou "Em Psicoterapia" (3)
-      const statusPermitidos = [3, 4];
+
+      const statusPermitidos = [StatusListaEspera.TRIAGEM_APROVADA, StatusListaEspera.EM_PSICOTERAPIA];
 
       if (!statusPermitidos.includes(paciente.id_Status)) {
-        // Se ele ainda está "Em Espera" (1), ele precisa da triagem primeiro
-        if (paciente.id_Status === 1) {
+
+        if (paciente.id_Status === StatusListaEspera.EM_ESPERA) {
           throw new BadRequestException(
             'Paciente precisa passar pela triagem antes de agendar uma sessão de psicoterapia.',
           );
         }
-        if (paciente.id_Status === 2) {
+        if (paciente.id_Status === StatusListaEspera.EM_TRIAGEM) {
           throw new BadRequestException(
             'Paciente está em triagem. A triagem precisa ser aprovada antes de agendar uma sessão de psicoterapia.',
           );
@@ -120,32 +118,33 @@ export class SessionService {
       }
     }
 
-    // Verifica se o estagiário existe
     const estagiario = await this.prisma.usuario.findUnique({
       where: { id_User: session.id_Estagiario_Executor },
     });
+
     if (!estagiario) {
       throw new BadRequestException('Estagiário não encontrado.');
-    } else if (estagiario.roleId !== 4) {
+    } else if (estagiario.roleId !== RoleAccess.ESTAGIARIO) {
       throw new BadRequestException('O usuário designado como estagiário não possui o papel de estagiário.');
+    } else if (!estagiario.isActive) {
+      throw new BadRequestException('O estagiário designado está desativado.');
     }
 
-    // Verifica se o supervisor existe
     const supervisor = await this.prisma.usuario.findUnique({
       where: { id_User: session.id_Supervisor_Executor },
     });
     if (!supervisor) {
       throw new BadRequestException('Supervisor não encontrado.');
-    } else if (supervisor.roleId !== 3) {
+    } else if (supervisor.roleId !== RoleAccess.SUPERVISOR) {
       throw new BadRequestException('O usuário designado como supervisor não possui o papel de supervisor.');
+    } else if (!supervisor.isActive) {
+      throw new BadRequestException('O supervisor designado está desativado.');
     }
 
-    // Verifica se horario de início é anterior ao horário de término
     if (session.dataHoraInicio >= session.dataHoraFim) {
       throw new BadRequestException('O horário de início deve ser anterior ao horário de término.');
     }
 
-    // Verifica se o horario de início e término não são em datas passadas
     const now = new Date();
     if (session.dataHoraInicio < now || session.dataHoraFim < now) {
       throw new BadRequestException('O horário de início e término não podem ser em datas passadas.');
@@ -155,7 +154,7 @@ export class SessionService {
     const overlappingSession = await this.prisma.atendimento.findFirst({
       where: {
         id_Estagiario_Executor: session.id_Estagiario_Executor,
-        id_Status: 1, // Apenas sessões agendadas
+        id_Status: StatusAtendimento.ATIVO,
         OR: [
           {
             dataHoraInicio: {
@@ -191,19 +190,18 @@ export class SessionService {
 
     let updateListaEsperaPromise: Prisma.PrismaPromise<any> | null = null;
 
-    if (session.id_Tipo_Atendimento === 1) {
+    if (session.id_Tipo_Atendimento === TipoAtendimento.TRIAGEM) {
       updateListaEsperaPromise = this.prisma.listaEspera.update({
         where: { id_Lista: session.id_Lista },
-        data: { id_Status: 2 }, // Status "Em Triagem"
+        data: { id_Status: StatusListaEspera.EM_TRIAGEM },
       });
-    } else if (session.id_Tipo_Atendimento === 2 && paciente.id_Status === 3) {
+    } else if (session.id_Tipo_Atendimento === TipoAtendimento.PSICOTERAPIA && paciente.id_Status === StatusListaEspera.TRIAGEM_APROVADA) {
       updateListaEsperaPromise = this.prisma.listaEspera.update({
         where: { id_Lista: session.id_Lista },
-        data: { id_Status: 4 }, // Status "Em Psicoterapia"
+        data: { id_Status: StatusListaEspera.EM_PSICOTERAPIA },
       });
     }
 
-    // Cria um array para a transação
     const queries: Prisma.PrismaPromise<any>[] = [
       // 1. Cria a sessão
       this.prisma.atendimento.create({
@@ -233,18 +231,18 @@ export class SessionService {
   async findAll(user: TokenDto) {
     let sessions: any[];
 
-    if (user.access <= 2) {
+    if (user.access <= RoleAccess.SECRETARIO) {
       sessions = await this.prisma.atendimento.findMany({
         include: this.includeRelations,
         orderBy: { dataHoraInicio: 'desc' },
       });
-    } else if (user.access === 3) {
+    } else if (user.access === RoleAccess.SUPERVISOR) {
       sessions = await this.prisma.atendimento.findMany({
         where: { id_Supervisor_Executor: user.sub },
         include: this.includeRelations,
         orderBy: { dataHoraInicio: 'desc' },
       });
-    } else if (user.access === 4) {
+    } else if (user.access === RoleAccess.ESTAGIARIO) {
       sessions = await this.prisma.atendimento.findMany({
         where: { id_Estagiario_Executor: user.sub },
         include: this.includeRelations,
@@ -265,30 +263,28 @@ export class SessionService {
 
     if (!session) throw new NotFoundException('Sessão não encontrada.');
 
-    if (user.access > 2) {
-      if (user.access === 3 && session.id_Supervisor_Executor !== user.sub)
+    if (user.access > RoleAccess.SECRETARIO) {
+      if (user.access === RoleAccess.SUPERVISOR && session.id_Supervisor_Executor !== user.sub)
         throw new ForbiddenException('Você não tem permissão para ver essa sessão.');
-      if (user.access === 4 && session.id_Estagiario_Executor !== user.sub)
+      if (user.access === RoleAccess.ESTAGIARIO && session.id_Estagiario_Executor !== user.sub)
         throw new ForbiddenException('Você não tem permissão para ver essa sessão.');
     }
 
     return this.decryptSession(session);
   }
 
-  async findAllWithNoSession(user: TokenDto) {
-    if (user.access > 2) throw new ForbiddenException('Você não tem permissão para ver essa lista.');
-
+  async findAllWithNoSession() {
     return this.prisma.listaEspera.findMany({
       where: {
         id_Status: {
-          in: [3, 4], // Status 3 = "Triagem Aprovada", Status 4 = "Psicoterapia em andamento"
+          in: [StatusListaEspera.TRIAGEM_APROVADA, StatusListaEspera.EM_PSICOTERAPIA],
         },
 
         NOT: {
           Atendimento: {
             some: {
-              id_Tipo_Atendimento: 2, // Tipo 2 = Psicoterapia
-              id_Status: 1, // Status 1 = Ativo
+              id_Tipo_Atendimento: TipoAtendimento.PSICOTERAPIA,
+              id_Status: StatusAtendimento.ATIVO,
             },
           },
         },
@@ -304,23 +300,17 @@ export class SessionService {
     });
   }
 
-  async update(id: UUID, updateSessionDto: UpdateSessionDto, user: TokenDto) {
-    // Verifica se o usuário tem permissão para atualizar uma sessão
-    if (user.access > 2) {
-      throw new ForbiddenException('Você não tem permissão para atualizar uma sessão.');
-    }
+  async update(id: UUID, updateSessionDto: UpdateSessionDto) {
 
     const session = await this.prisma.atendimento.findUnique({
       where: { id_Atendimento: id },
     });
 
-    // Verifica se a sessão existe
     if (!session) {
       throw new NotFoundException('Sessão não encontrada.');
     }
 
-    // Verifica se horario de início é anterior ao horário de término
-    if (updateSessionDto.dataHoraInicio === undefined || updateSessionDto.dataHoraFim === undefined) {
+    if (!updateSessionDto.dataHoraInicio || !updateSessionDto.dataHoraFim) {
       throw new BadRequestException('Horário de início e término devem ser informados.');
     }
 
@@ -328,16 +318,14 @@ export class SessionService {
       throw new BadRequestException('O horário de início deve ser anterior ao horário de término.');
     }
 
-    // Verifica se o horario de início e término não são em datas passadas
     const now = new Date();
     if (updateSessionDto.dataHoraInicio < now || updateSessionDto.dataHoraFim < now) {
       throw new BadRequestException('O horário de início e término não podem ser em datas passadas.');
     }
 
-    // Verifica se o estagiário já possui uma sessão no mesmo horário
     const overlappingSession = await this.prisma.atendimento.findFirst({
       where: {
-        id_Status: 1, // Apenas sessões agendadas
+        id_Status: StatusAtendimento.ATIVO,
         id_Estagiario_Executor: session.id_Estagiario_Executor,
         NOT: {
           id_Atendimento: id,
@@ -375,7 +363,6 @@ export class SessionService {
       throw new BadRequestException('O estagiário já possui uma sessão agendada nesse horário.');
     }
 
-    // Atualiza a sessão
     return this.prisma.atendimento.update({
       where: { id_Atendimento: id },
       data: {
@@ -386,13 +373,8 @@ export class SessionService {
     });
   }
 
-  async remove(id: UUID, user: TokenDto) {
-    // Verifica se o usuário tem permissão para deletar uma sessão
-    if (user.access > 2) {
-      throw new ForbiddenException('Você não tem permissão para cancelar uma sessão.');
-    }
+  async remove(id: UUID) {
 
-    // Verifica se a sessão existe
     const session = await this.prisma.atendimento.findUnique({
       where: { id_Atendimento: id },
       include: { ListaEspera: true },
@@ -401,20 +383,21 @@ export class SessionService {
       throw new NotFoundException('Sessão não encontrada.');
     }
 
-    if (session.id_Status !== 1) {
+    if (session.id_Status !== StatusAtendimento.ATIVO) {
       throw new BadRequestException(
-        'Não é possível cancelar uma sessão que já está em andamento (2), concluída (3) ou que já foi cancelada (4).',
+        'Só é possivel cancelar uma sessão que esteja agendada.',
       );
     }
 
     let updateListaEsperaPromise: Prisma.PrismaPromise<any> | null = null;
-    if (session.id_Tipo_Atendimento === 1) {
+    if (session.id_Tipo_Atendimento === TipoAtendimento.TRIAGEM) {
       // Se cancelou uma triagem, paciente volta para "Em espera"
       updateListaEsperaPromise = this.prisma.listaEspera.update({
         where: { id_Lista: session.id_Lista },
-        data: { id_Status: 1 }, // Status "Em espera"
+        data: { id_Status: StatusListaEspera.EM_ESPERA },
       });
-    } else if (session.id_Tipo_Atendimento === 2) {
+
+    } else if (session.id_Tipo_Atendimento === TipoAtendimento.PSICOTERAPIA) {
       const hasOtherPsicoterapia = await this.prisma.prontuario.findFirst({
         where: {
           atendimento: {
@@ -423,15 +406,15 @@ export class SessionService {
               id_Atendimento: id,
             },
           },
-          id_Tipo: 2, // Psicoterapia
-          id_Status: 2, // Aprovado
+          id_Tipo: TipoProntuario.PSICOTERAPIA,
+          id_Status: StatusProntuario.APROVADO,
         },
       });
 
       if (!hasOtherPsicoterapia) {
         updateListaEsperaPromise = this.prisma.listaEspera.update({
           where: { id_Lista: session.id_Lista },
-          data: { id_Status: 3 }, // Status "Triagem aprovada"
+          data: { id_Status: StatusListaEspera.TRIAGEM_APROVADA },
         });
       }
     }
@@ -439,7 +422,7 @@ export class SessionService {
     const queries: Prisma.PrismaPromise<any>[] = [
       this.prisma.atendimento.update({
         where: { id_Atendimento: id },
-        data: { id_Status: 4 }, // Status "Cancelado"
+        data: { id_Status: StatusAtendimento.CANCELADO },
       }),
     ];
 

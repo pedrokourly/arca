@@ -5,9 +5,12 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { UUID } from 'node:crypto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { TokenDto } from 'src/common/dto/token.dto';
+import { Roles } from 'src/common/decorators/roles.decorator';
+import { RoleAccess } from 'src/common/enums/status.enum';
+import { RolesGuard } from 'src/common/guards/roles.guard';
 
 @Controller('users')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
@@ -31,11 +34,13 @@ export class UsersController {
     return this.usersService.update(id, updateUserDto, req.user as TokenDto);
   }
 
+  @Roles(RoleAccess.ADMIN, RoleAccess.SECRETARIO)
   @Patch(':id/reactivate')
   reactivate(@Param('id', ParseUUIDPipe) id: UUID, @Req() req: any) {
     return this.usersService.reactivate(id, req.user as TokenDto);
   }
 
+  @Roles(RoleAccess.ADMIN, RoleAccess.SECRETARIO)
   @Delete(':id')
   remove(@Param('id', ParseUUIDPipe) id: UUID, @Req() req: any) {
     return this.usersService.remove(id, req.user as TokenDto);
