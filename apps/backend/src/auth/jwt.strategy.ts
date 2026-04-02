@@ -31,6 +31,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException();
     }
 
-    return user;
+    return {
+    sub: user.id_User,
+    access: user.roleId,
+  } as TokenDto;
   }
 }

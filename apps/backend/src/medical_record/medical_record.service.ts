@@ -580,7 +580,7 @@ export class MedicalRecordService {
         Atendimento: {
           include: {
             Prontuario: {
-              where: { id_Tipo: TipoAtendimento.TRIAGEM },
+              where: { id_Tipo: TipoProntuario.TRIAGEM },
             },
           },
         },
