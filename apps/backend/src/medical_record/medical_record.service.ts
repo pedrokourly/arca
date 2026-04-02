@@ -493,8 +493,8 @@ export class MedicalRecordService {
       const found = atd.Prontuario.find((p) => p.id_Tipo === TipoProntuario.ALTA);
       if (found) {
         altaRecord = found;
-        supervisorNome = atd.supervisorExecutor.nome;
-        supervisorCRP = atd.supervisorExecutor.CRP || 'N/A';
+        supervisorNome = atd.supervisorExecutor?.nome || 'N/A';
+        supervisorCRP = atd.supervisorExecutor?.CRP || 'N/A';
         break; 
       }
     }
@@ -571,7 +571,7 @@ export class MedicalRecordService {
     }
 
     const paciente = encaminhamentoRecord.atendimento.ListaEspera;
-    const supervisorNome = encaminhamentoRecord.atendimento.supervisorExecutor.nome;
+    const supervisorNome = encaminhamentoRecord.atendimento.supervisorExecutor?.nome || 'N/A';
     const supervisorCRP = encaminhamentoRecord.atendimento.supervisorExecutor?.CRP || 'N/A';
 
     const pacienteCompleto = await this.prisma.listaEspera.findUnique({

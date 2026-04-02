@@ -172,7 +172,7 @@ export class UsersService {
           throw new BadRequestException('O e-mail informado já está em uso por outro usuário.');
         }
 
-        if (!this.canActOnUser(creator.access, existingUser.roleId)) {
+        if (this.canActOnUser(creator.access, existingUser.roleId)) {
 
           throw new ConflictException({
             message: `Este e-mail pertence a um usuário desativado (${existingUser.nome}). Deseja reativar este usuário em vez de alterar o e-mail?`,
@@ -232,6 +232,10 @@ export class UsersService {
       throw new ForbiddenException('Você não pode deletar sua própria conta.');
     }
 
+    if (!this.canActOnUser(creator.access, user.roleId)) {
+      throw new ForbiddenException('Você não tem permissão para desativar este usuário.');
+    }
+
     await this.prisma.usuario.update({
       where: { id_User: id },
       data: {
@@ -253,6 +257,12 @@ export class UsersService {
 
     if (user.isActive) {
       throw new BadRequestException('Este usuário já está ativo.');
+    }
+
+    if (creator.access >= user.roleId && creator.access !== RoleAccess.ADMIN) {
+      throw new ForbiddenException(
+        'Você não tem permissão para reativar um usuário deste nível de acesso.',
+      );
     }
 
     await this.prisma.usuario.update({
