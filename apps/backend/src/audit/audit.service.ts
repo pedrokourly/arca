@@ -33,7 +33,11 @@ export class AuditService {
     if (dataInicio || dataFim) {
       where.acessoEm = {
         ...(dataInicio && { gte: new Date(dataInicio) }),
-        ...(dataFim && { lte: new Date(dataFim + 'T23:59:59.999Z') }),
+        ...(dataFim && (() => {
+          const end = new Date(dataFim);
+          end.setUTCHours(23, 59, 59, 999);
+          return { lte: end };
+        })()),
       };
     }
 

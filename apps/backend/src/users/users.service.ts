@@ -121,10 +121,6 @@ export class UsersService {
       this.prisma.usuario.count({ where }),
     ]);
 
-    if (!users) {
-      throw new BadGatewayException(`Erro ao buscar usuários.`);
-    }
-
     return paginate(users, total, page, limit);
   }
 
