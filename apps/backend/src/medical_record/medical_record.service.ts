@@ -699,10 +699,6 @@ export class MedicalRecordService {
       orderBy: { nomeRegistro: 'asc' },
     });
 
-    if (pacientes.length === 0) {
-      throw new NotFoundException('Nenhum paciente encontrado.');
-    }
-
     return pacientes.map((paciente) => ({
       ...paciente,
       Atendimento: paciente.Atendimento.map((atd) => ({
