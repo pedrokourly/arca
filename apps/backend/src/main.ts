@@ -37,8 +37,9 @@ async function bootstrap() {
   const port =
     Number.isInteger(parsedPort) && parsedPort > 0 ? parsedPort : 3333;
   await app.listen(port);
+  const appUrl = await app.getUrl();
 
   const logger = new Logger('Bootstrap');
-  logger.log(`Servidor rodando em http://localhost:${port}`);
+  logger.log(`Servidor rodando em ${appUrl}`);
 }
 void bootstrap();
