@@ -47,7 +47,7 @@ export class CreateWaitlistDto {
   @Length(2, 2, { message: 'Estado deve ter exatamente 2 caracteres' })
   enderecoEstado: string;
 
-  @Transform(({ value }: { value: string }) => value?.replace(/\D/g, ''))
+  @Transform(({ value }) => String(value ?? '').replace(/\D/g, ''))
   @IsString({ message: 'CEP deve ser uma string' })
   @Length(8, 8, { message: 'CEP deve ter exatamente 8 dígitos' })
   @Matches(/^\d{8}$/, { message: 'CEP deve conter apenas números' })
