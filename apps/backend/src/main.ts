@@ -33,7 +33,9 @@ async function bootstrap() {
   app.useGlobalInterceptors(new AuditInterceptor(auditService));
   app.useGlobalFilters(new HttpExceptionFilter());
 
-  const port = process.env.PORT ?? 3333;
+  const parsedPort = Number(process.env.PORT);
+  const port =
+    Number.isInteger(parsedPort) && parsedPort > 0 ? parsedPort : 3333;
   await app.listen(port);
 
   const logger = new Logger('Bootstrap');
