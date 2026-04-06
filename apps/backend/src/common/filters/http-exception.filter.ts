@@ -21,11 +21,11 @@ export class HttpExceptionFilter implements ExceptionFilter {
       );
     }
 
-    response.status(status).json({
-      statusCode: status,
-      timestamp: new Date().toISOString(),
-      path: request.url,
-      message: typeof message === 'string' ? message : (message as Record<string, unknown>).message,
-    });
+    const body =
+      typeof message === 'string'
+        ? { statusCode: status, timestamp: new Date().toISOString(), path: request.url, message }
+        : { statusCode: status, timestamp: new Date().toISOString(), path: request.url, ...(message as Record<string, unknown>) };
+
+    response.status(status).json(body);
   }
 }
