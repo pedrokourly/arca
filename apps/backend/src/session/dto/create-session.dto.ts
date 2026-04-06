@@ -5,11 +5,11 @@ import { UUID } from 'node:crypto';
 // DTO de criação de uma sessão com base no modelo ATENDIMENTO do Prisma
 export class CreateSessionDto {
   @IsNotEmpty()
-  @Transform(({ value }) => new Date(value))
+  @Transform(({ value }: { value: string }) => new Date(value))
   dataHoraInicio: Date;
 
   @IsNotEmpty()
-  @Transform(({ value }) => new Date(value))
+  @Transform(({ value }: { value: string }) => new Date(value))
   dataHoraFim: Date;
 
   @IsUUID()

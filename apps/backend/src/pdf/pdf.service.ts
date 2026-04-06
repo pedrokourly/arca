@@ -15,7 +15,7 @@ Handlebars.registerHelper('or', (...args) => {
 
 @Injectable()
 export class PdfService {
-  async generatePdfFromTemplate(templateName: string, data: any): Promise<Buffer> {
+  async generatePdfFromTemplate(templateName: string, data: unknown): Promise<Buffer> {
     const templatePath = path.resolve(process.cwd(), 'src', 'pdf', 'templates', `${templateName}.hbs`);
     const htmlTemplate = fs.readFileSync(templatePath, 'utf-8');
 

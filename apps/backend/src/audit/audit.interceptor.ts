@@ -2,51 +2,76 @@ import { Injectable, NestInterceptor, ExecutionContext, CallHandler } from '@nes
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { AuditService } from './audit.service';
+import { Prisma } from '@prisma/client';
+import type { TokenDto } from 'src/common/dto/token.dto';
 
 @Injectable()
 export class AuditInterceptor implements NestInterceptor {
   constructor(private readonly auditService: AuditService) {}
 
-  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
-    const request = context.switchToHttp().getRequest();
+  intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
+    const request = context.switchToHttp().getRequest<{
+      user: TokenDto;
+      ip: string;
+      method: string;
+      path: string;
+      body: Record<string, unknown>;
+      params: Record<string, string>;
+    }>();
     const user = request.user;
 
-    if (!user || (!user.sub && !user.id_User)) {
+    if (!user?.sub) {
       return next.handle();
     }
 
     return next.handle().pipe(
-      tap(async (data) => {
-        try {
-          const { ip, method, path, body, params } = request;
-          const controllerName = context.getClass().name;
-          const methodName = context.getHandler().name;
-
-          // Preenchendo os novos campos
-          const entidade = controllerName.replace('Controller', '');
-          const idEntidade = params.id || (data && (data.id_User || data.id_Paciente || data.id_Documento));
-
-          await this.auditService.create({
-            id_Usuario_Executor: user.id_User || user.sub,
-            nome_Usuario_Executor: user.name || user.nome,
-            tipoAcao: `${methodName}`,
-            entidade_Afetada: entidade,
-            id_Entidade_Afetada: idEntidade,
-            endereco_Ip: ip,
-            detalhes: {
-              path,
-              method,
-              requestBody: this.sanitizeBody(body),
-            },
-          });
-        } catch (error) {
-          console.error('Falha ao salvar o log de auditoria:', error);
-        }
+      tap((data) => {
+        this.logAudit(context, request, data).catch((error) => console.error('Falha ao salvar o log de auditoria'));
       }),
     );
   }
 
-  private sanitizeBody(body: any): any {
+  private async logAudit(
+    context: ExecutionContext,
+    request: {
+      ip: string;
+      method: string;
+      path: string;
+      body: Record<string, unknown>;
+      params: Record<string, string>;
+      user: TokenDto;
+    },
+    data: unknown,
+  ): Promise<void> {
+    const { ip, method, path, body, params, user } = request;
+    const controllerName = context.getClass().name;
+    const methodName = context.getHandler().name;
+
+    const entidade = controllerName.replace('Controller', '');
+    const responseData = data as Record<string, unknown> | null | undefined;
+    const idEntidade =
+      params.id ??
+      (responseData &&
+        ((responseData.id_User as string) ||
+          (responseData.id_Paciente as string) ||
+          (responseData.id_Documento as string)));
+
+    await this.auditService.create({
+      id_Usuario_Executor: user.sub,
+      nome_Usuario_Executor: user.name,
+      tipoAcao: methodName,
+      entidade_Afetada: entidade,
+      id_Entidade_Afetada: idEntidade || undefined,
+      endereco_Ip: ip,
+      detalhes: {
+        path,
+        method,
+        requestBody: this.sanitizeBody(body) as Prisma.InputJsonValue,
+      },
+    });
+  }
+
+  private sanitizeBody(body: Record<string, unknown>): Record<string, unknown> {
     if (!body || typeof body !== 'object') return body;
 
     const sanitizedBody = { ...body };

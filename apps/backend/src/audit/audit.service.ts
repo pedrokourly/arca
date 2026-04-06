@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { Prisma } from '@prisma/client'; // Importa o tipo JsonValue
 
-export class CreateAuditLogDto {
+export interface CreateAuditLogDto {
   id_Usuario_Executor: string;
   nome_Usuario_Executor: string;
   tipoAcao: string;

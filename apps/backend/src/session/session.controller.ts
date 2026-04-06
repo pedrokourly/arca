@@ -1,16 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  UseGuards,
-  Req,
-  Query,
-  ParseUUIDPipe,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, ParseUUIDPipe } from '@nestjs/common';
 import { SessionService } from './session.service';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { UpdateSessionDto } from './dto/update-session.dto';
@@ -20,6 +8,7 @@ import { UUID } from 'node:crypto';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { RoleAccess } from 'src/common/enums/status.enum';
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 
 @Controller('session')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -28,13 +17,13 @@ export class SessionController {
 
   @Roles(RoleAccess.ADMIN, RoleAccess.SECRETARIO)
   @Post()
-  create(@Body() createSessionDto: CreateSessionDto, @Req() req: any) {
-    return this.sessionService.create(createSessionDto, req.user as TokenDto);
+  create(@Body() createSessionDto: CreateSessionDto) {
+    return this.sessionService.create(createSessionDto);
   }
 
   @Get()
-  findAll(@Req() req: any) {
-    return this.sessionService.findAll(req.user as TokenDto);
+  findAll(@CurrentUser() user: TokenDto) {
+    return this.sessionService.findAll(user);
   }
 
   @Roles(RoleAccess.ADMIN, RoleAccess.SECRETARIO)
@@ -44,8 +33,8 @@ export class SessionController {
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseUUIDPipe) id: UUID, @Req() req: any) {
-    return this.sessionService.findOne(id, req.user as TokenDto);
+  findOne(@Param('id', ParseUUIDPipe) id: UUID, @CurrentUser() user: TokenDto) {
+    return this.sessionService.findOne(id, user);
   }
 
   @Roles(RoleAccess.ADMIN, RoleAccess.SECRETARIO)

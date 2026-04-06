@@ -22,7 +22,7 @@ export class CreateUserDto {
 
   @IsInt()
   @Min(1)
-  @Transform(({ value }) => parseInt(value))
+  @Transform(({ value }: { value: string }) => parseInt(value))
   roleId: number;
 
   @IsOptional()

@@ -48,6 +48,6 @@ export class CryptoService {
     decipher.setAuthTag(authTag); // se o dado foi adulterado, isso lança exceção
 
     const decrypted = Buffer.concat([decipher.update(encrypted), decipher.final()]);
-    return JSON.parse(decrypted.toString('utf8'));
+    return JSON.parse(decrypted.toString('utf8')) as object;
   }
 }

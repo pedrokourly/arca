@@ -8,9 +8,10 @@ import { ConfigType } from '@nestjs/config';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(private readonly prisma: PrismaService,
+  constructor(
+    private readonly prisma: PrismaService,
     @Inject(jwtConfig.KEY)
-        private readonly jwtConfiguration: ConfigType<typeof jwtConfig>
+    private readonly jwtConfiguration: ConfigType<typeof jwtConfig>,
   ) {
     if (!jwtConfiguration.secret) {
       throw new Error('JWT secret is not defined');
@@ -27,12 +28,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       where: { id_User: payload.sub },
     });
 
-    if (!user || !user.isActive) {
+    if (!user?.isActive) {
       throw new UnauthorizedException();
     }
 
     return {
-    ... payload
-  } as TokenDto;
+      ...payload,
+    } as TokenDto;
   }
 }
