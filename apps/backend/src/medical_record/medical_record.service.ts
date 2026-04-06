@@ -27,6 +27,7 @@ import {
   TipoAtendimento,
   TipoProntuario,
 } from 'src/common/enums/status.enum';
+import { paginate, PaginationDto } from 'src/common/dto/pagination.dto';
 import { Response } from 'express';
 
 interface ConteudoEncaminhamento {
@@ -642,73 +643,63 @@ export class MedicalRecordService {
     res.send(pdfBuffer);
   }
 
-  async findAll(user: TokenDto) {
+  async findAll(user: TokenDto, pagination: PaginationDto) {
+    const { page, limit } = pagination;
+    const skip = (page - 1) * limit;
+
+    if (user.access > RoleAccess.ESTAGIARIO) {
+      return paginate([], 0, page, limit);
+    }
+
     const whereCondition: Prisma.ListaEsperaWhereInput = {
       Atendimento: {
         some: {
-          Prontuario: {
-            some: {},
-          },
+          Prontuario: { some: {} },
+          ...(user.access === RoleAccess.SUPERVISOR && { id_Supervisor_Executor: user.sub }),
+          ...(user.access === RoleAccess.ESTAGIARIO && { id_Estagiario_Executor: user.sub }),
         },
       },
     };
 
     const atendimentosWhere: Prisma.AtendimentoWhereInput = {
       Prontuario: { some: {} },
+      ...(user.access === RoleAccess.SUPERVISOR && { id_Supervisor_Executor: user.sub }),
+      ...(user.access === RoleAccess.ESTAGIARIO && { id_Estagiario_Executor: user.sub }),
     };
 
-    if (user.access === RoleAccess.SUPERVISOR) {
-      if (whereCondition.Atendimento?.some) {
-        whereCondition.Atendimento.some.id_Supervisor_Executor = user.sub;
-      }
-      atendimentosWhere.id_Supervisor_Executor = user.sub;
-    } else if (user.access === RoleAccess.ESTAGIARIO) {
-      if (whereCondition.Atendimento?.some) {
-        whereCondition.Atendimento.some.id_Estagiario_Executor = user.sub;
-      }
-      atendimentosWhere.id_Estagiario_Executor = user.sub;
-    } else if (user.access > RoleAccess.ESTAGIARIO) {
-      return [];
-    }
-
-    const pacientes = await this.prisma.listaEspera.findMany({
-      where: whereCondition,
-      select: {
-        id_Lista: true,
-        nomeRegistro: true,
-        nomeSocial: true,
-        id_Status: true,
-        Status: { select: { nome: true } },
-        Atendimento: {
-          where: atendimentosWhere,
-          select: {
-            Prontuario: {
-              select: {
-                id_Registro: true,
-                conteudo: true,
-                dataEmissao: true,
-                id_Status: true,
-                id_Tipo: true,
-                ultimaAtualizacao: true,
+    const [data, total] = await Promise.all([
+      this.prisma.listaEspera.findMany({
+        where: whereCondition,
+        skip,
+        take: limit,
+        select: {
+          id_Lista: true,
+          nomeRegistro: true,
+          nomeSocial: true,
+          id_Status: true,
+          Status: { select: { nome: true } },
+          Atendimento: {
+            where: atendimentosWhere,
+            select: {
+              Prontuario: {
+                select: {
+                  id_Registro: true,
+                  dataEmissao: true,
+                  id_Status: true,
+                  id_Tipo: true,
+                  ultimaAtualizacao: true,
+                },
+                orderBy: { dataEmissao: 'asc' },
               },
-              orderBy: { dataEmissao: 'asc' },
             },
           },
         },
-      },
-      orderBy: { nomeRegistro: 'asc' },
-    });
+        orderBy: { nomeRegistro: 'asc' },
+      }),
+      this.prisma.listaEspera.count({ where: whereCondition }),
+    ]);
 
-    return pacientes.map((paciente) => ({
-      ...paciente,
-      Atendimento: paciente.Atendimento.map((atd) => ({
-        ...atd,
-        Prontuario: atd.Prontuario.map((p) => ({
-          ...p,
-          conteudo: this.decrypt(p.conteudo),
-        })),
-      })),
-    }));
+    return paginate(data, total, page, limit);
   }
 
   async findOne(id: UUID, user: TokenDto) {

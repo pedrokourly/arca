@@ -1,9 +1,10 @@
-import { Controller, UseGuards, Get } from '@nestjs/common';
+import { Controller, UseGuards, Get, Query } from '@nestjs/common';
 import { AuditService } from './audit.service';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { RoleAccess } from 'src/common/enums/status.enum';
+import { AuditFilterDto } from './dto/audit-filter.dto';
 
 @Controller('audit')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -12,7 +13,7 @@ export class AuditController {
 
   @Roles(RoleAccess.ADMIN)
   @Get('/')
-  async getAuditInfo() {
-    return this.auditService.findAll();
+  async getAuditInfo(@Query() filter: AuditFilterDto) {
+    return this.auditService.findAll(filter);
   }
 }

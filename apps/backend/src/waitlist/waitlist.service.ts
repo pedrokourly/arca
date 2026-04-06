@@ -4,6 +4,7 @@ import { UpdateWaitlistDto } from './dto/update-waitlist.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UUID } from 'node:crypto';
 import { StatusListaEspera } from 'src/common/enums/status.enum';
+import { paginate, PaginationDto } from 'src/common/dto/pagination.dto';
 
 @Injectable()
 export class WaitlistService {
@@ -50,13 +51,20 @@ export class WaitlistService {
     return newWaitlistEntry;
   }
 
-  async findAll() {
-    const waitlistEntries = await this.prisma.listaEspera.findMany({
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
-    return waitlistEntries;
+  async findAll(pagination: PaginationDto) {
+    const { page, limit } = pagination;
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await Promise.all([
+      this.prisma.listaEspera.findMany({
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.listaEspera.count(),
+    ]);
+
+    return paginate(data, total, page, limit);
   }
 
   async findOne(id: UUID) {

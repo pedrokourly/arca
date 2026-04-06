@@ -14,6 +14,35 @@ import {
   TipoAtendimento,
   TipoProntuario,
 } from 'src/common/enums/status.enum';
+import { paginate, PaginationDto } from 'src/common/dto/pagination.dto';
+
+const SESSION_LIST_INCLUDE = {
+  ListaEspera: {
+    select: {
+      id_Lista: true,
+      nomeRegistro: true,
+      nomeSocial: true,
+      telefonePessoal: true,
+    },
+  },
+  estagiarioExecutor: {
+    select: { id_User: true, nome: true, email: true },
+  },
+  supervisorExecutor: {
+    select: { id_User: true, nome: true, email: true },
+  },
+  status: {
+    select: { id_Status: true, nome: true },
+  },
+  Prontuario: {
+    select: {
+      id_Registro: true,
+      id_Status: true,
+      id_Tipo: true,
+      dataEmissao: true,
+    },
+  },
+} satisfies Prisma.AtendimentoInclude;
 
 const SESSION_INCLUDE = {
   ListaEspera: {
@@ -239,31 +268,34 @@ export class SessionService {
     return createdSession;
   }
 
-  async findAll(user: TokenDto) {
-    let sessions: SessionWithRelations[];
+  async findAll(user: TokenDto, pagination: PaginationDto) {
+    const { page, limit } = pagination;
+    const skip = (page - 1) * limit;
+
+    let where: Prisma.AtendimentoWhereInput = {};
 
     if (user.access <= RoleAccess.SECRETARIO) {
-      sessions = await this.prisma.atendimento.findMany({
-        include: this.includeRelations,
-        orderBy: { dataHoraInicio: 'desc' },
-      });
+      where = {};
     } else if (user.access === RoleAccess.SUPERVISOR) {
-      sessions = await this.prisma.atendimento.findMany({
-        where: { id_Supervisor_Executor: user.sub },
-        include: this.includeRelations,
-        orderBy: { dataHoraInicio: 'desc' },
-      });
+      where = { id_Supervisor_Executor: user.sub };
     } else if (user.access === RoleAccess.ESTAGIARIO) {
-      sessions = await this.prisma.atendimento.findMany({
-        where: { id_Estagiario_Executor: user.sub },
-        include: this.includeRelations,
-        orderBy: { dataHoraInicio: 'desc' },
-      });
+      where = { id_Estagiario_Executor: user.sub };
     } else {
       throw new ForbiddenException('Você não tem permissão para ver sessões.');
     }
 
-    return sessions.map((s) => this.decryptSession(s));
+    const [data, total] = await Promise.all([
+      this.prisma.atendimento.findMany({
+        where,
+        include: SESSION_LIST_INCLUDE,
+        skip,
+        take: limit,
+        orderBy: { dataHoraInicio: 'desc' },
+      }),
+      this.prisma.atendimento.count({ where }),
+    ]);
+
+    return paginate(data, total, page, limit);
   }
 
   async findOne(id: UUID, user: TokenDto) {

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, ParseUUIDPipe, Query } from '@nestjs/common';
 import { SessionService } from './session.service';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { UpdateSessionDto } from './dto/update-session.dto';
@@ -9,6 +9,7 @@ import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { RoleAccess } from 'src/common/enums/status.enum';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @Controller('session')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -22,8 +23,8 @@ export class SessionController {
   }
 
   @Get()
-  findAll(@CurrentUser() user: TokenDto) {
-    return this.sessionService.findAll(user);
+  findAll(@CurrentUser() user: TokenDto, @Query() pagination: PaginationDto) {
+    return this.sessionService.findAll(user, pagination);
   }
 
   @Roles(RoleAccess.ADMIN, RoleAccess.SECRETARIO)
