@@ -169,8 +169,21 @@ export class WaitlistService {
       const updatedWaitlistEntry = await this.prisma.listaEspera.update({
         where: { id_Lista: id },
         data: {
-          ...body,
+          nomeRegistro: body.nomeRegistro,
+          nomeSocial: body.nomeSocial,
           dataNascimento: body.dataNascimento ? new Date(body.dataNascimento) : waitlistEntry.dataNascimento,
+          telefonePessoal: body.telefonePessoal,
+          contatoEmergencia: body.contatoEmergencia,
+          CPF: body.CPF,
+          enderecoRua: body.enderecoRua,
+          enderecoNumero: body.enderecoNumero,
+          enderecoBairro: body.enderecoBairro,
+          enderecoCidade: body.enderecoCidade,
+          enderecoEstado: body.enderecoEstado,
+          enderecoCEP: body.enderecoCEP,
+          id_Genero: body.id_Genero,
+          id_Etnia: body.id_Etnia,
+          id_Escolaridade: body.id_Escolaridade,
         },
       });
 

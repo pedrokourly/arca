@@ -33,6 +33,11 @@ export class CryptoService {
     return `${iv.toString('hex')}:${authTag.toString('hex')}:${encrypted.toString('hex')}`;
   }
 
+  decryptConteudo(conteudo: unknown): object {
+    if (typeof conteudo === 'string') return this.decrypt(conteudo);
+    return conteudo as object;
+  }
+
   decrypt(encryptedString: string): object {
     const [ivHex, authTagHex, encryptedHex] = encryptedString.split(':');
 

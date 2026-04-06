@@ -4,7 +4,6 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { CreateTriagemProntuarioDto } from './dto/create-triagem-medical_record.dto';
 import { CreateEvolucaoProntuarioDto } from './dto/create-evolucao-medical_record.dto';
@@ -52,13 +51,6 @@ export class MedicalRecordService {
    * Aceita tanto string cifrada (novo formato) quanto objetos JSON
    * já parseados pelo Prisma (registros antigos ainda em JSON).
    */
-  private decrypt(conteudo: unknown): object {
-    if (typeof conteudo === 'string') {
-      return this.cryptoService.decrypt(conteudo);
-    }
-
-    return conteudo as object;
-  }
 
   async createTriagem(createTriagemProntuarioDto: CreateTriagemProntuarioDto, user: TokenDto) {
     const atendimento = await this.prisma.atendimento.findFirst({
@@ -84,7 +76,7 @@ export class MedicalRecordService {
       const isEstagiarioResponsavel = atendimento.id_Estagiario_Executor === user.sub;
       const isSupervisorResponsavel = atendimento.id_Supervisor_Executor === user.sub;
       if (!isEstagiarioResponsavel && !isSupervisorResponsavel)
-        throw new UnauthorizedException(
+        throw new ForbiddenException(
           'Você não tem permissão para criar um relatório de triagem para este atendimento.',
         );
     }
@@ -140,10 +132,10 @@ export class MedicalRecordService {
       throw new InternalServerErrorException('Dados do atendimento inválidos.');
 
     if (user.access === RoleAccess.SUPERVISOR && user.sub !== prontuario.atendimento.id_Supervisor_Executor)
-      throw new UnauthorizedException('Apenas o supervisor responsável pode editar essa triagem.');
+      throw new ForbiddenException('Apenas o supervisor responsável pode editar essa triagem.');
 
     if (user.access === RoleAccess.ESTAGIARIO && user.sub !== prontuario.atendimento.id_Estagiario_Executor)
-      throw new UnauthorizedException('Apenas o estagiario responsável pode editar essa triagem.');
+      throw new ForbiddenException('Apenas o estagiario responsável pode editar essa triagem.');
 
     return await this.prisma.prontuario.update({
       where: { id_Registro: id },
@@ -175,7 +167,7 @@ export class MedicalRecordService {
     if (!prontuario.atendimento?.id_Supervisor_Executor)
       throw new InternalServerErrorException('Dados do atendimento inválidos.');
     if (user.access === RoleAccess.SUPERVISOR && user.sub !== prontuario.atendimento.id_Supervisor_Executor)
-      throw new UnauthorizedException('Apenas o supervisor responsável pode aprovar esta triagem.');
+      throw new ForbiddenException('Apenas o supervisor responsável pode aprovar esta triagem.');
 
     const transactionPromises: Prisma.PrismaPromise<unknown>[] = [];
 
@@ -275,7 +267,7 @@ export class MedicalRecordService {
       const isEstagiario = atendimento.id_Estagiario_Executor === user.sub;
       const isSupervisor = atendimento.id_Supervisor_Executor === user.sub;
       if (!isEstagiario && !isSupervisor)
-        throw new UnauthorizedException(
+        throw new ForbiddenException(
           'Você não tem permissão para criar um relatório de psicoterapia para este atendimento.',
         );
     }
@@ -333,10 +325,10 @@ export class MedicalRecordService {
       throw new InternalServerErrorException('Dados do atendimento inválidos.');
 
     if (user.access === RoleAccess.SUPERVISOR && user.sub !== prontuario.atendimento.id_Supervisor_Executor)
-      throw new UnauthorizedException('Apenas o supervisor responsável pode editar esse registro de evolução.');
+      throw new ForbiddenException('Apenas o supervisor responsável pode editar esse registro de evolução.');
 
     if (user.access === RoleAccess.ESTAGIARIO && user.sub !== prontuario.atendimento.id_Estagiario_Executor)
-      throw new UnauthorizedException('Apenas o estagiario responsável pode editar esse registro de evolução.');
+      throw new ForbiddenException('Apenas o estagiario responsável pode editar esse registro de evolução.');
 
     return await this.prisma.prontuario.update({
       where: { id_Registro: id },
@@ -368,7 +360,7 @@ export class MedicalRecordService {
     if (!prontuario.atendimento?.id_Supervisor_Executor)
       throw new InternalServerErrorException('Dados do atendimento inválidos.');
     if (user.access === RoleAccess.SUPERVISOR && user.sub !== prontuario.atendimento.id_Supervisor_Executor)
-      throw new UnauthorizedException('Apenas o supervisor responsável pode aprovar este registro de psicoterapia.');
+      throw new ForbiddenException('Apenas o supervisor responsável pode aprovar este registro de psicoterapia.');
 
     const transactionPromises: Prisma.PrismaPromise<unknown>[] = [];
     let altaCriada = false;
@@ -785,7 +777,7 @@ export class MedicalRecordService {
         ...atd,
         Prontuario: atd.Prontuario.map((p) => ({
           ...p,
-          conteudo: this.decrypt(p.conteudo),
+          conteudo: this.cryptoService.decryptConteudo(p.conteudo),
         })),
       })),
     };
