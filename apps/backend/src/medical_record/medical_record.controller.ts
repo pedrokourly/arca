@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, UseGuards, ParseUUIDPipe, Put, Res } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, UseGuards, ParseUUIDPipe, Put, Res, Query } from '@nestjs/common';
 import { MedicalRecordService } from './medical_record.service';
 import { CreateTriagemProntuarioDto } from './dto/create-triagem-medical_record.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
@@ -13,6 +13,7 @@ import { RolesGuard } from 'src/common/guards/roles.guard';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { RoleAccess } from 'src/common/enums/status.enum';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { Response } from 'express';
 
 @Controller('medical-record')
@@ -88,8 +89,8 @@ export class MedicalRecordController {
   }
 
   @Get('prontuarios')
-  findAll(@CurrentUser() user: TokenDto) {
-    return this.medicalRecordService.findAll(user);
+  findAll(@CurrentUser() user: TokenDto, @Query() pagination: PaginationDto) {
+    return this.medicalRecordService.findAll(user, pagination);
   }
 
   @Get('prontuarios/:id')

@@ -13,6 +13,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { HashingServiceProtocol } from 'src/auth/hash/hashing.service';
 import { UUID } from 'node:crypto';
 import { TokenDto } from 'src/common/dto/token.dto';
+import { paginate, PaginationDto } from 'src/common/dto/pagination.dto';
 import { RoleAccess } from 'src/common/enums/status.enum';
 
 @Injectable()
@@ -91,37 +92,36 @@ export class UsersService {
     });
   }
 
-  async findAll(creator: TokenDto) {
-    // Lista apenas os usuários com nível de acesso menor ou igual ao do criador
-    const users = await this.prisma.usuario.findMany({
-      where: {
-        roleId: {
-          gte: creator.access,
-        },
-        isActive: true,
-      },
-      select: {
-        id_User: true,
-        nome: true,
-        email: true,
-        senhaHash: false,
-        roleId: true,
-        role: {
-          select: {
-            id_Role: true,
-            role: true,
-            descricao: true,
-          },
-        },
-      },
-    });
-    if (!users) {
-      throw new BadGatewayException(`Erro ao buscar usuários.`);
-    } else if (users.length === 0) {
-      throw new NotFoundException(`Nenhum usuário encontrado.`);
-    }
+  async findAll(creator: TokenDto, pagination: PaginationDto) {
+    const { page, limit } = pagination;
+    const skip = (page - 1) * limit;
 
-    return users;
+    const where: Prisma.UsuarioWhereInput = {
+      roleId: { gte: creator.access },
+      isActive: true,
+    };
+
+    const select = {
+      id_User: true,
+      nome: true,
+      email: true,
+      senhaHash: false,
+      roleId: true,
+      role: {
+        select: {
+          id_Role: true,
+          role: true,
+          descricao: true,
+        },
+      },
+    };
+
+    const [users, total] = await Promise.all([
+      this.prisma.usuario.findMany({ where, select, skip, take: limit, orderBy: { nome: 'asc' } }),
+      this.prisma.usuario.count({ where }),
+    ]);
+
+    return paginate(users, total, page, limit);
   }
 
   async findOne(id: UUID, creator: TokenDto) {

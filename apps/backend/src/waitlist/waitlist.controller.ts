@@ -1,10 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, ParseUUIDPipe, Query } from '@nestjs/common';
 import { WaitlistService } from './waitlist.service';
 import { CreateWaitlistDto } from './dto/create-waitlist.dto';
 import { UpdateWaitlistDto } from './dto/update-waitlist.dto';
 import { UUID } from 'node:crypto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { Throttle } from '@nestjs/throttler';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @Controller('waitlist')
 export class WaitlistController {
@@ -18,8 +19,8 @@ export class WaitlistController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  findAll() {
-    return this.waitlistService.findAll();
+  findAll(@Query() pagination: PaginationDto) {
+    return this.waitlistService.findAll(pagination);
   }
 
   @Get('stats')

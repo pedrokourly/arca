@@ -1,10 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe, UseGuards, Put } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe, UseGuards, Put, Query } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UUID } from 'node:crypto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { TokenDto } from 'src/common/dto/token.dto';
+import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { RoleAccess } from 'src/common/enums/status.enum';
 import { RolesGuard } from 'src/common/guards/roles.guard';
@@ -21,8 +22,8 @@ export class UsersController {
   }
 
   @Get()
-  findAll(@CurrentUser() user: TokenDto) {
-    return this.usersService.findAll(user);
+  findAll(@CurrentUser() user: TokenDto, @Query() pagination: PaginationDto) {
+    return this.usersService.findAll(user, pagination);
   }
 
   @Get(':id')
