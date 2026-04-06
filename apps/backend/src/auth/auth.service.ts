@@ -5,7 +5,8 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { LoginDto } from './dto/login.dto';
 import jwtConfig from './config/jwt.config';
 import { ConfigType } from '@nestjs/config';
-import { UserDto } from 'src/common/dto/user.dto';
+import { AuthenticatedUserDto } from './dto/authenticated-user.dto';
+import { ValidatedUserDto } from './dto/validated-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -18,7 +19,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async validateUser(body: LoginDto): Promise<any> {
+  async validateUser(body: LoginDto): Promise<ValidatedUserDto> {
     const user = await this.prisma.usuario.findFirst({
       where: {
         email: body.email,
@@ -35,12 +36,15 @@ export class AuthService {
       throw new UnauthorizedException('Senha ou e-mail inválido.');
     }
 
-    // Retorna o usuário sem a senha
-    const { senhaHash, ...result } = user;
-    return result;
+    return {
+      id_User: user.id_User,
+      nome: user.nome,
+      email: user.email,
+      roleId: user.roleId,
+    };
   }
 
-  async login(user: UserDto): Promise<any> {
+  async login(user: ValidatedUserDto): Promise<AuthenticatedUserDto> {
     const token = await this.jwtService.signAsync(
       {
         sub: user.id_User,

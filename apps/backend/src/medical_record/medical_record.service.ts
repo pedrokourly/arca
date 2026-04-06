@@ -14,11 +14,25 @@ import { Prisma } from '@prisma/client';
 import { UUID } from 'node:crypto';
 import { ConteudoTriagemDto } from './dto/conteudo-triagem.dto';
 import { ConteudoEvolucaoDto } from './dto/conteudo-evolucao.dto';
+import type { ConteudoRelatorioAltaDto } from './dto/conteudo-relatorio-alta.dto';
 import { CreateEncaminhamentoDto } from './dto/create-encaminhamento.dto';
 import { CreateAltaDto } from './dto/create-alta.dtos';
 import { PdfService } from 'src/pdf/pdf.service';
 import { CryptoService } from 'src/crypto/crypto.service';
-import { RoleAccess, StatusAtendimento, StatusListaEspera, StatusProntuario, TipoAtendimento, TipoProntuario } from 'src/common/enums/status.enum';
+import {
+  RoleAccess,
+  StatusAtendimento,
+  StatusListaEspera,
+  StatusProntuario,
+  TipoAtendimento,
+  TipoProntuario,
+} from 'src/common/enums/status.enum';
+import { Response } from 'express';
+
+interface ConteudoEncaminhamento {
+  instituicaoEncaminhada: string;
+  motivoEncaminhamento: string;
+}
 
 @Injectable()
 export class MedicalRecordService {
@@ -45,17 +59,19 @@ export class MedicalRecordService {
     return conteudo as object;
   }
 
-  async createTriagem(CreateTriagemProntuarioDto: CreateTriagemProntuarioDto, user: TokenDto) {
+  async createTriagem(createTriagemProntuarioDto: CreateTriagemProntuarioDto, user: TokenDto) {
     const atendimento = await this.prisma.atendimento.findFirst({
-      where: { id_Atendimento: CreateTriagemProntuarioDto.id_Sessao },
+      where: { id_Atendimento: createTriagemProntuarioDto.id_Sessao },
       include: {
         ListaEspera: true,
       },
     });
     if (!atendimento) throw new NotFoundException('Atendimento não encontrado.');
-    if (atendimento?.id_Tipo_Atendimento !== TipoAtendimento.TRIAGEM) throw new BadRequestException('Atendimento não é de triagem.');
-    if (atendimento.id_Status !== StatusAtendimento.ATIVO) throw new BadRequestException('Atendimento não está ativo ou já foi concluido.');
-    if (atendimento.ListaEspera?.id_Status !== StatusListaEspera.EM_TRIAGEM)
+    if ((atendimento?.id_Tipo_Atendimento as TipoAtendimento) !== TipoAtendimento.TRIAGEM)
+      throw new BadRequestException('Atendimento não é de triagem.');
+    if ((atendimento.id_Status as StatusAtendimento) !== StatusAtendimento.ATIVO)
+      throw new BadRequestException('Atendimento não está ativo ou já foi concluido.');
+    if ((atendimento.ListaEspera?.id_Status as StatusListaEspera) !== StatusListaEspera.EM_TRIAGEM)
       throw new BadRequestException(
         'Paciente ja possuí triagem concluída ou em andamento. Não é possível criar outra triagem.',
       );
@@ -76,9 +92,9 @@ export class MedicalRecordService {
       const [relatorioTriagem] = await this.prisma.$transaction([
         this.prisma.prontuario.create({
           data: {
-            id_Atendimento: CreateTriagemProntuarioDto.id_Sessao,
+            id_Atendimento: createTriagemProntuarioDto.id_Sessao,
 
-            conteudo: this.encrypt(CreateTriagemProntuarioDto.conteudo),
+            conteudo: this.encrypt(createTriagemProntuarioDto.conteudo),
 
             id_Status: StatusProntuario.EM_APROVACAO,
             id_Tipo: TipoProntuario.TRIAGEM,
@@ -86,7 +102,7 @@ export class MedicalRecordService {
         }),
 
         this.prisma.atendimento.update({
-          where: { id_Atendimento: CreateTriagemProntuarioDto.id_Sessao },
+          where: { id_Atendimento: createTriagemProntuarioDto.id_Sessao },
           data: {
             id_Status: StatusAtendimento.EM_ANDAMENTO,
           },
@@ -99,7 +115,7 @@ export class MedicalRecordService {
     }
   }
 
-  async putTriagem(id: UUID, ConteudoTriagemDto: ConteudoTriagemDto, user: TokenDto) {
+  async putTriagem(id: UUID, conteudoTriagemDto: ConteudoTriagemDto, user: TokenDto) {
     const prontuario = await this.prisma.prontuario.findUnique({
       where: { id_Registro: id },
       include: {
@@ -114,8 +130,9 @@ export class MedicalRecordService {
     });
 
     if (!prontuario) throw new NotFoundException('Registro não encontrado.');
-    if (prontuario.id_Tipo !== TipoProntuario.TRIAGEM) throw new BadRequestException('Registro não é de triagem.');
-    if (prontuario.id_Status !== StatusProntuario.EM_APROVACAO)
+    if ((prontuario.id_Tipo as TipoProntuario) !== TipoProntuario.TRIAGEM)
+      throw new BadRequestException('Registro não é de triagem.');
+    if ((prontuario.id_Status as StatusProntuario) !== StatusProntuario.EM_APROVACAO)
       throw new BadRequestException('Triagem já foi aprovada, não é possível alterar os dados.');
 
     if (!prontuario.atendimento?.id_Supervisor_Executor)
@@ -130,7 +147,7 @@ export class MedicalRecordService {
     return await this.prisma.prontuario.update({
       where: { id_Registro: id },
       data: {
-        conteudo: this.encrypt(ConteudoTriagemDto),
+        conteudo: this.encrypt(conteudoTriagemDto),
       },
     });
   }
@@ -150,14 +167,16 @@ export class MedicalRecordService {
     });
 
     if (!prontuario) throw new NotFoundException('Registro não encontrado.');
-    if (prontuario.id_Tipo !== TipoProntuario.TRIAGEM) throw new BadRequestException('Registro não é de triagem.');
-    if (prontuario.id_Status !== StatusProntuario.EM_APROVACAO) throw new BadRequestException('Triagem já foi aprovada.');
+    if ((prontuario.id_Tipo as TipoProntuario) !== TipoProntuario.TRIAGEM)
+      throw new BadRequestException('Registro não é de triagem.');
+    if ((prontuario.id_Status as StatusProntuario) !== StatusProntuario.EM_APROVACAO)
+      throw new BadRequestException('Triagem já foi aprovada.');
     if (!prontuario.atendimento?.id_Supervisor_Executor)
       throw new InternalServerErrorException('Dados do atendimento inválidos.');
     if (user.access === RoleAccess.SUPERVISOR && user.sub !== prontuario.atendimento.id_Supervisor_Executor)
       throw new UnauthorizedException('Apenas o supervisor responsável pode aprovar esta triagem.');
 
-    const transactionPromises: Prisma.PrismaPromise<any>[] = [];
+    const transactionPromises: Prisma.PrismaPromise<unknown>[] = [];
 
     transactionPromises.push(
       this.prisma.prontuario.update({
@@ -229,20 +248,20 @@ export class MedicalRecordService {
     }
   }
 
-  async createEvolucao(CreateEvolucaoProntuarioDto: CreateEvolucaoProntuarioDto, user: TokenDto) {
+  async createEvolucao(createEvolucaoProntuarioDto: CreateEvolucaoProntuarioDto, user: TokenDto) {
     const atendimento = await this.prisma.atendimento.findFirst({
-      where: { id_Atendimento: CreateEvolucaoProntuarioDto.id_Sessao },
+      where: { id_Atendimento: createEvolucaoProntuarioDto.id_Sessao },
       include: {
         ListaEspera: true,
       },
     });
     if (!atendimento) throw new NotFoundException('Atendimento não encontrado.');
-    if (atendimento?.id_Tipo_Atendimento !== TipoAtendimento.PSICOTERAPIA)
+    if ((atendimento?.id_Tipo_Atendimento as TipoAtendimento) !== TipoAtendimento.PSICOTERAPIA)
       throw new BadRequestException('Atendimento não é de psicoterapia');
-    if (atendimento.id_Status !== StatusAtendimento.ATIVO)
+    if ((atendimento.id_Status as StatusAtendimento) !== StatusAtendimento.ATIVO)
       throw new BadRequestException('Atendimento não está ativo ou já foi concluido.');
 
-    const status = atendimento.ListaEspera?.id_Status;
+    const status = atendimento.ListaEspera?.id_Status as StatusListaEspera;
     if (status !== StatusListaEspera.TRIAGEM_APROVADA && status !== StatusListaEspera.EM_PSICOTERAPIA)
       throw new BadRequestException(
         'Paciente não possuí triagem aprovada. Não é possível criar um registro de psicoterapia.',
@@ -264,9 +283,9 @@ export class MedicalRecordService {
       const [relatorioEvolucao] = await this.prisma.$transaction([
         this.prisma.prontuario.create({
           data: {
-            id_Atendimento: CreateEvolucaoProntuarioDto.id_Sessao,
+            id_Atendimento: createEvolucaoProntuarioDto.id_Sessao,
 
-            conteudo: this.encrypt(CreateEvolucaoProntuarioDto.conteudo),
+            conteudo: this.encrypt(createEvolucaoProntuarioDto.conteudo),
 
             id_Status: StatusProntuario.EM_APROVACAO,
             id_Tipo: TipoProntuario.PSICOTERAPIA,
@@ -274,7 +293,7 @@ export class MedicalRecordService {
         }),
 
         this.prisma.atendimento.update({
-          where: { id_Atendimento: CreateEvolucaoProntuarioDto.id_Sessao },
+          where: { id_Atendimento: createEvolucaoProntuarioDto.id_Sessao },
           data: {
             id_Status: StatusAtendimento.EM_ANDAMENTO,
           },
@@ -289,7 +308,7 @@ export class MedicalRecordService {
     }
   }
 
-  async putEvolucao(id: UUID, ConteudoEvolucaoDto: ConteudoEvolucaoDto, user: TokenDto) {
+  async putEvolucao(id: UUID, conteudoEvolucaoDto: ConteudoEvolucaoDto, user: TokenDto) {
     const prontuario = await this.prisma.prontuario.findUnique({
       where: { id_Registro: id },
       include: {
@@ -304,8 +323,9 @@ export class MedicalRecordService {
     });
 
     if (!prontuario) throw new NotFoundException('Registro não encontrado.');
-    if (prontuario.id_Tipo !== TipoProntuario.PSICOTERAPIA) throw new BadRequestException('Registro não é de evolução/psicoterapia.');
-    if (prontuario.id_Status !== StatusProntuario.EM_APROVACAO)
+    if ((prontuario.id_Tipo as TipoProntuario) !== TipoProntuario.PSICOTERAPIA)
+      throw new BadRequestException('Registro não é de evolução/psicoterapia.');
+    if ((prontuario.id_Status as StatusProntuario) !== StatusProntuario.EM_APROVACAO)
       throw new BadRequestException('Registro de evolução já foi aprovado, não é possível alterar os dados.');
 
     if (!prontuario.atendimento?.id_Supervisor_Executor)
@@ -320,7 +340,7 @@ export class MedicalRecordService {
     return await this.prisma.prontuario.update({
       where: { id_Registro: id },
       data: {
-        conteudo: this.encrypt(ConteudoEvolucaoDto),
+        conteudo: this.encrypt(conteudoEvolucaoDto),
       },
     });
   }
@@ -340,14 +360,16 @@ export class MedicalRecordService {
     });
 
     if (!prontuario) throw new NotFoundException('Registro não encontrado.');
-    if (prontuario.id_Tipo !== TipoProntuario.PSICOTERAPIA) throw new BadRequestException('Registro não é de registro em psicoterapia.');
-    if (prontuario.id_Status !== StatusProntuario.EM_APROVACAO) throw new BadRequestException('Registro de psicoterapia já foi aprovado.');
+    if ((prontuario.id_Tipo as TipoProntuario) !== TipoProntuario.PSICOTERAPIA)
+      throw new BadRequestException('Registro não é de registro em psicoterapia.');
+    if ((prontuario.id_Status as StatusProntuario) !== StatusProntuario.EM_APROVACAO)
+      throw new BadRequestException('Registro de psicoterapia já foi aprovado.');
     if (!prontuario.atendimento?.id_Supervisor_Executor)
       throw new InternalServerErrorException('Dados do atendimento inválidos.');
     if (user.access === RoleAccess.SUPERVISOR && user.sub !== prontuario.atendimento.id_Supervisor_Executor)
       throw new UnauthorizedException('Apenas o supervisor responsável pode aprovar este registro de psicoterapia.');
 
-    const transactionPromises: Prisma.PrismaPromise<any>[] = [];
+    const transactionPromises: Prisma.PrismaPromise<unknown>[] = [];
     let altaCriada = false;
     let encaminhamentoCriado = false;
 
@@ -438,7 +460,7 @@ export class MedicalRecordService {
     }
   }
 
-  async generatePdf(id: UUID, user: TokenDto, res: any) {
+  async generatePdf(id: UUID, user: TokenDto, res: Response) {
     const paciente = await this.findOne(id, user);
 
     const dataForPdf = {
@@ -453,7 +475,7 @@ export class MedicalRecordService {
         data: new Date(atd.dataHoraInicio).toLocaleDateString('pt-BR'),
         supervisor: atd.supervisorExecutor?.nome || 'N/A',
         estagiario: atd.estagiarioExecutor?.nome || 'N/A',
-        supervisorCRP: atd.supervisorExecutor?.CRP || 'N/A',
+        supervisorCRP: atd.supervisorExecutor?.CRP ?? 'N/A',
         prontuarios: atd.Prontuario.map((p) => {
           return {
             id_Registro: p.id_Registro,
@@ -461,9 +483,7 @@ export class MedicalRecordService {
             dataEmissao: new Date(p.dataEmissao).toLocaleDateString('pt-BR'),
             id_Status: p.id_Status,
             id_Tipo: p.id_Tipo,
-            // @ts-expect-error
             tipo: p.TipoProntuario.nome,
-            // @ts-expect-error
             status: p.status.nome,
           };
         }),
@@ -482,26 +502,20 @@ export class MedicalRecordService {
     res.send(pdfBuffer);
   }
 
-  async generateAltaPdf(id: UUID, user: TokenDto, res: any) {
+  async generateAltaPdf(id: UUID, user: TokenDto, res: Response) {
     const paciente = await this.findOne(id, user);
 
-    let altaRecord: any = null;
-    let supervisorNome = 'N/A';
-    let supervisorCRP = 'N/A';
+    const atdComAlta = paciente.Atendimento.find((atd) =>
+      atd.Prontuario.some((p) => (p.id_Tipo as TipoProntuario) === TipoProntuario.ALTA),
+    );
 
-    for (const atd of paciente.Atendimento) {
-      const found = atd.Prontuario.find((p) => p.id_Tipo === TipoProntuario.ALTA);
-      if (found) {
-        altaRecord = found;
-        supervisorNome = atd.supervisorExecutor?.nome || 'N/A';
-        supervisorCRP = atd.supervisorExecutor?.CRP || 'N/A';
-        break; 
-      }
-    }
-
-    if (!altaRecord) {
+    if (!atdComAlta) {
       throw new NotFoundException('Registro de Alta não encontrado para este paciente.');
     }
+
+    const altaRecord = atdComAlta.Prontuario.find((p) => (p.id_Tipo as TipoProntuario) === TipoProntuario.ALTA)!;
+    const supervisorNome = atdComAlta.supervisorExecutor?.nome ?? 'N/A';
+    const supervisorCRP = atdComAlta.supervisorExecutor?.CRP ?? 'N/A';
 
     const datasAtendimento = paciente.Atendimento.map((atd) => new Date(atd.dataHoraInicio).getTime());
     const dataInicio = new Date(Math.min(...datasAtendimento)).toLocaleDateString('pt-BR');
@@ -518,7 +532,7 @@ export class MedicalRecordService {
 
       dataInicio: dataInicio,
       dataFim: dataFim,
-      motivoAlta: altaRecord.conteudo.finalidade,
+      motivoAlta: (altaRecord.conteudo as unknown as ConteudoRelatorioAltaDto).motivoAlta,
       dataAlta: new Date(altaRecord.dataEmissao).toLocaleDateString('pt-BR'),
       dataDocumento: new Date().toLocaleDateString('pt-BR'),
     };
@@ -535,7 +549,7 @@ export class MedicalRecordService {
     res.send(pdfBuffer);
   }
 
-  async generateEncaminhamentoPdf(id: UUID, user: TokenDto, res: any) {
+  async generateEncaminhamentoPdf(id: UUID, user: TokenDto, res: Response) {
     // Buscar o prontuário específico de encaminhamento pelo ID do registro
     const encaminhamentoRecord = await this.prisma.prontuario.findUnique({
       where: { id_Registro: id },
@@ -554,7 +568,7 @@ export class MedicalRecordService {
       throw new NotFoundException('Registro de Encaminhamento não encontrado.');
     }
 
-    if (encaminhamentoRecord.id_Tipo !== TipoProntuario.ENCAMINHAMENTO) {
+    if ((encaminhamentoRecord.id_Tipo as TipoProntuario) !== TipoProntuario.ENCAMINHAMENTO) {
       throw new BadRequestException('O registro fornecido não é do tipo Encaminhamento.');
     }
 
@@ -572,7 +586,7 @@ export class MedicalRecordService {
 
     const paciente = encaminhamentoRecord.atendimento.ListaEspera;
     const supervisorNome = encaminhamentoRecord.atendimento.supervisorExecutor?.nome || 'N/A';
-    const supervisorCRP = encaminhamentoRecord.atendimento.supervisorExecutor?.CRP || 'N/A';
+    const supervisorCRP = encaminhamentoRecord.atendimento.supervisorExecutor?.CRP ?? 'N/A';
 
     const pacienteCompleto = await this.prisma.listaEspera.findUnique({
       where: { id_Lista: paciente.id_Lista },
@@ -591,21 +605,15 @@ export class MedicalRecordService {
       throw new NotFoundException('Paciente não encontrado.');
     }
 
-    let triagemRecord: any = null;
-    for (const atd of pacienteCompleto.Atendimento) {
-      if (atd.Prontuario.length > 0) {
-        triagemRecord = atd.Prontuario[0];
-        break;
-      }
+    const atdComTriagem = pacienteCompleto.Atendimento.find((atd) => atd.Prontuario.length > 0);
+
+    if (!atdComTriagem) {
+      throw new NotFoundException('Registro de Triagem não encontrado. Não é possível gerar o encaminhamento.');
     }
 
-    if (!triagemRecord) {
-      throw new NotFoundException(
-        'Registro de Triagem não encontrado. Não é possível gerar o encaminhamento.',
-      );
-    }
+    const triagemRecord = atdComTriagem.Prontuario[0];
 
-    const conteudoEncaminhamento = encaminhamentoRecord.conteudo as any;
+    const conteudoEncaminhamento = encaminhamentoRecord.conteudo as unknown as ConteudoEncaminhamento;
 
     const dataForPdf = {
       pacienteNome: paciente.nomeRegistro,
@@ -639,57 +647,26 @@ export class MedicalRecordService {
       Atendimento: {
         some: {
           Prontuario: {
-            // 'Prontuario' é o nome da relação no schema
             some: {},
           },
         },
       },
     };
 
-    const includeAtendimentos: Prisma.AtendimentoFindManyArgs = {
-      where: {
-        Prontuario: {
-          some: {},
-        },
-      },
-
-      select: {
-        Prontuario: {
-          select: {
-            id_Registro: true,
-            conteudo: true,
-            dataEmissao: true,
-            id_Status: true,
-            id_Tipo: true,
-            ultimaAtualizacao: true,
-          },
-          orderBy: {
-            dataEmissao: 'asc', // Ordena os registros do paciente do mais antigo para o mais novo
-          },
-        },
-      },
+    const atendimentosWhere: Prisma.AtendimentoWhereInput = {
+      Prontuario: { some: {} },
     };
 
     if (user.access === RoleAccess.SUPERVISOR) {
-      // Supervisor
-      // Filtra a lista de pacientes
       if (whereCondition.Atendimento?.some) {
         whereCondition.Atendimento.some.id_Supervisor_Executor = user.sub;
       }
-      // Filtra TAMBÉM os atendimentos/registros incluídos
-      if (includeAtendimentos.where) {
-        includeAtendimentos.where.id_Supervisor_Executor = user.sub;
-      }
+      atendimentosWhere.id_Supervisor_Executor = user.sub;
     } else if (user.access === RoleAccess.ESTAGIARIO) {
-      // Estagiário
-      // Filtra a lista de pacientes
       if (whereCondition.Atendimento?.some) {
         whereCondition.Atendimento.some.id_Estagiario_Executor = user.sub;
       }
-      // Filtra TAMBÉM os atendimentos/registros incluídos
-      if (includeAtendimentos.where) {
-        includeAtendimentos.where.id_Estagiario_Executor = user.sub;
-      }
+      atendimentosWhere.id_Estagiario_Executor = user.sub;
     } else if (user.access > RoleAccess.ESTAGIARIO) {
       return [];
     }
@@ -702,16 +679,35 @@ export class MedicalRecordService {
         nomeSocial: true,
         id_Status: true,
         Status: { select: { nome: true } },
-        Atendimento: includeAtendimentos,
+        Atendimento: {
+          where: atendimentosWhere,
+          select: {
+            Prontuario: {
+              select: {
+                id_Registro: true,
+                conteudo: true,
+                dataEmissao: true,
+                id_Status: true,
+                id_Tipo: true,
+                ultimaAtualizacao: true,
+              },
+              orderBy: { dataEmissao: 'asc' },
+            },
+          },
+        },
       },
       orderBy: { nomeRegistro: 'asc' },
     });
 
+    if (pacientes.length === 0) {
+      throw new NotFoundException('Nenhum paciente encontrado.');
+    }
+
     return pacientes.map((paciente) => ({
       ...paciente,
-      Atendimento: (paciente.Atendimento as any[]).map((atd) => ({
+      Atendimento: paciente.Atendimento.map((atd) => ({
         ...atd,
-        Prontuario: atd.Prontuario.map((p: any) => ({
+        Prontuario: atd.Prontuario.map((p) => ({
           ...p,
           conteudo: this.decrypt(p.conteudo),
         })),
@@ -736,29 +732,6 @@ export class MedicalRecordService {
         some: {},
       },
     };
-
-    const includeAtendimentosSelect: Prisma.AtendimentoSelect = {
-      dataHoraInicio: true,
-      supervisorExecutor: { select: { nome: true, CRP: true } },
-      estagiarioExecutor: { select: { nome: true } },
-      Prontuario: {
-        select: {
-          id_Registro: true,
-          conteudo: true,
-          dataEmissao: true,
-          id_Status: true,
-          id_Tipo: true,
-          ultimaAtualizacao: true,
-          status: { select: { nome: true } },
-          TipoProntuario: { select: { nome: true } },
-        },
-        orderBy: {
-          dataEmissao: 'asc',
-        },
-      },
-    };
-
-    const includeAtendimentosOrderBy: Prisma.AtendimentoOrderByWithRelationInput[] = [{ dataHoraInicio: 'asc' }];
 
     if (user.access === RoleAccess.SUPERVISOR) {
       if (whereCondition.Atendimento?.some) {
@@ -792,8 +765,25 @@ export class MedicalRecordService {
 
         Atendimento: {
           where: includeAtendimentosWhere,
-          select: includeAtendimentosSelect,
-          orderBy: includeAtendimentosOrderBy,
+          select: {
+            dataHoraInicio: true,
+            supervisorExecutor: { select: { nome: true, CRP: true } },
+            estagiarioExecutor: { select: { nome: true } },
+            Prontuario: {
+              select: {
+                id_Registro: true,
+                conteudo: true,
+                dataEmissao: true,
+                id_Status: true,
+                id_Tipo: true,
+                ultimaAtualizacao: true,
+                status: { select: { nome: true } },
+                TipoProntuario: { select: { nome: true } },
+              },
+              orderBy: { dataEmissao: 'asc' },
+            },
+          },
+          orderBy: [{ dataHoraInicio: 'asc' }],
         },
       },
     });

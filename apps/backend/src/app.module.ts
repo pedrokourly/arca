@@ -17,10 +17,12 @@ import { APP_GUARD } from '@nestjs/core';
       isGlobal: true,
       envFilePath: process.env.NODE_ENV ? `.env.${process.env.NODE_ENV}` : '.env',
     }),
-    ThrottlerModule.forRoot([{
-      ttl: 60_000,
-      limit: 10,
-    }]),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60_000,
+        limit: 10,
+      },
+    ]),
     AuditModule,
     AuthModule,
     UsersModule,
@@ -30,8 +32,6 @@ import { APP_GUARD } from '@nestjs/core';
     PdfModule,
   ],
   controllers: [AppController],
-  providers: [
-    { provide: APP_GUARD, useClass: ThrottlerGuard },
-  ],
+  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
 export class AppModule {}

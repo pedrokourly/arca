@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe, UseGuards, Req, Put } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseUUIDPipe, UseGuards, Put } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -8,6 +8,7 @@ import { TokenDto } from 'src/common/dto/token.dto';
 import { Roles } from 'src/common/decorators/roles.decorator';
 import { RoleAccess } from 'src/common/enums/status.enum';
 import { RolesGuard } from 'src/common/guards/roles.guard';
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -15,34 +16,34 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
-  create(@Body() createUserDto: CreateUserDto, @Req() req: any) {
-    return this.usersService.create(createUserDto, req.user as TokenDto);
+  create(@Body() createUserDto: CreateUserDto, @CurrentUser() user: TokenDto) {
+    return this.usersService.create(createUserDto, user);
   }
 
   @Get()
-  findAll(@Req() req: any) {
-    return this.usersService.findAll(req.user as TokenDto);
+  findAll(@CurrentUser() user: TokenDto) {
+    return this.usersService.findAll(user);
   }
 
   @Get(':id')
-  findOne(@Param('id', ParseUUIDPipe) id: UUID, @Req() req: any) {
-    return this.usersService.findOne(id, req.user as TokenDto);
+  findOne(@Param('id', ParseUUIDPipe) id: UUID, @CurrentUser() user: TokenDto) {
+    return this.usersService.findOne(id, user);
   }
 
   @Put(':id')
-  update(@Param('id', ParseUUIDPipe) id: UUID, @Body() updateUserDto: UpdateUserDto, @Req() req: any) {
-    return this.usersService.update(id, updateUserDto, req.user as TokenDto);
+  update(@Param('id', ParseUUIDPipe) id: UUID, @Body() updateUserDto: UpdateUserDto, @CurrentUser() user: TokenDto) {
+    return this.usersService.update(id, updateUserDto, user);
   }
 
   @Roles(RoleAccess.ADMIN, RoleAccess.SECRETARIO)
   @Patch(':id/reactivate')
-  reactivate(@Param('id', ParseUUIDPipe) id: UUID, @Req() req: any) {
-    return this.usersService.reactivate(id, req.user as TokenDto);
+  reactivate(@Param('id', ParseUUIDPipe) id: UUID, @CurrentUser() user: TokenDto) {
+    return this.usersService.reactivate(id, user);
   }
 
   @Roles(RoleAccess.ADMIN, RoleAccess.SECRETARIO)
   @Delete(':id')
-  remove(@Param('id', ParseUUIDPipe) id: UUID, @Req() req: any) {
-    return this.usersService.remove(id, req.user as TokenDto);
+  remove(@Param('id', ParseUUIDPipe) id: UUID, @CurrentUser() user: TokenDto) {
+    return this.usersService.remove(id, user);
   }
 }

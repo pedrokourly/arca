@@ -1,5 +1,6 @@
 import { IsEmail, IsInt, IsNotEmpty, IsString, IsUUID, MaxLength, Min } from 'class-validator';
 import { UUID } from 'node:crypto';
+import type { RoleAccess } from '../enums/status.enum';
 
 // DTO de usuário com base no modelo Usuario criador - Responsável pelas requisições
 // Campos persistidos: nome (<=50), email (<=100), senha (será convertida para senhaHash), roleId (SmallInt)
@@ -20,7 +21,7 @@ export class TokenDto {
 
   @IsInt()
   @Min(1)
-  access: number;
+  access: RoleAccess;
 
   @IsInt()
   iat: number;

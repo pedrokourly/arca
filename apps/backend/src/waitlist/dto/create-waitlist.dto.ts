@@ -1,4 +1,4 @@
-import { IsString, IsDateString, IsOptional, Length, IsInt, Min, Max, Matches } from 'class-validator';
+import { IsString, IsDateString, IsOptional, Length, IsInt, Min, Matches } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class CreateWaitlistDto {
@@ -47,27 +47,24 @@ export class CreateWaitlistDto {
   @Length(2, 2, { message: 'Estado deve ter exatamente 2 caracteres' })
   enderecoEstado: string;
 
-  @Transform(({ value }) => value?.replace(/\D/g, ''))
+  @Transform(({ value }: { value: string }) => value?.replace(/\D/g, ''))
   @IsString({ message: 'CEP deve ser uma string' })
   @Length(8, 8, { message: 'CEP deve ter exatamente 8 dígitos' })
   @Matches(/^\d{8}$/, { message: 'CEP deve conter apenas números' })
   enderecoCEP: string;
 
-  @IsOptional()
-  @Transform(({ value }) => parseInt(value, 10))
+  @Transform(({ value }: { value: string }) => parseInt(value, 10))
   @IsInt({ message: 'ID do gênero deve ser um número inteiro' })
   @Min(1, { message: 'ID do gênero deve ser maior que 0' })
-  id_Genero?: number;
+  id_Genero: number;
 
-  @IsOptional()
-  @Transform(({ value }) => parseInt(value, 10))
+  @Transform(({ value }: { value: string }) => parseInt(value, 10))
   @IsInt({ message: 'ID da etnia deve ser um número inteiro' })
   @Min(1, { message: 'ID da etnia deve ser maior que 0' })
-  id_Etnia?: number;
+  id_Etnia: number;
 
-  @IsOptional()
-  @Transform(({ value }) => parseInt(value, 10))
+  @Transform(({ value }: { value: string }) => parseInt(value, 10))
   @IsInt({ message: 'ID da escolaridade deve ser um número inteiro' })
   @Min(1, { message: 'ID da escolaridade deve ser maior que 0' })
-  id_Escolaridade?: number;
+  id_Escolaridade: number;
 }
