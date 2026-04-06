@@ -86,13 +86,6 @@ export class SessionService {
    * Descriptografa o conteudo de um prontuário.
    * Aceita string cifrada (novo formato) ou objeto JSON legado.
    */
-  private decryptConteudo(conteudo: unknown): object {
-    if (typeof conteudo === 'string') {
-      return this.cryptoService.decrypt(conteudo);
-    }
-    return conteudo as object;
-  }
-
   /** Recebe um atendimento do Prisma e descriptografa o conteudo de cada prontuário. */
   private decryptSession(session: SessionWithRelations) {
     if (!session?.Prontuario) return session;
@@ -100,7 +93,7 @@ export class SessionService {
       ...session,
       Prontuario: session.Prontuario.map((p) => ({
         ...p,
-        conteudo: this.decryptConteudo(p.conteudo),
+        conteudo: this.cryptoService.decryptConteudo(p.conteudo),
       })),
     };
   }
