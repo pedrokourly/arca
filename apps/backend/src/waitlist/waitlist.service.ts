@@ -1,4 +1,10 @@
-import { BadRequestException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateWaitlistDto } from './dto/create-waitlist.dto';
 import { UpdateWaitlistDto } from './dto/update-waitlist.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -8,6 +14,8 @@ import { paginate, PaginationDto } from 'src/common/dto/pagination.dto';
 
 @Injectable()
 export class WaitlistService {
+  private readonly logger = new Logger(WaitlistService.name);
+
   constructor(private prisma: PrismaService) {}
 
   async create(body: CreateWaitlistDto) {
@@ -176,6 +184,7 @@ export class WaitlistService {
 
       return updatedWaitlistEntry;
     } catch (error) {
+      this.logger.error('Falha ao atualizar paciente', error instanceof Error ? error.stack : error);
       throw new InternalServerErrorException('Erro ao atualizar os dados do paciente.');
     }
   }
@@ -220,6 +229,7 @@ export class WaitlistService {
 
       return deactivatedEntry;
     } catch (error) {
+      this.logger.error('Falha ao desativar paciente', error instanceof Error ? error.stack : error);
       throw new InternalServerErrorException('Erro ao desativar o paciente da lista de espera.');
     }
   }
