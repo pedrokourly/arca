@@ -3,6 +3,7 @@ import {
   ForbiddenException,
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -37,6 +38,8 @@ interface ConteudoEncaminhamento {
 
 @Injectable()
 export class MedicalRecordService {
+  private readonly logger = new Logger(MedicalRecordService.name);
+
   constructor(
     private prisma: PrismaService,
     private pdfService: PdfService,
@@ -112,6 +115,7 @@ export class MedicalRecordService {
 
       return relatorioTriagem;
     } catch (error) {
+      this.logger.error('Falha ao salvar triagem', error instanceof Error ? error.stack : error);
       throw new InternalServerErrorException('Erro no banco de dados. Falha ao salvar a triagem. Tente novamente.');
     }
   }
@@ -245,6 +249,7 @@ export class MedicalRecordService {
         ? 'Paciente encaminhado com sucesso.'
         : 'Triagem aprovada com sucesso.';
     } catch (error) {
+      this.logger.error('Falha ao aprovar triagem', error instanceof Error ? error.stack : error);
       throw new InternalServerErrorException('Erro no banco de dados. Falha ao aprovar a triagem. Tente novamente.');
     }
   }
@@ -303,6 +308,7 @@ export class MedicalRecordService {
 
       return relatorioEvolucao;
     } catch (error) {
+      this.logger.error('Falha ao salvar relatório de psicoterapia', error instanceof Error ? error.stack : error);
       throw new InternalServerErrorException(
         'Erro no banco de dados. Falha ao salvar o relatorio de psicoterapia. Tente novamente.',
       );
@@ -457,6 +463,7 @@ export class MedicalRecordService {
         return 'Evolução aprovada com sucesso.';
       }
     } catch (error) {
+      this.logger.error('Falha ao aprovar evolução', error instanceof Error ? error.stack : error);
       throw new InternalServerErrorException('Erro no banco de dados. Falha ao aprovar a evolução. Tente novamente.');
     }
   }

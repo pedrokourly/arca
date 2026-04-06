@@ -1,8 +1,9 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from 'src/app.module';
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { AuditService } from 'src/audit/audit.service';
 import { AuditInterceptor } from 'src/audit/audit.interceptor';
+import { HttpExceptionFilter } from 'src/common/filters/http-exception.filter';
 import helmet from 'helmet';
 
 async function bootstrap() {
@@ -30,7 +31,12 @@ async function bootstrap() {
   const auditService = app.get(AuditService);
 
   app.useGlobalInterceptors(new AuditInterceptor(auditService));
+  app.useGlobalFilters(new HttpExceptionFilter());
 
-  await app.listen(process.env.PORT ?? 3333);
+  const port = process.env.PORT ?? 3333;
+  await app.listen(port);
+
+  const logger = new Logger('Bootstrap');
+  logger.log(`Servidor rodando em http://localhost:${port}`);
 }
 void bootstrap();
