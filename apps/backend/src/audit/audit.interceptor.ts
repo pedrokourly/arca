@@ -57,8 +57,9 @@ export class AuditInterceptor implements NestInterceptor {
       params.id ??
       (responseData &&
         ((responseData.id_User as string) ||
-          (responseData.id_Paciente as string) ||
-          (responseData.id_Documento as string)));
+          (responseData.id_Lista as string) ||
+          (responseData.id_Atendimento as string) ||
+          (responseData.id_Prontuario as string)));
 
     await this.auditService.create({
       id_Usuario_Executor: user.sub,
