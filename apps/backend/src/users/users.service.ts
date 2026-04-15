@@ -242,8 +242,6 @@ export class UsersService {
         isActive: false,
       },
     });
-
-    return { message: `Usuário com ID ${id} desativado com sucesso.` };
   }
 
   async reactivate(id: UUID, creator: TokenDto) {
@@ -269,7 +267,5 @@ export class UsersService {
         isActive: true,
       },
     });
-
-    return { message: `Usuário ${user.nome} reativado com sucesso.` };
   }
 }
