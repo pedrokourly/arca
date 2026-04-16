@@ -1,4 +1,4 @@
-import { Controller, Post, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, UseGuards, Request, HttpCode } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { Throttle } from '@nestjs/throttler';
@@ -8,6 +8,7 @@ import { LocalAuthRequest } from './dto/local-auth-request.dto';
 export class AuthController {
   constructor(private authService: AuthService) {}
 
+  @HttpCode(200)
   @Throttle({ default: { ttl: 60_000, limit: 5 } })
   @UseGuards(LocalAuthGuard)
   @Post('login')

@@ -1,12 +1,12 @@
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { RoleAccess } from 'src/common/enums/status.enum';
 
 const prisma = new PrismaClient();
 
 async function main() {
   console.log('Iniciando processo de seed...');
 
-  // Inserir roles padrão apenas se não existirem
   const existingRoles = await prisma.role.count();
   if (existingRoles === 0) {
     await prisma.role.createMany({
@@ -34,7 +34,6 @@ async function main() {
     console.log('ℹ️  Roles já existem no banco de dados.');
   }
 
-  // Inserir gêneros apenas se não existirem
   const existingGeneros = await prisma.genero.count();
   if (existingGeneros === 0) {
     await prisma.genero.createMany({
@@ -45,7 +44,6 @@ async function main() {
     console.log('ℹ️  Gêneros já existem no banco de dados.');
   }
 
-  // Inserir etnia apenas se não existirem
   const existingCoresPele = await prisma.etnia.count();
   if (existingCoresPele === 0) {
     await prisma.etnia.createMany({
@@ -63,7 +61,6 @@ async function main() {
     console.log('ℹ️  Etnias já existem no banco de dados.');
   }
 
-  // Inserir escolaridades apenas se não existirem
   const existingEscolaridades = await prisma.escolaridade.count();
   if (existingEscolaridades === 0) {
     await prisma.escolaridade.createMany({
@@ -84,7 +81,6 @@ async function main() {
     console.log('ℹ️  Escolaridades já existem no banco de dados.');
   }
 
-  // Inserir status da lista de espera apenas se não existirem
   const existingStatusListaEspera = await prisma.statusListaEspera.count();
   if (existingStatusListaEspera === 0) {
     await prisma.statusListaEspera.createMany({
@@ -103,7 +99,6 @@ async function main() {
     console.log('ℹ️  Status da lista de espera já existem no banco de dados.');
   }
 
-  // Inserir status de atendimento apenas se não existirem
   const existingStatusAtendimento = await prisma.statusAtendimento.count();
   if (existingStatusAtendimento === 0) {
     await prisma.statusAtendimento.createMany({
@@ -114,7 +109,6 @@ async function main() {
     console.log('ℹ️  Status de atendimento já existem no banco de dados.');
   }
 
-  // Inserir status de atendimento apenas se não existirem
   const existingTipoAtendimento = await prisma.tipoAtendimento.count();
   if (existingTipoAtendimento === 0) {
     await prisma.tipoAtendimento.createMany({
@@ -125,7 +119,6 @@ async function main() {
     console.log('ℹ️  Tipo de atendimento já existem no banco de dados.');
   }
 
-  // Inserir status de Prontuario apenas se não existirem
   const existingStatusProntuario = await prisma.statusProntuario.count();
   if (existingStatusProntuario === 0) {
     await prisma.statusProntuario.createMany({
@@ -136,7 +129,6 @@ async function main() {
     console.log('ℹ️  Status de Prontuario já existem no banco de dados.');
   }
 
-  // Inserir Tipo de Prontuario apenas se não existirem
   const existingTipoProntuario = await prisma.tipoProntuario.count();
   if (existingTipoProntuario === 0) {
     await prisma.tipoProntuario.createMany({
@@ -147,27 +139,26 @@ async function main() {
     console.log('ℹ️  Tipos de Prontuario já existem no banco de dados.');
   }
 
-  // Inserir usuários padrão para cada tipo de acesso apenas se não existirem
   const usuarios = [
     {
       nome: 'Administrador do Sistema',
       email: 'admin@arca.com',
       senha: 'Admin123!',
-      roleId: 1, // ADMIN
+      roleId: RoleAccess.ADMIN, 
       description: 'Usuário administrador',
     },
     {
       nome: 'Secretário Padrão',
       email: 'secretario@arca.com',
       senha: 'Secretario123!',
-      roleId: 2, // SECRETARIO
+      roleId: RoleAccess.SECRETARIO,
       description: 'Usuário secretário',
     },
     {
       nome: 'Supervisor Padrão',
       email: 'supervisor@arca.com',
       senha: 'Supervisor123!',
-      roleId: 3, // SUPERVISOR
+      roleId: RoleAccess.SUPERVISOR,
       CRP: 'CRP-123456',
       description: 'Usuário supervisor',
     },
@@ -175,7 +166,7 @@ async function main() {
       nome: 'Estagiário Padrão',
       email: 'estagiario@arca.com',
       senha: 'Estagiario123!',
-      roleId: 4, // ESTAGIARIO
+      roleId: RoleAccess.ESTAGIARIO,
       description: 'Usuário estagiário',
     },
   ];
