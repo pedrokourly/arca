@@ -2,7 +2,13 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { SessionService } from './session.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { CryptoService } from 'src/crypto/crypto.service';
-import { RoleAccess, StatusAtendimento, StatusListaEspera, TipoProntuario, TipoAtendimento } from 'src/common/enums/status.enum';
+import {
+  RoleAccess,
+  StatusAtendimento,
+  StatusListaEspera,
+  TipoProntuario,
+  TipoAtendimento,
+} from 'src/common/enums/status.enum';
 import { CreateSessionDto } from './dto/create-session.dto';
 import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { TokenDto } from 'src/common/dto/token.dto';
@@ -12,7 +18,7 @@ import { UpdateSessionDto } from './dto/update-session.dto';
 describe('SessionService', () => {
   let service: SessionService;
 
-  let mockPrisma = {
+  const mockPrisma = {
     listaEspera: {
       findUnique: jest.fn(),
       update: jest.fn(),
@@ -31,7 +37,7 @@ describe('SessionService', () => {
     $transaction: jest.fn(),
   };
 
-  let mockCrypto = { decryptConteudo: jest.fn() };
+  const mockCrypto = { decryptConteudo: jest.fn() };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -620,7 +626,7 @@ describe('SessionService', () => {
           id_Atendimento: 'uuid_session',
           dataHoraInicio: new Date(Date.now() + 60 * 60 * 1000),
           dataHoraFim: new Date(Date.now() + 2 * 60 * 60 * 1000),
-        }
+        };
 
         mockPrisma.atendimento.findUnique.mockResolvedValue(sessionToBeUpdated);
         mockPrisma.atendimento.findFirst.mockResolvedValue(undefined);
@@ -678,11 +684,10 @@ describe('SessionService', () => {
           dataHoraFim: new Date(Date.now() + 2 * 60 * 60 * 1000),
         } as UpdateSessionDto;
 
-        
         mockPrisma.atendimento.findUnique.mockResolvedValue(sessionToBeUpdated);
         mockPrisma.atendimento.findFirst.mockResolvedValue({ id_Atendimento: 'uuid-conflict' });
         await expect(service.update('uuid_session' as UUID, data)).rejects.toThrow(BadRequestException);
-      })
+      });
     });
 
     describe('remove', () => {
@@ -726,7 +731,10 @@ describe('SessionService', () => {
         };
 
         mockPrisma.atendimento.findUnique.mockResolvedValue(session);
-        mockPrisma.prontuario.findFirst.mockResolvedValue({ id_Registro: 'uuid-pront', id_Tipo: TipoProntuario.PSICOTERAPIA });
+        mockPrisma.prontuario.findFirst.mockResolvedValue({
+          id_Registro: 'uuid-pront',
+          id_Tipo: TipoProntuario.PSICOTERAPIA,
+        });
         mockPrisma.$transaction.mockResolvedValue([]);
 
         const result = await service.remove('uuid-session' as UUID);

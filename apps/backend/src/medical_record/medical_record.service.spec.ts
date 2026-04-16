@@ -465,7 +465,11 @@ describe('MedicalRecordService', () => {
         mockPrisma.prontuario.findUnique.mockResolvedValue(null);
 
         await expect(
-          service.approveEvolucao(id, { recebeuAlta: false, encaminhado: false }, makeUser(RoleAccess.SUPERVISOR, 'uuid-sup')),
+          service.approveEvolucao(
+            id,
+            { recebeuAlta: false, encaminhado: false },
+            makeUser(RoleAccess.SUPERVISOR, 'uuid-sup'),
+          ),
         ).rejects.toThrow(NotFoundException);
       });
 
@@ -473,7 +477,11 @@ describe('MedicalRecordService', () => {
         mockPrisma.prontuario.findUnique.mockResolvedValue(makeProntuario({ id_Tipo: TipoProntuario.PSICOTERAPIA }));
 
         await expect(
-          service.approveEvolucao(id, { recebeuAlta: false, encaminhado: false }, makeUser(RoleAccess.SUPERVISOR, 'uuid-outro')),
+          service.approveEvolucao(
+            id,
+            { recebeuAlta: false, encaminhado: false },
+            makeUser(RoleAccess.SUPERVISOR, 'uuid-outro'),
+          ),
         ).rejects.toThrow(ForbiddenException);
       });
 
@@ -509,7 +517,12 @@ describe('MedicalRecordService', () => {
 
         const result = await service.approveEvolucao(
           id,
-          { recebeuAlta: false, encaminhado: true, instituicaoEncaminhada: 'Hospital X', motivoEncaminhamento: 'Motivo Y' },
+          {
+            recebeuAlta: false,
+            encaminhado: true,
+            instituicaoEncaminhada: 'Hospital X',
+            motivoEncaminhamento: 'Motivo Y',
+          },
           makeUser(RoleAccess.SUPERVISOR, 'uuid-sup'),
         );
 
@@ -522,7 +535,13 @@ describe('MedicalRecordService', () => {
 
         const result = await service.approveEvolucao(
           id,
-          { recebeuAlta: true, finalidade: 'Fim', encaminhado: true, instituicaoEncaminhada: 'Hospital X', motivoEncaminhamento: 'Motivo' },
+          {
+            recebeuAlta: true,
+            finalidade: 'Fim',
+            encaminhado: true,
+            instituicaoEncaminhada: 'Hospital X',
+            motivoEncaminhamento: 'Motivo',
+          },
           makeUser(RoleAccess.SUPERVISOR, 'uuid-sup'),
         );
 

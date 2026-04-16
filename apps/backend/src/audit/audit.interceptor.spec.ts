@@ -4,7 +4,7 @@ import { of } from 'rxjs';
 
 describe('AuditInterceptor', () => {
   let interceptor: AuditInterceptor;
-  let mockAuditService = { create: jest.fn() };
+  const mockAuditService = { create: jest.fn() };
 
   function createMockContext(request: object, controllerName = 'UserController', handlerName = 'create') {
     return {

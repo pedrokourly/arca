@@ -8,9 +8,9 @@ import { UnauthorizedException } from '@nestjs/common';
 
 describe('AuthService', () => {
   let service: AuthService;
-  let mockPrisma = { usuario: { findFirst: jest.fn() } };
-  let mockHashing = { compare: jest.fn() };
-  let mockJwtService = { signAsync: jest.fn() };
+  const mockPrisma = { usuario: { findFirst: jest.fn() } };
+  const mockHashing = { compare: jest.fn() };
+  const mockJwtService = { signAsync: jest.fn() };
 
   const user = {
     id_User: 'uuid-123',
@@ -95,18 +95,17 @@ describe('AuthService', () => {
   });
 
   describe('login', () => {
-    it('should return a token and user data',
-      async () => {
-        mockJwtService.signAsync.mockResolvedValue('token-fake');
+    it('should return a token and user data', async () => {
+      mockJwtService.signAsync.mockResolvedValue('token-fake');
 
-        const result = await service.login(user);
-        expect(result).toEqual({
-          id: user.id_User,
-          name: user.nome,
-          email: user.email,
-          roleId: user.roleId,
-          token: 'token-fake'
-        });
+      const result = await service.login(user);
+      expect(result).toEqual({
+        id: user.id_User,
+        name: user.nome,
+        email: user.email,
+        roleId: user.roleId,
+        token: 'token-fake',
       });
+    });
   });
 });

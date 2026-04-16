@@ -9,7 +9,7 @@ import { CreateWaitlistDto } from './dto/create-waitlist.dto';
 describe('WaitlistService', () => {
   let service: WaitlistService;
 
-  let mockPrisma = {
+  const mockPrisma = {
     listaEspera: {
       findFirst: jest.fn(),
       findUnique: jest.fn(),

@@ -10,7 +10,7 @@ import { RoleAccess } from 'src/common/enums/status.enum';
 describe('UserService', () => {
   let service: UsersService;
 
-  let mockPrisma = {
+  const mockPrisma = {
     usuario: {
       findFirst: jest.fn(),
       create: jest.fn(),
@@ -20,7 +20,7 @@ describe('UserService', () => {
       update: jest.fn(),
     },
   };
-  let mockHashing = { hash: jest.fn() };
+  const mockHashing = { hash: jest.fn() };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -356,7 +356,7 @@ describe('UserService', () => {
           nome: 'pedro',
           email: 'pedro@test.com',
           roleId: RoleAccess.ESTAGIARIO,
-          isActive: true
+          isActive: true,
         };
 
         mockPrisma.usuario.findUnique.mockResolvedValue(user);
@@ -374,7 +374,7 @@ describe('UserService', () => {
           nome: 'pedro',
           email: 'pedro@test.com',
           roleId: RoleAccess.ADMIN,
-          isActive: true
+          isActive: true,
         };
 
         mockPrisma.usuario.findUnique.mockResolvedValue(user);
@@ -392,7 +392,7 @@ describe('UserService', () => {
           nome: 'pedro',
           email: 'pedro@test.com',
           roleId: RoleAccess.ADMIN,
-          isActive: true
+          isActive: true,
         };
 
         mockPrisma.usuario.findUnique.mockResolvedValue(user);
@@ -403,7 +403,6 @@ describe('UserService', () => {
 
   describe('User extra', () => {
     describe('reactivate', () => {
-
       it('should reactivate a user', async () => {
         const creator = {
           sub: 'uuid-creator',
@@ -415,7 +414,7 @@ describe('UserService', () => {
           nome: 'pedro',
           email: 'pedro@test.com',
           roleId: RoleAccess.SECRETARIO,
-          isActive: false
+          isActive: false,
         };
 
         mockPrisma.usuario.findUnique.mockResolvedValue(user);
@@ -443,7 +442,7 @@ describe('UserService', () => {
           nome: 'pedro',
           email: 'pedro@test.com',
           roleId: RoleAccess.SECRETARIO,
-          isActive: true
+          isActive: true,
         };
 
         mockPrisma.usuario.findUnique.mockResolvedValue(user);
@@ -461,7 +460,7 @@ describe('UserService', () => {
           nome: 'pedro',
           email: 'pedro@test.com',
           roleId: RoleAccess.ADMIN,
-          isActive: false
+          isActive: false,
         };
 
         mockPrisma.usuario.findUnique.mockResolvedValue(user);
