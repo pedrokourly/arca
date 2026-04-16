@@ -10,6 +10,8 @@ import {
   UseGuards,
   Put,
   Query,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -50,12 +52,14 @@ export class UsersController {
 
   @Roles(RoleAccess.ADMIN, RoleAccess.SECRETARIO)
   @Patch(':id/reactivate')
+  @HttpCode(HttpStatus.NO_CONTENT)
   reactivate(@Param('id', ParseUUIDPipe) id: UUID, @CurrentUser() user: TokenDto) {
     return this.usersService.reactivate(id, user);
   }
 
   @Roles(RoleAccess.ADMIN, RoleAccess.SECRETARIO)
   @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
   remove(@Param('id', ParseUUIDPipe) id: UUID, @CurrentUser() user: TokenDto) {
     return this.usersService.remove(id, user);
   }

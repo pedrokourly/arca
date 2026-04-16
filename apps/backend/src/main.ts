@@ -34,8 +34,7 @@ async function bootstrap() {
   app.useGlobalFilters(new HttpExceptionFilter());
 
   const parsedPort = Number(process.env.PORT);
-  const port =
-    Number.isInteger(parsedPort) && parsedPort > 0 ? parsedPort : 3333;
+  const port = Number.isInteger(parsedPort) && parsedPort > 0 ? parsedPort : 3333;
   await app.listen(port);
   const appUrl = await app.getUrl();
 
