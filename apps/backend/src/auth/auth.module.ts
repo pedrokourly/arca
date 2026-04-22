@@ -11,15 +11,15 @@ import { AuthController } from './auth.controller';
 import { PrismaModule } from 'src/prisma/prisma.module';
 
 @Module({
-  imports: [
-    PrismaModule,
-    PassportModule,
-    HashingModule,
-    ConfigModule.forFeature(jwtConfig),
-    JwtModule.registerAsync(jwtConfig.asProvider()),
-  ],
-  providers: [AuthService, LocalStrategy, JwtStrategy],
-  exports: [AuthService],
-  controllers: [AuthController],
+    imports: [
+        PrismaModule,
+        PassportModule,
+        HashingModule,
+        ConfigModule.forFeature(jwtConfig),
+        JwtModule.registerAsync(jwtConfig.asProvider()),
+    ],
+    providers: [AuthService, LocalStrategy, JwtStrategy],
+    exports: [AuthService],
+    controllers: [AuthController],
 })
-export class AuthModule {}
+export class AuthModule { }

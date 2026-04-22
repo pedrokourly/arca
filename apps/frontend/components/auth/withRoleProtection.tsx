@@ -2,16 +2,16 @@ import { ComponentType } from "react";
 import { ProtectedRoute } from "./ProtectedRoute";
 
 export function withRoleProtection<P extends object>(
-  Component: ComponentType<P>,
-  requiredMaxRole: number,
+    Component: ComponentType<P>,
+    requiredMaxRole: number,
 ) {
-  return function ProtectedComponent(props: P) {
-    return (
-      <ProtectedRoute requiredMaxRole={requiredMaxRole}>
-        <Component {...props} />
-      </ProtectedRoute>
-    );
-  };
+    return function ProtectedComponent(props: P) {
+        return (
+            <ProtectedRoute requiredMaxRole={requiredMaxRole}>
+                <Component {...props} />
+            </ProtectedRoute>
+        );
+    };
 }
 
 // Exemplos de uso:

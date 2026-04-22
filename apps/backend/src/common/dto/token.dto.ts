@@ -5,35 +5,35 @@ import type { RoleAccess } from '../enums/status.enum';
 // DTO de usuário com base no modelo Usuario criador - Responsável pelas requisições
 // Campos persistidos: nome (<=50), email (<=100), senha (será convertida para senhaHash), roleId (SmallInt)
 export class TokenDto {
-  @IsUUID()
-  @IsNotEmpty()
-  sub: UUID;
+    @IsUUID()
+    @IsNotEmpty()
+    sub: UUID;
 
-  @IsString()
-  @IsNotEmpty()
-  @MaxLength(50)
-  name: string;
+    @IsString()
+    @IsNotEmpty()
+    @MaxLength(50)
+    name: string;
 
-  @IsEmail()
-  @IsNotEmpty()
-  @MaxLength(100)
-  email: string;
+    @IsEmail()
+    @IsNotEmpty()
+    @MaxLength(100)
+    email: string;
 
-  @IsInt()
-  @Min(1)
-  access: RoleAccess;
+    @IsInt()
+    @Min(1)
+    access: RoleAccess;
 
-  @IsInt()
-  iat: number;
+    @IsInt()
+    iat: number;
 
-  @IsInt()
-  exp: number;
+    @IsInt()
+    exp: number;
 
-  @IsString()
-  @IsNotEmpty()
-  aud: string;
+    @IsString()
+    @IsNotEmpty()
+    aud: string;
 
-  @IsString()
-  @IsNotEmpty()
-  iss: string;
+    @IsString()
+    @IsNotEmpty()
+    iss: string;
 }

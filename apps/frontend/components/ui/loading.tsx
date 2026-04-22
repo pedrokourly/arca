@@ -2,13 +2,13 @@ import React from "react";
 import styled from "styled-components";
 
 const Loader = () => {
-  return (
-    <StyledWrapper>
-      <div className="spinner">
-        <div className="inner"></div>
-      </div>
-    </StyledWrapper>
-  );
+    return (
+        <StyledWrapper>
+            <div className="spinner">
+                <div className="inner"></div>
+            </div>
+        </StyledWrapper>
+    );
 };
 
 const StyledWrapper = styled.div`

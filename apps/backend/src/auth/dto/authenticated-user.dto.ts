@@ -1,7 +1,7 @@
 export interface AuthenticatedUserDto {
-  id: string;
-  name: string;
-  email: string;
-  roleId: number;
-  token: string;
+    id: string;
+    name: string;
+    email: string;
+    roleId: number;
+    token: string;
 }

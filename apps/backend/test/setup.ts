@@ -6,25 +6,25 @@ import { AuditInterceptor } from 'src/audit/audit.interceptor';
 import { HttpExceptionFilter } from 'src/common/filters/http-exception.filter';
 
 export async function createTestApp(): Promise<INestApplication> {
-  const module: TestingModule = await Test.createTestingModule({
-    imports: [AppModule],
-  }).compile();
+    const module: TestingModule = await Test.createTestingModule({
+        imports: [AppModule],
+    }).compile();
 
-  const app = module.createNestApplication();
+    const app = module.createNestApplication();
 
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-      transformOptions: { enableImplicitConversion: true },
-    }),
-  );
+    app.useGlobalPipes(
+        new ValidationPipe({
+            whitelist: true,
+            forbidNonWhitelisted: true,
+            transform: true,
+            transformOptions: { enableImplicitConversion: true },
+        }),
+    );
 
-  const auditService = app.get(AuditService);
-  app.useGlobalInterceptors(new AuditInterceptor(auditService));
-  app.useGlobalFilters(new HttpExceptionFilter());
+    const auditService = app.get(AuditService);
+    app.useGlobalInterceptors(new AuditInterceptor(auditService));
+    app.useGlobalFilters(new HttpExceptionFilter());
 
-  await app.init();
-  return app;
+    await app.init();
+    return app;
 }

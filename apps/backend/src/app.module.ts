@@ -12,26 +12,26 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 
 @Module({
-  imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-      envFilePath: process.env.NODE_ENV ? `.env.${process.env.NODE_ENV}` : '.env',
-    }),
-    ThrottlerModule.forRoot([
-      {
-        ttl: 60_000,
-        limit: 10,
-      },
-    ]),
-    AuditModule,
-    AuthModule,
-    UsersModule,
-    WaitlistModule,
-    SessionModule,
-    MedicalRecordModule,
-    PdfModule,
-  ],
-  controllers: [AppController],
-  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
+    imports: [
+        ConfigModule.forRoot({
+            isGlobal: true,
+            envFilePath: process.env.NODE_ENV ? `.env.${process.env.NODE_ENV}` : '.env',
+        }),
+        ThrottlerModule.forRoot([
+            {
+                ttl: 60_000,
+                limit: 10,
+            },
+        ]),
+        AuditModule,
+        AuthModule,
+        UsersModule,
+        WaitlistModule,
+        SessionModule,
+        MedicalRecordModule,
+        PdfModule,
+    ],
+    controllers: [AppController],
+    providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
-export class AppModule {}
+export class AppModule { }

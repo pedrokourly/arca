@@ -5,12 +5,12 @@ import { ConteudoTriagemDto } from './conteudo-triagem.dto';
 import { UUID } from 'node:crypto';
 
 export class CreateTriagemProntuarioDto {
-  @IsNotEmpty({ message: 'O ID da sessão é obrigatório.' })
-  @IsUUID()
-  id_Sessao: UUID;
+    @IsNotEmpty({ message: 'O ID da sessão é obrigatório.' })
+    @IsUUID()
+    id_Sessao: UUID;
 
-  @IsNotEmpty()
-  @ValidateNested()
-  @Type(() => ConteudoTriagemDto)
-  conteudo: ConteudoTriagemDto;
+    @IsNotEmpty()
+    @ValidateNested()
+    @Type(() => ConteudoTriagemDto)
+    conteudo: ConteudoTriagemDto;
 }

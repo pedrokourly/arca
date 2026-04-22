@@ -4,8 +4,8 @@ import { WaitlistController } from './waitlist.controller';
 import { PrismaModule } from 'src/prisma/prisma.module';
 
 @Module({
-  imports: [PrismaModule],
-  controllers: [WaitlistController],
-  providers: [WaitlistService],
+    imports: [PrismaModule],
+    controllers: [WaitlistController],
+    providers: [WaitlistService],
 })
-export class WaitlistModule {}
+export class WaitlistModule { }

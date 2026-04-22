@@ -14,39 +14,39 @@ import { PaginationDto } from 'src/common/dto/pagination.dto';
 @Controller('session')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class SessionController {
-  constructor(private readonly sessionService: SessionService) {}
+    constructor(private readonly sessionService: SessionService) { }
 
-  @Roles(RoleAccess.ADMIN, RoleAccess.SECRETARIO)
-  @Post()
-  create(@Body() createSessionDto: CreateSessionDto) {
-    return this.sessionService.create(createSessionDto);
-  }
+    @Roles(RoleAccess.ADMIN, RoleAccess.SECRETARIO)
+    @Post()
+    create(@Body() createSessionDto: CreateSessionDto) {
+        return this.sessionService.create(createSessionDto);
+    }
 
-  @Get()
-  findAll(@CurrentUser() user: TokenDto, @Query() pagination: PaginationDto) {
-    return this.sessionService.findAll(user, pagination);
-  }
+    @Get()
+    findAll(@CurrentUser() user: TokenDto, @Query() pagination: PaginationDto) {
+        return this.sessionService.findAll(user, pagination);
+    }
 
-  @Roles(RoleAccess.ADMIN, RoleAccess.SECRETARIO)
-  @Get('no-session')
-  findAllWithNoSession() {
-    return this.sessionService.findAllWithNoSession();
-  }
+    @Roles(RoleAccess.ADMIN, RoleAccess.SECRETARIO)
+    @Get('no-session')
+    findAllWithNoSession() {
+        return this.sessionService.findAllWithNoSession();
+    }
 
-  @Get(':id')
-  findOne(@Param('id', ParseUUIDPipe) id: UUID, @CurrentUser() user: TokenDto) {
-    return this.sessionService.findOne(id, user);
-  }
+    @Get(':id')
+    findOne(@Param('id', ParseUUIDPipe) id: UUID, @CurrentUser() user: TokenDto) {
+        return this.sessionService.findOne(id, user);
+    }
 
-  @Roles(RoleAccess.ADMIN, RoleAccess.SECRETARIO)
-  @Patch(':id')
-  update(@Param('id', ParseUUIDPipe) id: UUID, @Body() updateSessionDto: UpdateSessionDto) {
-    return this.sessionService.update(id, updateSessionDto);
-  }
+    @Roles(RoleAccess.ADMIN, RoleAccess.SECRETARIO)
+    @Patch(':id')
+    update(@Param('id', ParseUUIDPipe) id: UUID, @Body() updateSessionDto: UpdateSessionDto) {
+        return this.sessionService.update(id, updateSessionDto);
+    }
 
-  @Roles(RoleAccess.ADMIN, RoleAccess.SECRETARIO)
-  @Delete(':id')
-  remove(@Param('id', ParseUUIDPipe) id: UUID) {
-    return this.sessionService.remove(id);
-  }
+    @Roles(RoleAccess.ADMIN, RoleAccess.SECRETARIO)
+    @Delete(':id')
+    remove(@Param('id', ParseUUIDPipe) id: UUID) {
+        return this.sessionService.remove(id);
+    }
 }

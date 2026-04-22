@@ -9,11 +9,11 @@ import { AuditFilterDto } from './dto/audit-filter.dto';
 @Controller('audit')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class AuditController {
-  constructor(private auditService: AuditService) {}
+    constructor(private auditService: AuditService) { }
 
-  @Roles(RoleAccess.ADMIN)
-  @Get('/')
-  async getAuditInfo(@Query() filter: AuditFilterDto) {
-    return this.auditService.findAll(filter);
-  }
+    @Roles(RoleAccess.ADMIN)
+    @Get('/')
+    async getAuditInfo(@Query() filter: AuditFilterDto) {
+        return this.auditService.findAll(filter);
+    }
 }
