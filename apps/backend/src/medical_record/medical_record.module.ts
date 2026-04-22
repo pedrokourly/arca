@@ -6,8 +6,8 @@ import { PdfModule } from 'src/pdf/pdf.module';
 import { CryptoModule } from 'src/crypto/crypto.module';
 
 @Module({
-  imports: [PrismaModule, PdfModule, CryptoModule],
-  controllers: [MedicalRecordController],
-  providers: [MedicalRecordService],
+    imports: [PrismaModule, PdfModule, CryptoModule],
+    controllers: [MedicalRecordController],
+    providers: [MedicalRecordService],
 })
-export class MedicalRecordModule {}
+export class MedicalRecordModule { }

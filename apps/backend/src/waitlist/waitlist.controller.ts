@@ -9,45 +9,45 @@ import { PaginationDto } from 'src/common/dto/pagination.dto';
 
 @Controller('waitlist')
 export class WaitlistController {
-  constructor(private readonly waitlistService: WaitlistService) {}
+    constructor(private readonly waitlistService: WaitlistService) { }
 
-  @Throttle({ default: { ttl: 60_000, limit: 5 } })
-  @Post()
-  create(@Body() body: CreateWaitlistDto) {
-    return this.waitlistService.create(body);
-  }
+    @Throttle({ default: { ttl: 60_000, limit: 5 } })
+    @Post()
+    create(@Body() body: CreateWaitlistDto) {
+        return this.waitlistService.create(body);
+    }
 
-  @UseGuards(JwtAuthGuard)
-  @Get()
-  findAll(@Query() pagination: PaginationDto) {
-    return this.waitlistService.findAll(pagination);
-  }
+    @UseGuards(JwtAuthGuard)
+    @Get()
+    findAll(@Query() pagination: PaginationDto) {
+        return this.waitlistService.findAll(pagination);
+    }
 
-  @Get('stats')
-  findPositions() {
-    return this.waitlistService.findPositions();
-  }
+    @Get('stats')
+    findPositions() {
+        return this.waitlistService.findPositions();
+    }
 
-  @Get(':id/position')
-  findPublicPosition(@Param('id', ParseUUIDPipe) id: UUID) {
-    return this.waitlistService.findPublicPosition(id);
-  }
+    @Get(':id/position')
+    findPublicPosition(@Param('id', ParseUUIDPipe) id: UUID) {
+        return this.waitlistService.findPublicPosition(id);
+    }
 
-  @UseGuards(JwtAuthGuard)
-  @Get(':id')
-  findOne(@Param('id', ParseUUIDPipe) id: UUID) {
-    return this.waitlistService.findOne(id);
-  }
+    @UseGuards(JwtAuthGuard)
+    @Get(':id')
+    findOne(@Param('id', ParseUUIDPipe) id: UUID) {
+        return this.waitlistService.findOne(id);
+    }
 
-  @UseGuards(JwtAuthGuard)
-  @Patch(':id')
-  update(@Param('id', ParseUUIDPipe) id: UUID, @Body() body: UpdateWaitlistDto) {
-    return this.waitlistService.update(id, body);
-  }
+    @UseGuards(JwtAuthGuard)
+    @Patch(':id')
+    update(@Param('id', ParseUUIDPipe) id: UUID, @Body() body: UpdateWaitlistDto) {
+        return this.waitlistService.update(id, body);
+    }
 
-  @UseGuards(JwtAuthGuard)
-  @Delete(':id')
-  remove(@Param('id', ParseUUIDPipe) id: UUID) {
-    return this.waitlistService.remove(id);
-  }
+    @UseGuards(JwtAuthGuard)
+    @Delete(':id')
+    remove(@Param('id', ParseUUIDPipe) id: UUID) {
+        return this.waitlistService.remove(id);
+    }
 }

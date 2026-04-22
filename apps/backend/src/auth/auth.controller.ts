@@ -6,13 +6,13 @@ import { AuthenticatedUserDto } from './dto/authenticated-user.dto';
 import { LocalAuthRequest } from './dto/local-auth-request.dto';
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+    constructor(private authService: AuthService) { }
 
-  @HttpCode(200)
-  @Throttle({ default: { ttl: 60_000, limit: 5 } })
-  @UseGuards(LocalAuthGuard)
-  @Post('login')
-  async loginWithPassport(@Request() req: LocalAuthRequest): Promise<AuthenticatedUserDto> {
-    return this.authService.login(req.user);
-  }
+    @HttpCode(200)
+    @Throttle({ default: { ttl: 60_000, limit: 5 } })
+    @UseGuards(LocalAuthGuard)
+    @Post('login')
+    async loginWithPassport(@Request() req: LocalAuthRequest): Promise<AuthenticatedUserDto> {
+        return this.authService.login(req.user);
+    }
 }

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="utf-8" />
     <title>Prontuário ARCA</title>
@@ -9,29 +10,35 @@
             margin: 40px;
             color: #333;
         }
+
         .header {
             text-align: center;
             border-bottom: 2px solid #eee;
             padding-bottom: 10px;
         }
+
         .header h1 {
             margin: 0;
             color: #0056b3;
         }
+
         .section {
             margin-top: 25px;
             page-break-inside: avoid;
         }
+
         .section h2 {
             border-bottom: 1px solid #ccc;
             padding-bottom: 5px;
             color: #0056b3;
         }
+
         .info-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
         }
+
         .prontuario-entry {
             border: 1px solid #eee;
             border-radius: 8px;
@@ -39,10 +46,12 @@
             margin-top: 15px;
             page-break-inside: avoid;
         }
+
         .prontuario-entry h3 {
             margin-top: 0;
             color: #333;
         }
+
         .prontuario-entry h4 {
             color: #555;
             border-bottom: 1px dotted #ddd;
@@ -50,18 +59,18 @@
         }
 
         .prontuario-entry.entry-alta {
-            background-color: #f0fff4; 
-            border-left: 5px solid #28a745; 
+            background-color: #f0fff4;
+            border-left: 5px solid #28a745;
         }
-        
+
         .prontuario-entry.entry-encaminhamento {
-            background-color: #f1f8ff; 
-            border-left: 5px solid #007bff; 
+            background-color: #f1f8ff;
+            border-left: 5px solid #007bff;
         }
-        
+
         .entry-alta h3,
         .entry-encaminhamento h3 {
-            color: #004085; 
+            color: #004085;
         }
 
         p {
@@ -70,6 +79,7 @@
         }
     </style>
 </head>
+
 <body>
 
     <div class="header">
@@ -132,4 +142,5 @@
     {{/each}}
 
 </body>
+
 </html>

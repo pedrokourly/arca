@@ -7,38 +7,38 @@ import { HttpExceptionFilter } from 'src/common/filters/http-exception.filter';
 import helmet from 'helmet';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+    const app = await NestFactory.create(AppModule);
 
-  app.use(helmet());
-  app.enableShutdownHooks();
+    app.use(helmet());
+    app.enableShutdownHooks();
 
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-      transform: true,
-      transformOptions: {
-        enableImplicitConversion: true,
-      },
-    }),
-  );
+    app.useGlobalPipes(
+        new ValidationPipe({
+            whitelist: true,
+            forbidNonWhitelisted: true,
+            transform: true,
+            transformOptions: {
+                enableImplicitConversion: true,
+            },
+        }),
+    );
 
-  app.enableCors({
-    origin: process.env.CORS_ORIGIN ?? 'http://localhost:3000',
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: true,
-  });
-  const auditService = app.get(AuditService);
+    app.enableCors({
+        origin: process.env.CORS_ORIGIN ?? 'http://localhost:3000',
+        methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+        credentials: true,
+    });
+    const auditService = app.get(AuditService);
 
-  app.useGlobalInterceptors(new AuditInterceptor(auditService));
-  app.useGlobalFilters(new HttpExceptionFilter());
+    app.useGlobalInterceptors(new AuditInterceptor(auditService));
+    app.useGlobalFilters(new HttpExceptionFilter());
 
-  const parsedPort = Number(process.env.PORT);
-  const port = Number.isInteger(parsedPort) && parsedPort > 0 ? parsedPort : 3333;
-  await app.listen(port);
-  const appUrl = await app.getUrl();
+    const parsedPort = Number(process.env.PORT);
+    const port = Number.isInteger(parsedPort) && parsedPort > 0 ? parsedPort : 3333;
+    await app.listen(port);
+    const appUrl = await app.getUrl();
 
-  const logger = new Logger('Bootstrap');
-  logger.log(`Servidor rodando em ${appUrl}`);
+    const logger = new Logger('Bootstrap');
+    logger.log(`Servidor rodando em ${appUrl}`);
 }
 void bootstrap();

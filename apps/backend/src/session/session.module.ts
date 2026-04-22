@@ -5,8 +5,8 @@ import { PrismaModule } from 'src/prisma/prisma.module';
 import { CryptoModule } from 'src/crypto/crypto.module';
 
 @Module({
-  imports: [PrismaModule, CryptoModule],
-  controllers: [SessionController],
-  providers: [SessionService],
+    imports: [PrismaModule, CryptoModule],
+    controllers: [SessionController],
+    providers: [SessionService],
 })
-export class SessionModule {}
+export class SessionModule { }

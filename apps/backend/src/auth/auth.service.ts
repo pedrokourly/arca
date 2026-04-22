@@ -10,62 +10,62 @@ import { ValidatedUserDto } from './dto/validated-user.dto';
 
 @Injectable()
 export class AuthService {
-  constructor(
-    private hashingService: HashingServiceProtocol,
-    private prisma: PrismaService,
+    constructor(
+        private hashingService: HashingServiceProtocol,
+        private prisma: PrismaService,
 
-    @Inject(jwtConfig.KEY)
-    private readonly jwtConfiguration: ConfigType<typeof jwtConfig>,
-    private readonly jwtService: JwtService,
-  ) {}
+        @Inject(jwtConfig.KEY)
+        private readonly jwtConfiguration: ConfigType<typeof jwtConfig>,
+        private readonly jwtService: JwtService,
+    ) { }
 
-  async validateUser(body: LoginDto): Promise<ValidatedUserDto> {
-    const user = await this.prisma.usuario.findFirst({
-      where: {
-        email: body.email,
-        isActive: true,
-      },
-    });
+    async validateUser(body: LoginDto): Promise<ValidatedUserDto> {
+        const user = await this.prisma.usuario.findFirst({
+            where: {
+                email: body.email,
+                isActive: true,
+            },
+        });
 
-    if (!user) {
-      throw new UnauthorizedException('Senha ou e-mail inválido.');
+        if (!user) {
+            throw new UnauthorizedException('Senha ou e-mail inválido.');
+        }
+
+        const isPasswordValid = await this.hashingService.compare(body.password, user.senhaHash);
+        if (!isPasswordValid) {
+            throw new UnauthorizedException('Senha ou e-mail inválido.');
+        }
+
+        return {
+            id_User: user.id_User,
+            nome: user.nome,
+            email: user.email,
+            roleId: user.roleId,
+        };
     }
 
-    const isPasswordValid = await this.hashingService.compare(body.password, user.senhaHash);
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Senha ou e-mail inválido.');
+    async login(user: ValidatedUserDto): Promise<AuthenticatedUserDto> {
+        const token = await this.jwtService.signAsync(
+            {
+                sub: user.id_User,
+                name: user.nome,
+                email: user.email,
+                access: user.roleId,
+            },
+            {
+                secret: this.jwtConfiguration.secret,
+                expiresIn: this.jwtConfiguration.jwtTtl,
+                audience: this.jwtConfiguration.audience,
+                issuer: this.jwtConfiguration.issuer,
+            },
+        );
+
+        return {
+            id: user.id_User,
+            name: user.nome,
+            email: user.email,
+            roleId: user.roleId,
+            token: token,
+        };
     }
-
-    return {
-      id_User: user.id_User,
-      nome: user.nome,
-      email: user.email,
-      roleId: user.roleId,
-    };
-  }
-
-  async login(user: ValidatedUserDto): Promise<AuthenticatedUserDto> {
-    const token = await this.jwtService.signAsync(
-      {
-        sub: user.id_User,
-        name: user.nome,
-        email: user.email,
-        access: user.roleId,
-      },
-      {
-        secret: this.jwtConfiguration.secret,
-        expiresIn: this.jwtConfiguration.jwtTtl,
-        audience: this.jwtConfiguration.audience,
-        issuer: this.jwtConfiguration.issuer,
-      },
-    );
-
-    return {
-      id: user.id_User,
-      name: user.nome,
-      email: user.email,
-      roleId: user.roleId,
-      token: token,
-    };
-  }
 }

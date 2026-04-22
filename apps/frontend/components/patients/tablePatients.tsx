@@ -3,36 +3,36 @@
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+    Table,
+    TableBody,
+    TableCaption,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
 } from "@/components/ui/table";
 import { Button } from "../ui/button";
 import { Edit, Trash2, Eye, Search, Filter, X, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
 } from "@/components/ui/select";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -40,171 +40,88 @@ import { API_ENDPOINTS, apiRequest } from "@/utils/apiHandler";
 import { getErrorMessage } from "@/utils/toastErrorHandler";
 
 interface PatientEntry {
-  id_Lista: string;
-  nomeRegistro: string;
-  nomeSocial?: string;
-  CPF: string;
-  dataNascimento: string;
-  telefonePessoal: string;
-  contatoEmergencia: string;
-  enderecoRua: string;
-  enderecoNumero: string;
-  enderecoBairro: string;
-  enderecoCidade: string;
-  enderecoEstado: string;
-  enderecoCEP: string;
-  createdAt: string;
-  id_Status: number;
-  id_Genero: number;
-  id_Etnia: number;
-  id_Escolaridade: number;
+    id_Lista: string;
+    nomeRegistro: string;
+    nomeSocial?: string;
+    CPF: string;
+    dataNascimento: string;
+    telefonePessoal: string;
+    contatoEmergencia: string;
+    enderecoRua: string;
+    enderecoNumero: string;
+    enderecoBairro: string;
+    enderecoCidade: string;
+    enderecoEstado: string;
+    enderecoCEP: string;
+    createdAt: string;
+    id_Status: number;
+    id_Genero: number;
+    id_Etnia: number;
+    id_Escolaridade: number;
 }
 
 // Mapeamento dos status
 const STATUS_MAP = {
-  1: {
-    label: "Em Espera",
-    variant: "secondary" as const,
-    description: "Aguardando atendimento",
-  },
-  2: {
-    label: "Em Atendimento",
-    variant: "default" as const,
-    description: "Atualmente em atendimento",
-  },
-  3: {
-    label: "Em Triagem",
-    variant: "default" as const,
-    description: "Em processo de triagem",
-  },
-  4: {
-    label: "Em Psicoterapia",
-    variant: "default" as const,
-    description: "Em sessões de psicoterapia",
-  },
-  5: {
-    label: "Recebeu Alta",
-    variant: "outline" as const,
-    description: "Atendimento finalizado",
-  },
-  6: {
-    label: "Encaminhado",
-    variant: "outline" as const,
-    description: "Encaminhado para outro serviço",
-  },
-  7: {
-    label: "Desativado",
-    variant: "destructive" as const,
-    description: "Removido da lista",
-  },
+    1: {
+        label: "Em Espera",
+        variant: "secondary" as const,
+        description: "Aguardando atendimento",
+    },
+    2: {
+        label: "Em Atendimento",
+        variant: "default" as const,
+        description: "Atualmente em atendimento",
+    },
+    3: {
+        label: "Em Triagem",
+        variant: "default" as const,
+        description: "Em processo de triagem",
+    },
+    4: {
+        label: "Em Psicoterapia",
+        variant: "default" as const,
+        description: "Em sessões de psicoterapia",
+    },
+    5: {
+        label: "Recebeu Alta",
+        variant: "outline" as const,
+        description: "Atendimento finalizado",
+    },
+    6: {
+        label: "Encaminhado",
+        variant: "outline" as const,
+        description: "Encaminhado para outro serviço",
+    },
+    7: {
+        label: "Desativado",
+        variant: "destructive" as const,
+        description: "Removido da lista",
+    },
 };
 
 export function PatientsTable() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
+    const { data: session, status } = useSession();
+    const router = useRouter();
 
-  const [patientEntries, setPatientEntries] = useState<PatientEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+    const [patientEntries, setPatientEntries] = useState<PatientEntry[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-  // Estados para filtros e pesquisa
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<
-    "all" | "1" | "2" | "3" | "4" | "5" | "6" | "7"
-  >("all");
-  const [filteredEntries, setFilteredEntries] = useState<PatientEntry[]>([]);
+    // Estados para filtros e pesquisa
+    const [searchTerm, setSearchTerm] = useState("");
+    const [statusFilter, setStatusFilter] = useState<
+        "all" | "1" | "2" | "3" | "4" | "5" | "6" | "7"
+    >("all");
+    const [filteredEntries, setFilteredEntries] = useState<PatientEntry[]>([]);
 
-  // Estados para deleção de entrada
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [entryToDelete, setEntryToDelete] = useState<PatientEntry | null>(null);
+    // Estados para deleção de entrada
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [entryToDelete, setEntryToDelete] = useState<PatientEntry | null>(null);
 
-  // Estados para edição de entrada
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [entryToEdit, setEntryToEdit] = useState<PatientEntry | null>(null);
-  const [editFormData, setEditFormData] = useState({
-    nomeRegistro: "",
-    nomeSocial: "",
-    CPF: "",
-    telefonePessoal: "",
-    contatoEmergencia: "",
-    enderecoRua: "",
-    enderecoNumero: "",
-    enderecoBairro: "",
-    enderecoCidade: "",
-    enderecoEstado: "",
-    enderecoCEP: "",
-  });
-  const [isUpdating, setIsUpdating] = useState(false);
-
-  // Estados para visualização detalhada
-  const [viewDialogOpen, setViewDialogOpen] = useState(false);
-  const [entryToView, setEntryToView] = useState<PatientEntry | null>(null);
-
-  // Função para abrir dialog de edição
-  const handleEditClick = (entry: PatientEntry) => {
-    setEntryToEdit(entry);
-    setEditFormData({
-      nomeRegistro: entry.nomeRegistro,
-      nomeSocial: entry.nomeSocial || "",
-      CPF: entry.CPF,
-      telefonePessoal: entry.telefonePessoal,
-      contatoEmergencia: entry.contatoEmergencia,
-      enderecoRua: entry.enderecoRua,
-      enderecoNumero: entry.enderecoNumero,
-      enderecoBairro: entry.enderecoBairro,
-      enderecoCidade: entry.enderecoCidade,
-      enderecoEstado: entry.enderecoEstado,
-      enderecoCEP: entry.enderecoCEP,
-    });
-    setEditDialogOpen(true);
-  };
-
-  // Função para atualizar entrada
-  const handleUpdateEntry = async () => {
-    if (!entryToEdit) return;
-
-    setIsUpdating(true);
-    try {
-      // Preparar dados para envio
-      const updateData = {
-        nomeRegistro: editFormData.nomeRegistro,
-        nomeSocial: editFormData.nomeSocial || undefined,
-        CPF: editFormData.CPF,
-        telefonePessoal: editFormData.telefonePessoal,
-        contatoEmergencia: editFormData.contatoEmergencia,
-        enderecoRua: editFormData.enderecoRua,
-        enderecoNumero: editFormData.enderecoNumero,
-        enderecoBairro: editFormData.enderecoBairro,
-        enderecoCidade: editFormData.enderecoCidade,
-        enderecoEstado: editFormData.enderecoEstado.toUpperCase(),
-        enderecoCEP: editFormData.enderecoCEP,
-      };
-
-      const updatedEntry = await apiRequest(
-        `${API_ENDPOINTS.waitlist}/${entryToEdit.id_Lista}`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session?.token}`,
-          },
-          body: JSON.stringify(updateData),
-        },
-      );
-
-      // Atualiza a lista local
-      setPatientEntries((entries) =>
-        entries.map((entry) =>
-          entry.id_Lista === entryToEdit.id_Lista ? updatedEntry : entry,
-        ),
-      );
-
-      toast.success("Dados do paciente atualizados com sucesso!");
-
-      // Fecha o dialog
-      setEditDialogOpen(false);
-      setEntryToEdit(null);
-      setEditFormData({
+    // Estados para edição de entrada
+    const [editDialogOpen, setEditDialogOpen] = useState(false);
+    const [entryToEdit, setEntryToEdit] = useState<PatientEntry | null>(null);
+    const [editFormData, setEditFormData] = useState({
         nomeRegistro: "",
         nomeSocial: "",
         CPF: "",
@@ -216,842 +133,925 @@ export function PatientsTable() {
         enderecoCidade: "",
         enderecoEstado: "",
         enderecoCEP: "",
-      });
-    } catch (error) {
-      console.error("Erro ao atualizar dados do paciente:", error);
-      const { title, description } = getErrorMessage(error);
-      toast.error(title, { description });
-    } finally {
-      setIsUpdating(false);
-    }
-  };
+    });
+    const [isUpdating, setIsUpdating] = useState(false);
 
-  // Função para editar entrada
-  const handleEdit = (entryId: string) => {
-    const entry = filteredEntries.find((e) => e.id_Lista === entryId);
-    if (entry) {
-      handleEditClick(entry);
-    }
-  };
+    // Estados para visualização detalhada
+    const [viewDialogOpen, setViewDialogOpen] = useState(false);
+    const [entryToView, setEntryToView] = useState<PatientEntry | null>(null);
 
-  // Função para visualizar entrada
-  const handleView = (entryId: string) => {
-    const entry = filteredEntries.find((e) => e.id_Lista === entryId);
-    if (entry) {
-      setEntryToView(entry);
-      setViewDialogOpen(true);
-    }
-  };
-
-  // Função para abrir dialog de exclusão
-  const handleDeleteClick = (entry: PatientEntry) => {
-    setEntryToDelete(entry);
-    setDeleteDialogOpen(true);
-  };
-
-  // Função para excluir entrada
-  const handleDelete = async () => {
-    if (!entryToDelete) return;
-
-    try {
-      await apiRequest(`${API_ENDPOINTS.waitlist}/${entryToDelete.id_Lista}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${session?.token}`,
-        },
-      });
-
-      setPatientEntries((entries) =>
-        entries.filter((entry) => entry.id_Lista !== entryToDelete.id_Lista),
-      );
-      toast.success("Paciente excluído com sucesso!");
-
-      setDeleteDialogOpen(false);
-      setEntryToDelete(null);
-    } catch (error) {
-      console.error("Erro ao excluir paciente:", error);
-      const { title, description } = getErrorMessage(error);
-      toast.error(title, { description });
-    }
-  };
-
-  // Função para formatar endereço completo
-  const formatAddress = (entry: PatientEntry) => {
-    return `${entry.enderecoRua}, ${entry.enderecoNumero} - ${entry.enderecoBairro}, ${entry.enderecoCidade}/${entry.enderecoEstado}`;
-  };
-
-  // Função para filtrar entradas
-  const filterEntries = () => {
-    let filtered = patientEntries;
-
-    // Filtro por status
-    if (statusFilter !== "all") {
-      const statusId = parseInt(statusFilter);
-      filtered = filtered.filter((entry) => entry.id_Status === statusId);
-    }
-
-    // Filtro por pesquisa
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        (entry) =>
-          entry.nomeRegistro.toLowerCase().includes(term) ||
-          (entry.nomeSocial && entry.nomeSocial.toLowerCase().includes(term)) ||
-          entry.telefonePessoal.includes(term) ||
-          entry.enderecoCidade.toLowerCase().includes(term) ||
-          entry.enderecoBairro.toLowerCase().includes(term),
-      );
-    }
-
-    setFilteredEntries(filtered);
-  };
-
-  // Função para limpar filtros
-  const clearFilters = () => {
-    setSearchTerm("");
-    setStatusFilter("all");
-  };
-
-  useEffect(() => {
-    const fetchPatientEntries = async () => {
-      if (!session || !session.token) {
-        setError("Sessão ou token não disponível");
-        setLoading(false);
-        return;
-      }
-
-      try {
-        setLoading(true);
-        const data = await apiRequest(API_ENDPOINTS.waitlist, {
-          headers: {
-            Authorization: `Bearer ${session.token}`,
-          },
+    // Função para abrir dialog de edição
+    const handleEditClick = (entry: PatientEntry) => {
+        setEntryToEdit(entry);
+        setEditFormData({
+            nomeRegistro: entry.nomeRegistro,
+            nomeSocial: entry.nomeSocial || "",
+            CPF: entry.CPF,
+            telefonePessoal: entry.telefonePessoal,
+            contatoEmergencia: entry.contatoEmergencia,
+            enderecoRua: entry.enderecoRua,
+            enderecoNumero: entry.enderecoNumero,
+            enderecoBairro: entry.enderecoBairro,
+            enderecoCidade: entry.enderecoCidade,
+            enderecoEstado: entry.enderecoEstado,
+            enderecoCEP: entry.enderecoCEP,
         });
-        setPatientEntries(data);
-      } catch (err) {
-        console.error("Erro ao buscar pacientes:", err);
-        const { title, description } = getErrorMessage(err);
-        setError(description);
-      } finally {
-        setLoading(false);
-      }
+        setEditDialogOpen(true);
     };
 
-    if (status === "authenticated") {
-      fetchPatientEntries();
+    // Função para atualizar entrada
+    const handleUpdateEntry = async () => {
+        if (!entryToEdit) return;
+
+        setIsUpdating(true);
+        try {
+            // Preparar dados para envio
+            const updateData = {
+                nomeRegistro: editFormData.nomeRegistro,
+                nomeSocial: editFormData.nomeSocial || undefined,
+                CPF: editFormData.CPF,
+                telefonePessoal: editFormData.telefonePessoal,
+                contatoEmergencia: editFormData.contatoEmergencia,
+                enderecoRua: editFormData.enderecoRua,
+                enderecoNumero: editFormData.enderecoNumero,
+                enderecoBairro: editFormData.enderecoBairro,
+                enderecoCidade: editFormData.enderecoCidade,
+                enderecoEstado: editFormData.enderecoEstado.toUpperCase(),
+                enderecoCEP: editFormData.enderecoCEP,
+            };
+
+            const updatedEntry = await apiRequest(
+                `${API_ENDPOINTS.waitlist}/${entryToEdit.id_Lista}`,
+                {
+                    method: "PATCH",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${session?.token}`,
+                    },
+                    body: JSON.stringify(updateData),
+                },
+            );
+
+            // Atualiza a lista local
+            setPatientEntries((entries) =>
+                entries.map((entry) =>
+                    entry.id_Lista === entryToEdit.id_Lista ? updatedEntry : entry,
+                ),
+            );
+
+            toast.success("Dados do paciente atualizados com sucesso!");
+
+            // Fecha o dialog
+            setEditDialogOpen(false);
+            setEntryToEdit(null);
+            setEditFormData({
+                nomeRegistro: "",
+                nomeSocial: "",
+                CPF: "",
+                telefonePessoal: "",
+                contatoEmergencia: "",
+                enderecoRua: "",
+                enderecoNumero: "",
+                enderecoBairro: "",
+                enderecoCidade: "",
+                enderecoEstado: "",
+                enderecoCEP: "",
+            });
+        } catch (error) {
+            console.error("Erro ao atualizar dados do paciente:", error);
+            const { title, description } = getErrorMessage(error);
+            toast.error(title, { description });
+        } finally {
+            setIsUpdating(false);
+        }
+    };
+
+    // Função para editar entrada
+    const handleEdit = (entryId: string) => {
+        const entry = filteredEntries.find((e) => e.id_Lista === entryId);
+        if (entry) {
+            handleEditClick(entry);
+        }
+    };
+
+    // Função para visualizar entrada
+    const handleView = (entryId: string) => {
+        const entry = filteredEntries.find((e) => e.id_Lista === entryId);
+        if (entry) {
+            setEntryToView(entry);
+            setViewDialogOpen(true);
+        }
+    };
+
+    // Função para abrir dialog de exclusão
+    const handleDeleteClick = (entry: PatientEntry) => {
+        setEntryToDelete(entry);
+        setDeleteDialogOpen(true);
+    };
+
+    // Função para excluir entrada
+    const handleDelete = async () => {
+        if (!entryToDelete) return;
+
+        try {
+            await apiRequest(`${API_ENDPOINTS.waitlist}/${entryToDelete.id_Lista}`, {
+                method: "DELETE",
+                headers: {
+                    Authorization: `Bearer ${session?.token}`,
+                },
+            });
+
+            setPatientEntries((entries) =>
+                entries.filter((entry) => entry.id_Lista !== entryToDelete.id_Lista),
+            );
+            toast.success("Paciente excluído com sucesso!");
+
+            setDeleteDialogOpen(false);
+            setEntryToDelete(null);
+        } catch (error) {
+            console.error("Erro ao excluir paciente:", error);
+            const { title, description } = getErrorMessage(error);
+            toast.error(title, { description });
+        }
+    };
+
+    // Função para formatar endereço completo
+    const formatAddress = (entry: PatientEntry) => {
+        return `${entry.enderecoRua}, ${entry.enderecoNumero} - ${entry.enderecoBairro}, ${entry.enderecoCidade}/${entry.enderecoEstado}`;
+    };
+
+    // Função para filtrar entradas
+    const filterEntries = () => {
+        let filtered = patientEntries;
+
+        // Filtro por status
+        if (statusFilter !== "all") {
+            const statusId = parseInt(statusFilter);
+            filtered = filtered.filter((entry) => entry.id_Status === statusId);
+        }
+
+        // Filtro por pesquisa
+        if (searchTerm) {
+            const term = searchTerm.toLowerCase();
+            filtered = filtered.filter(
+                (entry) =>
+                    entry.nomeRegistro.toLowerCase().includes(term) ||
+                    (entry.nomeSocial && entry.nomeSocial.toLowerCase().includes(term)) ||
+                    entry.telefonePessoal.includes(term) ||
+                    entry.enderecoCidade.toLowerCase().includes(term) ||
+                    entry.enderecoBairro.toLowerCase().includes(term),
+            );
+        }
+
+        setFilteredEntries(filtered);
+    };
+
+    // Função para limpar filtros
+    const clearFilters = () => {
+        setSearchTerm("");
+        setStatusFilter("all");
+    };
+
+    useEffect(() => {
+        const fetchPatientEntries = async () => {
+            if (!session || !session.token) {
+                setError("Sessão ou token não disponível");
+                setLoading(false);
+                return;
+            }
+
+            try {
+                setLoading(true);
+                const data = await apiRequest(API_ENDPOINTS.waitlist, {
+                    headers: {
+                        Authorization: `Bearer ${session.token}`,
+                    },
+                });
+                setPatientEntries(data);
+            } catch (err) {
+                console.error("Erro ao buscar pacientes:", err);
+                const { title, description } = getErrorMessage(err);
+                setError(description);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (status === "authenticated") {
+            fetchPatientEntries();
+        }
+    }, [session, status]);
+
+    // useEffect para aplicar filtros quando dados ou filtros mudam
+    useEffect(() => {
+        filterEntries();
+    }, [patientEntries, searchTerm, statusFilter]);
+
+    // Skeleton para carregamento da sessão
+    if (status === "loading") {
+        return (
+            <div className="w-full">
+                <div className="space-y-4">
+                    <Skeleton className="h-8 w-48" />
+                    <div className="space-y-2">
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-3/4" />
+                    </div>
+                </div>
+            </div>
+        );
     }
-  }, [session, status]);
 
-  // useEffect para aplicar filtros quando dados ou filtros mudam
-  useEffect(() => {
-    filterEntries();
-  }, [patientEntries, searchTerm, statusFilter]);
+    // Skeleton para carregamento das entradas
+    if (loading) {
+        return (
+            <div className="w-full">
+                <Table>
+                    <TableCaption>
+                        <Skeleton className="h-4 w-64 mx-auto" />
+                    </TableCaption>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Nome</TableHead>
+                            <TableHead>Data de Nascimento</TableHead>
+                            <TableHead>Telefone</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead>Data de Cadastro</TableHead>
+                            <TableHead className="text-center">Ações</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {Array.from({ length: 5 }).map((_, index) => (
+                            <TableRow key={index}>
+                                <TableCell>
+                                    <Skeleton className="h-4 w-32" />
+                                </TableCell>
+                                <TableCell>
+                                    <Skeleton className="h-4 w-24" />
+                                </TableCell>
+                                <TableCell>
+                                    <Skeleton className="h-4 w-28" />
+                                </TableCell>
+                                <TableCell>
+                                    <Skeleton className="h-6 w-16 rounded-full" />
+                                </TableCell>
+                                <TableCell>
+                                    <Skeleton className="h-4 w-20" />
+                                </TableCell>
+                                <TableCell className="text-center">
+                                    <div className="flex justify-center gap-2">
+                                        <Skeleton className="h-8 w-8 rounded" />
+                                        <Skeleton className="h-8 w-8 rounded" />
+                                        <Skeleton className="h-8 w-8 rounded" />
+                                    </div>
+                                </TableCell>
+                            </TableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </div>
+        );
+    }
 
-  // Skeleton para carregamento da sessão
-  if (status === "loading") {
+    if (error) {
+        return (
+            <div className="w-full text-center py-8">
+                <p className="text-red-600">Erro ao carregar pacientes: {error}</p>
+            </div>
+        );
+    }
+
     return (
-      <div className="w-full">
-        <div className="space-y-4">
-          <Skeleton className="h-8 w-48" />
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-3/4" />
-          </div>
-        </div>
-      </div>
-    );
-  }
+        <div className="w-full space-y-4">
+            {/* Barra de ações */}
+            <div className="flex flex-col sm:flex-row gap-4 p-4 bg-muted/50 rounded-lg">
+                <div className="flex-1">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                        <Input
+                            placeholder="Pesquisar por nome, telefone ou cidade..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="pl-10"
+                        />
+                    </div>
+                </div>
 
-  // Skeleton para carregamento das entradas
-  if (loading) {
-    return (
-      <div className="w-full">
-        <Table>
-          <TableCaption>
-            <Skeleton className="h-4 w-64 mx-auto" />
-          </TableCaption>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead>Data de Nascimento</TableHead>
-              <TableHead>Telefone</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Data de Cadastro</TableHead>
-              <TableHead className="text-center">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {Array.from({ length: 5 }).map((_, index) => (
-              <TableRow key={index}>
-                <TableCell>
-                  <Skeleton className="h-4 w-32" />
-                </TableCell>
-                <TableCell>
-                  <Skeleton className="h-4 w-24" />
-                </TableCell>
-                <TableCell>
-                  <Skeleton className="h-4 w-28" />
-                </TableCell>
-                <TableCell>
-                  <Skeleton className="h-6 w-16 rounded-full" />
-                </TableCell>
-                <TableCell>
-                  <Skeleton className="h-4 w-20" />
-                </TableCell>
-                <TableCell className="text-center">
-                  <div className="flex justify-center gap-2">
-                    <Skeleton className="h-8 w-8 rounded" />
-                    <Skeleton className="h-8 w-8 rounded" />
-                    <Skeleton className="h-8 w-8 rounded" />
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-    );
-  }
+                <div className="flex flex-col sm:flex-row gap-2">
+                    <Select
+                        value={statusFilter}
+                        onValueChange={(
+                            value: "all" | "1" | "2" | "3" | "4" | "5" | "6" | "7",
+                        ) => setStatusFilter(value)}
+                    >
+                        <SelectTrigger className="w-full sm:w-[200px]">
+                            <Filter className="h-4 w-4 mr-2" />
+                            <SelectValue placeholder="Filtrar por status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Todos os status</SelectItem>
+                            <SelectItem value="1">Em Espera</SelectItem>
+                            <SelectItem value="2">Em Atendimento</SelectItem>
+                            <SelectItem value="3">Em Triagem</SelectItem>
+                            <SelectItem value="4">Em Psicoterapia</SelectItem>
+                            <SelectItem value="5">Recebeu Alta</SelectItem>
+                            <SelectItem value="6">Encaminhado</SelectItem>
+                            <SelectItem value="7">Desativado</SelectItem>
+                        </SelectContent>
+                    </Select>
 
-  if (error) {
-    return (
-      <div className="w-full text-center py-8">
-        <p className="text-red-600">Erro ao carregar pacientes: {error}</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="w-full space-y-4">
-      {/* Barra de ações */}
-      <div className="flex flex-col sm:flex-row gap-4 p-4 bg-muted/50 rounded-lg">
-        <div className="flex-1">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-            <Input
-              placeholder="Pesquisar por nome, telefone ou cidade..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-2">
-          <Select
-            value={statusFilter}
-            onValueChange={(
-              value: "all" | "1" | "2" | "3" | "4" | "5" | "6" | "7",
-            ) => setStatusFilter(value)}
-          >
-            <SelectTrigger className="w-full sm:w-[200px]">
-              <Filter className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Filtrar por status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os status</SelectItem>
-              <SelectItem value="1">Em Espera</SelectItem>
-              <SelectItem value="2">Em Atendimento</SelectItem>
-              <SelectItem value="3">Em Triagem</SelectItem>
-              <SelectItem value="4">Em Psicoterapia</SelectItem>
-              <SelectItem value="5">Recebeu Alta</SelectItem>
-              <SelectItem value="6">Encaminhado</SelectItem>
-              <SelectItem value="7">Desativado</SelectItem>
-            </SelectContent>
-          </Select>
-
-          {(searchTerm || statusFilter !== "all") && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={clearFilters}
-              className="shrink-0"
-            >
-              <X className="h-4 w-4 mr-2" />
-              Limpar
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {/* Estatísticas */}
-      <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-        <span>
-          Total:{" "}
-          <span className="font-medium text-foreground">
-            {patientEntries.length}
-          </span>
-        </span>
-        <span>
-          Em Espera:{" "}
-          <span className="font-medium text-blue-600">
-            {patientEntries.filter((e) => e.id_Status === 1).length}
-          </span>
-        </span>
-        <span>
-          Em Atendimento:{" "}
-          <span className="font-medium text-green-600">
-            {patientEntries.filter((e) => e.id_Status === 2).length}
-          </span>
-        </span>
-        <span>
-          Em Triagem:{" "}
-          <span className="font-medium text-yellow-600">
-            {patientEntries.filter((e) => e.id_Status === 3).length}
-          </span>
-        </span>
-        <span>
-          Em Psicoterapia:{" "}
-          <span className="font-medium text-purple-600">
-            {patientEntries.filter((e) => e.id_Status === 4).length}
-          </span>
-        </span>
-        <span>
-          Recebeu Alta:{" "}
-          <span className="font-medium text-gray-600">
-            {patientEntries.filter((e) => e.id_Status === 5).length}
-          </span>
-        </span>
-        <span>
-          Encaminhado:{" "}
-          <span className="font-medium text-indigo-600">
-            {patientEntries.filter((e) => e.id_Status === 6).length}
-          </span>
-        </span>
-        <span>
-          Desativado:{" "}
-          <span className="font-medium text-red-600">
-            {patientEntries.filter((e) => e.id_Status === 7).length}
-          </span>
-        </span>
-        {filteredEntries.length !== patientEntries.length && (
-          <span>
-            Exibindo:{" "}
-            <span className="font-medium text-orange-600">
-              {filteredEntries.length}
-            </span>
-          </span>
-        )}
-      </div>
-
-      <Table>
-        <TableCaption>
-          Lista de pacientes do ARCA
-          {filteredEntries.length !== patientEntries.length
-            ? `(${filteredEntries.length} de ${patientEntries.length} ${patientEntries.length === 1 ? "paciente" : "pacientes"})`
-            : `(${patientEntries.length} ${patientEntries.length === 1 ? "paciente" : "pacientes"})`}
-        </TableCaption>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Nome</TableHead>
-            <TableHead>Data de Nascimento</TableHead>
-            <TableHead>Telefone</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Data de Cadastro</TableHead>
-            <TableHead className="text-center">Ações</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {filteredEntries.length === 0 ? (
-            <TableRow>
-              <TableCell
-                colSpan={6}
-                className="text-center py-8 text-muted-foreground"
-              >
-                {patientEntries.length === 0
-                  ? "Nenhum paciente encontrado."
-                  : "Nenhum paciente encontrado com os filtros aplicados."}
-              </TableCell>
-            </TableRow>
-          ) : (
-            filteredEntries.map((entry) => (
-              <TableRow key={entry.id_Lista}>
-                <TableCell className="font-medium">
-                  <div>
-                    <p className="font-medium">{entry.nomeRegistro}</p>
-                    {entry.nomeSocial && (
-                      <p className="text-sm text-muted-foreground">
-                        ({entry.nomeSocial})
-                      </p>
+                    {(searchTerm || statusFilter !== "all") && (
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={clearFilters}
+                            className="shrink-0"
+                        >
+                            <X className="h-4 w-4 mr-2" />
+                            Limpar
+                        </Button>
                     )}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  {format(new Date(entry.dataNascimento), "dd/MM/yyyy", {
-                    locale: ptBR,
-                  })}
-                </TableCell>
-                <TableCell>{entry.telefonePessoal}</TableCell>
-                <TableCell>
-                  <Badge
-                    variant={
-                      STATUS_MAP[entry.id_Status as keyof typeof STATUS_MAP]
-                        ?.variant || "secondary"
-                    }
-                    className="text-xs"
-                    title={
-                      STATUS_MAP[entry.id_Status as keyof typeof STATUS_MAP]
-                        ?.description
-                    }
-                  >
-                    {STATUS_MAP[entry.id_Status as keyof typeof STATUS_MAP]
-                      ?.label || `Status ${entry.id_Status}`}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  {format(new Date(entry.createdAt), "dd/MM/yyyy", {
-                    locale: ptBR,
-                  })}
-                </TableCell>
-                <TableCell className="text-center">
-                  <div className="flex justify-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        router.push(`/dashboard/pacientes/${entry.id_Lista}`)
-                      }
-                      className="h-8 w-8 p-0"
-                      title="Ver prontuário"
-                    >
-                      <FileText className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleView(entry.id_Lista)}
-                      className="h-8 w-8 p-0"
-                      title="Visualizar detalhes"
-                    >
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEdit(entry.id_Lista)}
-                      className="h-8 w-8 p-0"
-                      title="Editar"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDeleteClick(entry)}
-                      className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
-                      title="Excluir"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
+                </div>
+            </div>
 
-      {/* Dialog de confirmação de exclusão */}
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirmar exclusão</DialogTitle>
-            <DialogDescription>
-              Tem certeza que deseja excluir{" "}
-              <strong>{entryToDelete?.nomeRegistro}</strong>? Esta ação não pode
-              ser desfeita.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setDeleteDialogOpen(false)}
-            >
-              Cancelar
-            </Button>
-            <Button variant="destructive" onClick={handleDelete}>
-              Excluir
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            {/* Estatísticas */}
+            <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                <span>
+                    Total:{" "}
+                    <span className="font-medium text-foreground">
+                        {patientEntries.length}
+                    </span>
+                </span>
+                <span>
+                    Em Espera:{" "}
+                    <span className="font-medium text-blue-600">
+                        {patientEntries.filter((e) => e.id_Status === 1).length}
+                    </span>
+                </span>
+                <span>
+                    Em Atendimento:{" "}
+                    <span className="font-medium text-green-600">
+                        {patientEntries.filter((e) => e.id_Status === 2).length}
+                    </span>
+                </span>
+                <span>
+                    Em Triagem:{" "}
+                    <span className="font-medium text-yellow-600">
+                        {patientEntries.filter((e) => e.id_Status === 3).length}
+                    </span>
+                </span>
+                <span>
+                    Em Psicoterapia:{" "}
+                    <span className="font-medium text-purple-600">
+                        {patientEntries.filter((e) => e.id_Status === 4).length}
+                    </span>
+                </span>
+                <span>
+                    Recebeu Alta:{" "}
+                    <span className="font-medium text-gray-600">
+                        {patientEntries.filter((e) => e.id_Status === 5).length}
+                    </span>
+                </span>
+                <span>
+                    Encaminhado:{" "}
+                    <span className="font-medium text-indigo-600">
+                        {patientEntries.filter((e) => e.id_Status === 6).length}
+                    </span>
+                </span>
+                <span>
+                    Desativado:{" "}
+                    <span className="font-medium text-red-600">
+                        {patientEntries.filter((e) => e.id_Status === 7).length}
+                    </span>
+                </span>
+                {filteredEntries.length !== patientEntries.length && (
+                    <span>
+                        Exibindo:{" "}
+                        <span className="font-medium text-orange-600">
+                            {filteredEntries.length}
+                        </span>
+                    </span>
+                )}
+            </div>
 
-      {/* Dialog de visualização detalhada */}
-      <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
-        <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Detalhes do Paciente</DialogTitle>
-            <DialogDescription>
-              Informações completas do paciente
-            </DialogDescription>
-          </DialogHeader>
-          {entryToView && (
-            <div className="space-y-6">
-              {/* Informações Pessoais */}
-              <div className="space-y-3">
-                <h4 className="font-semibold text-sm text-primary">
-                  Informações Pessoais
-                </h4>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <Label className="text-muted-foreground">
-                      Nome de Registro
-                    </Label>
-                    <p className="font-medium">{entryToView.nomeRegistro}</p>
-                  </div>
-                  {entryToView.nomeSocial && (
-                    <div>
-                      <Label className="text-muted-foreground">
-                        Nome Social
-                      </Label>
-                      <p className="font-medium">{entryToView.nomeSocial}</p>
+            <Table>
+                <TableCaption>
+                    Lista de pacientes do ARCA
+                    {filteredEntries.length !== patientEntries.length
+                        ? `(${filteredEntries.length} de ${patientEntries.length} ${patientEntries.length === 1 ? "paciente" : "pacientes"})`
+                        : `(${patientEntries.length} ${patientEntries.length === 1 ? "paciente" : "pacientes"})`}
+                </TableCaption>
+                <TableHeader>
+                    <TableRow>
+                        <TableHead>Nome</TableHead>
+                        <TableHead>Data de Nascimento</TableHead>
+                        <TableHead>Telefone</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Data de Cadastro</TableHead>
+                        <TableHead className="text-center">Ações</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {filteredEntries.length === 0 ? (
+                        <TableRow>
+                            <TableCell
+                                colSpan={6}
+                                className="text-center py-8 text-muted-foreground"
+                            >
+                                {patientEntries.length === 0
+                                    ? "Nenhum paciente encontrado."
+                                    : "Nenhum paciente encontrado com os filtros aplicados."}
+                            </TableCell>
+                        </TableRow>
+                    ) : (
+                        filteredEntries.map((entry) => (
+                            <TableRow key={entry.id_Lista}>
+                                <TableCell className="font-medium">
+                                    <div>
+                                        <p className="font-medium">{entry.nomeRegistro}</p>
+                                        {entry.nomeSocial && (
+                                            <p className="text-sm text-muted-foreground">
+                                                ({entry.nomeSocial})
+                                            </p>
+                                        )}
+                                    </div>
+                                </TableCell>
+                                <TableCell>
+                                    {format(new Date(entry.dataNascimento), "dd/MM/yyyy", {
+                                        locale: ptBR,
+                                    })}
+                                </TableCell>
+                                <TableCell>{entry.telefonePessoal}</TableCell>
+                                <TableCell>
+                                    <Badge
+                                        variant={
+                                            STATUS_MAP[entry.id_Status as keyof typeof STATUS_MAP]
+                                                ?.variant || "secondary"
+                                        }
+                                        className="text-xs"
+                                        title={
+                                            STATUS_MAP[entry.id_Status as keyof typeof STATUS_MAP]
+                                                ?.description
+                                        }
+                                    >
+                                        {STATUS_MAP[entry.id_Status as keyof typeof STATUS_MAP]
+                                            ?.label || `Status ${entry.id_Status}`}
+                                    </Badge>
+                                </TableCell>
+                                <TableCell>
+                                    {format(new Date(entry.createdAt), "dd/MM/yyyy", {
+                                        locale: ptBR,
+                                    })}
+                                </TableCell>
+                                <TableCell className="text-center">
+                                    <div className="flex justify-center gap-2">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() =>
+                                                router.push(`/dashboard/pacientes/${entry.id_Lista}`)
+                                            }
+                                            className="h-8 w-8 p-0"
+                                            title="Ver prontuário"
+                                        >
+                                            <FileText className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => handleView(entry.id_Lista)}
+                                            className="h-8 w-8 p-0"
+                                            title="Visualizar detalhes"
+                                        >
+                                            <Eye className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => handleEdit(entry.id_Lista)}
+                                            className="h-8 w-8 p-0"
+                                            title="Editar"
+                                        >
+                                            <Edit className="h-4 w-4" />
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => handleDeleteClick(entry)}
+                                            className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                            title="Excluir"
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                </TableCell>
+                            </TableRow>
+                        ))
+                    )}
+                </TableBody>
+            </Table>
+
+            {/* Dialog de confirmação de exclusão */}
+            <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Confirmar exclusão</DialogTitle>
+                        <DialogDescription>
+                            Tem certeza que deseja excluir{" "}
+                            <strong>{entryToDelete?.nomeRegistro}</strong>? Esta ação não pode
+                            ser desfeita.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setDeleteDialogOpen(false)}
+                        >
+                            Cancelar
+                        </Button>
+                        <Button variant="destructive" onClick={handleDelete}>
+                            Excluir
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Dialog de visualização detalhada */}
+            <Dialog open={viewDialogOpen} onOpenChange={setViewDialogOpen}>
+                <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>Detalhes do Paciente</DialogTitle>
+                        <DialogDescription>
+                            Informações completas do paciente
+                        </DialogDescription>
+                    </DialogHeader>
+                    {entryToView && (
+                        <div className="space-y-6">
+                            {/* Informações Pessoais */}
+                            <div className="space-y-3">
+                                <h4 className="font-semibold text-sm text-primary">
+                                    Informações Pessoais
+                                </h4>
+                                <div className="grid grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                        <Label className="text-muted-foreground">
+                                            Nome de Registro
+                                        </Label>
+                                        <p className="font-medium">{entryToView.nomeRegistro}</p>
+                                    </div>
+                                    {entryToView.nomeSocial && (
+                                        <div>
+                                            <Label className="text-muted-foreground">
+                                                Nome Social
+                                            </Label>
+                                            <p className="font-medium">{entryToView.nomeSocial}</p>
+                                        </div>
+                                    )}
+                                    <div>
+                                        <Label className="text-muted-foreground">CPF</Label>
+                                        <p className="font-medium font-mono">
+                                            {entryToView.CPF.replace(
+                                                /(\d{3})(\d{3})(\d{3})(\d{2})/,
+                                                "$1.$2.$3-$4",
+                                            )}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <Label className="text-muted-foreground">
+                                            Data de Nascimento
+                                        </Label>
+                                        <p className="font-medium">
+                                            {format(
+                                                new Date(entryToView.dataNascimento),
+                                                "dd/MM/yyyy",
+                                                { locale: ptBR },
+                                            )}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <Label className="text-muted-foreground">Status</Label>
+                                        <Badge
+                                            variant={
+                                                STATUS_MAP[
+                                                    entryToView.id_Status as keyof typeof STATUS_MAP
+                                                ]?.variant || "secondary"
+                                            }
+                                            className="text-xs"
+                                        >
+                                            {STATUS_MAP[
+                                                entryToView.id_Status as keyof typeof STATUS_MAP
+                                            ]?.label || `Status ${entryToView.id_Status}`}
+                                        </Badge>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Contatos */}
+                            <div className="space-y-3">
+                                <h4 className="font-semibold text-sm text-primary">Contatos</h4>
+                                <div className="grid grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                        <Label className="text-muted-foreground">
+                                            Telefone Pessoal
+                                        </Label>
+                                        <p className="font-medium">{entryToView.telefonePessoal}</p>
+                                    </div>
+                                    <div>
+                                        <Label className="text-muted-foreground">
+                                            Contato de Emergência
+                                        </Label>
+                                        <p className="font-medium">
+                                            {entryToView.contatoEmergencia}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Endereço */}
+                            <div className="space-y-3">
+                                <h4 className="font-semibold text-sm text-primary">Endereço</h4>
+                                <div className="text-sm">
+                                    <Label className="text-muted-foreground">
+                                        Endereço Completo
+                                    </Label>
+                                    <p className="font-medium">{formatAddress(entryToView)}</p>
+                                    <p className="text-muted-foreground">
+                                        CEP: {entryToView.enderecoCEP}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Informações de Sistema */}
+                            <div className="space-y-3">
+                                <h4 className="font-semibold text-sm text-primary">
+                                    Informações do Sistema
+                                </h4>
+                                <div className="grid grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                        <Label className="text-muted-foreground">ID</Label>
+                                        <p className="font-mono text-xs break-all">
+                                            {entryToView.id_Lista}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <Label className="text-muted-foreground">
+                                            Data de Cadastro
+                                        </Label>
+                                        <p className="font-medium">
+                                            {format(
+                                                new Date(entryToView.createdAt),
+                                                "dd/MM/yyyy 'às' HH:mm",
+                                                { locale: ptBR },
+                                            )}
+                                        </p>
+                                    </div>
+                                    <div className="col-span-2">
+                                        <Label className="text-muted-foreground">
+                                            Status Atual
+                                        </Label>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <Badge
+                                                variant={
+                                                    STATUS_MAP[
+                                                        entryToView.id_Status as keyof typeof STATUS_MAP
+                                                    ]?.variant || "secondary"
+                                                }
+                                                className="text-xs"
+                                            >
+                                                {STATUS_MAP[
+                                                    entryToView.id_Status as keyof typeof STATUS_MAP
+                                                ]?.label || `Status ${entryToView.id_Status}`}
+                                            </Badge>
+                                            <p className="text-xs text-muted-foreground">
+                                                {
+                                                    STATUS_MAP[
+                                                        entryToView.id_Status as keyof typeof STATUS_MAP
+                                                    ]?.description
+                                                }
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setViewDialogOpen(false)}>
+                            Fechar
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Dialog de edição de entrada */}
+            <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+                <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>Editar dados do paciente</DialogTitle>
+                        <DialogDescription>
+                            Faça as alterações necessárias nos dados do paciente.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        {/* Informações Pessoais */}
+                        <div className="space-y-4">
+                            <h4 className="font-semibold text-sm text-primary">
+                                Informações Pessoais
+                            </h4>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <Label htmlFor="nomeRegistro">Nome de Registro</Label>
+                                    <Input
+                                        id="nomeRegistro"
+                                        value={editFormData.nomeRegistro}
+                                        onChange={(e) =>
+                                            setEditFormData({
+                                                ...editFormData,
+                                                nomeRegistro: e.target.value,
+                                            })
+                                        }
+                                    />
+                                </div>
+                                <div>
+                                    <Label htmlFor="nomeSocial">Nome Social</Label>
+                                    <Input
+                                        id="nomeSocial"
+                                        value={editFormData.nomeSocial}
+                                        onChange={(e) =>
+                                            setEditFormData({
+                                                ...editFormData,
+                                                nomeSocial: e.target.value,
+                                            })
+                                        }
+                                        placeholder="Opcional"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <Label htmlFor="CPF">CPF</Label>
+                                <Input
+                                    id="CPF"
+                                    value={editFormData.CPF}
+                                    onChange={(e) => {
+                                        const value = e.target.value.replace(/\D/g, "");
+                                        setEditFormData({ ...editFormData, CPF: value });
+                                    }}
+                                    maxLength={11}
+                                    placeholder="Digite apenas números"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Contatos */}
+                        <div className="space-y-4">
+                            <h4 className="font-semibold text-sm text-primary">Contatos</h4>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <Label htmlFor="telefonePessoal">Telefone Pessoal</Label>
+                                    <Input
+                                        id="telefonePessoal"
+                                        value={editFormData.telefonePessoal}
+                                        onChange={(e) =>
+                                            setEditFormData({
+                                                ...editFormData,
+                                                telefonePessoal: e.target.value,
+                                            })
+                                        }
+                                    />
+                                </div>
+                                <div>
+                                    <Label htmlFor="contatoEmergencia">
+                                        Contato de Emergência
+                                    </Label>
+                                    <Input
+                                        id="contatoEmergencia"
+                                        value={editFormData.contatoEmergencia}
+                                        onChange={(e) =>
+                                            setEditFormData({
+                                                ...editFormData,
+                                                contatoEmergencia: e.target.value,
+                                            })
+                                        }
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Endereço */}
+                        <div className="space-y-4">
+                            <h4 className="font-semibold text-sm text-primary">Endereço</h4>
+                            <div className="grid grid-cols-4 gap-4">
+                                <div className="col-span-3">
+                                    <Label htmlFor="enderecoRua">Rua</Label>
+                                    <Input
+                                        id="enderecoRua"
+                                        value={editFormData.enderecoRua}
+                                        onChange={(e) =>
+                                            setEditFormData({
+                                                ...editFormData,
+                                                enderecoRua: e.target.value,
+                                            })
+                                        }
+                                    />
+                                </div>
+                                <div>
+                                    <Label htmlFor="enderecoNumero">Número</Label>
+                                    <Input
+                                        id="enderecoNumero"
+                                        value={editFormData.enderecoNumero}
+                                        onChange={(e) =>
+                                            setEditFormData({
+                                                ...editFormData,
+                                                enderecoNumero: e.target.value,
+                                            })
+                                        }
+                                    />
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-3 gap-4">
+                                <div>
+                                    <Label htmlFor="enderecoBairro">Bairro</Label>
+                                    <Input
+                                        id="enderecoBairro"
+                                        value={editFormData.enderecoBairro}
+                                        onChange={(e) =>
+                                            setEditFormData({
+                                                ...editFormData,
+                                                enderecoBairro: e.target.value,
+                                            })
+                                        }
+                                    />
+                                </div>
+                                <div>
+                                    <Label htmlFor="enderecoCidade">Cidade</Label>
+                                    <Input
+                                        id="enderecoCidade"
+                                        value={editFormData.enderecoCidade}
+                                        onChange={(e) =>
+                                            setEditFormData({
+                                                ...editFormData,
+                                                enderecoCidade: e.target.value,
+                                            })
+                                        }
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <Label htmlFor="enderecoEstado">Estado</Label>
+                                        <Input
+                                            id="enderecoEstado"
+                                            value={editFormData.enderecoEstado}
+                                            onChange={(e) =>
+                                                setEditFormData({
+                                                    ...editFormData,
+                                                    enderecoEstado: e.target.value.toUpperCase(),
+                                                })
+                                            }
+                                            maxLength={2}
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="enderecoCEP">CEP</Label>
+                                        <Input
+                                            id="enderecoCEP"
+                                            value={editFormData.enderecoCEP}
+                                            onChange={(e) => {
+                                                const value = e.target.value.replace(/\D/g, "");
+                                                setEditFormData({
+                                                    ...editFormData,
+                                                    enderecoCEP: value,
+                                                });
+                                            }}
+                                            maxLength={8}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                  )}
-                  <div>
-                    <Label className="text-muted-foreground">CPF</Label>
-                    <p className="font-medium font-mono">
-                      {entryToView.CPF.replace(
-                        /(\d{3})(\d{3})(\d{3})(\d{2})/,
-                        "$1.$2.$3-$4",
-                      )}
-                    </p>
-                  </div>
-                  <div>
-                    <Label className="text-muted-foreground">
-                      Data de Nascimento
-                    </Label>
-                    <p className="font-medium">
-                      {format(
-                        new Date(entryToView.dataNascimento),
-                        "dd/MM/yyyy",
-                        { locale: ptBR },
-                      )}
-                    </p>
-                  </div>
-                  <div>
-                    <Label className="text-muted-foreground">Status</Label>
-                    <Badge
-                      variant={
-                        STATUS_MAP[
-                          entryToView.id_Status as keyof typeof STATUS_MAP
-                        ]?.variant || "secondary"
-                      }
-                      className="text-xs"
-                    >
-                      {STATUS_MAP[
-                        entryToView.id_Status as keyof typeof STATUS_MAP
-                      ]?.label || `Status ${entryToView.id_Status}`}
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-
-              {/* Contatos */}
-              <div className="space-y-3">
-                <h4 className="font-semibold text-sm text-primary">Contatos</h4>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <Label className="text-muted-foreground">
-                      Telefone Pessoal
-                    </Label>
-                    <p className="font-medium">{entryToView.telefonePessoal}</p>
-                  </div>
-                  <div>
-                    <Label className="text-muted-foreground">
-                      Contato de Emergência
-                    </Label>
-                    <p className="font-medium">
-                      {entryToView.contatoEmergencia}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Endereço */}
-              <div className="space-y-3">
-                <h4 className="font-semibold text-sm text-primary">Endereço</h4>
-                <div className="text-sm">
-                  <Label className="text-muted-foreground">
-                    Endereço Completo
-                  </Label>
-                  <p className="font-medium">{formatAddress(entryToView)}</p>
-                  <p className="text-muted-foreground">
-                    CEP: {entryToView.enderecoCEP}
-                  </p>
-                </div>
-              </div>
-
-              {/* Informações de Sistema */}
-              <div className="space-y-3">
-                <h4 className="font-semibold text-sm text-primary">
-                  Informações do Sistema
-                </h4>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <Label className="text-muted-foreground">ID</Label>
-                    <p className="font-mono text-xs break-all">
-                      {entryToView.id_Lista}
-                    </p>
-                  </div>
-                  <div>
-                    <Label className="text-muted-foreground">
-                      Data de Cadastro
-                    </Label>
-                    <p className="font-medium">
-                      {format(
-                        new Date(entryToView.createdAt),
-                        "dd/MM/yyyy 'às' HH:mm",
-                        { locale: ptBR },
-                      )}
-                    </p>
-                  </div>
-                  <div className="col-span-2">
-                    <Label className="text-muted-foreground">
-                      Status Atual
-                    </Label>
-                    <div className="flex items-center gap-2 mt-1">
-                      <Badge
-                        variant={
-                          STATUS_MAP[
-                            entryToView.id_Status as keyof typeof STATUS_MAP
-                          ]?.variant || "secondary"
-                        }
-                        className="text-xs"
-                      >
-                        {STATUS_MAP[
-                          entryToView.id_Status as keyof typeof STATUS_MAP
-                        ]?.label || `Status ${entryToView.id_Status}`}
-                      </Badge>
-                      <p className="text-xs text-muted-foreground">
-                        {
-                          STATUS_MAP[
-                            entryToView.id_Status as keyof typeof STATUS_MAP
-                          ]?.description
-                        }
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setViewDialogOpen(false)}>
-              Fechar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Dialog de edição de entrada */}
-      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Editar dados do paciente</DialogTitle>
-            <DialogDescription>
-              Faça as alterações necessárias nos dados do paciente.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            {/* Informações Pessoais */}
-            <div className="space-y-4">
-              <h4 className="font-semibold text-sm text-primary">
-                Informações Pessoais
-              </h4>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="nomeRegistro">Nome de Registro</Label>
-                  <Input
-                    id="nomeRegistro"
-                    value={editFormData.nomeRegistro}
-                    onChange={(e) =>
-                      setEditFormData({
-                        ...editFormData,
-                        nomeRegistro: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="nomeSocial">Nome Social</Label>
-                  <Input
-                    id="nomeSocial"
-                    value={editFormData.nomeSocial}
-                    onChange={(e) =>
-                      setEditFormData({
-                        ...editFormData,
-                        nomeSocial: e.target.value,
-                      })
-                    }
-                    placeholder="Opcional"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="CPF">CPF</Label>
-                <Input
-                  id="CPF"
-                  value={editFormData.CPF}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/\D/g, "");
-                    setEditFormData({ ...editFormData, CPF: value });
-                  }}
-                  maxLength={11}
-                  placeholder="Digite apenas números"
-                />
-              </div>
-            </div>
-
-            {/* Contatos */}
-            <div className="space-y-4">
-              <h4 className="font-semibold text-sm text-primary">Contatos</h4>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="telefonePessoal">Telefone Pessoal</Label>
-                  <Input
-                    id="telefonePessoal"
-                    value={editFormData.telefonePessoal}
-                    onChange={(e) =>
-                      setEditFormData({
-                        ...editFormData,
-                        telefonePessoal: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="contatoEmergencia">
-                    Contato de Emergência
-                  </Label>
-                  <Input
-                    id="contatoEmergencia"
-                    value={editFormData.contatoEmergencia}
-                    onChange={(e) =>
-                      setEditFormData({
-                        ...editFormData,
-                        contatoEmergencia: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Endereço */}
-            <div className="space-y-4">
-              <h4 className="font-semibold text-sm text-primary">Endereço</h4>
-              <div className="grid grid-cols-4 gap-4">
-                <div className="col-span-3">
-                  <Label htmlFor="enderecoRua">Rua</Label>
-                  <Input
-                    id="enderecoRua"
-                    value={editFormData.enderecoRua}
-                    onChange={(e) =>
-                      setEditFormData({
-                        ...editFormData,
-                        enderecoRua: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="enderecoNumero">Número</Label>
-                  <Input
-                    id="enderecoNumero"
-                    value={editFormData.enderecoNumero}
-                    onChange={(e) =>
-                      setEditFormData({
-                        ...editFormData,
-                        enderecoNumero: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="enderecoBairro">Bairro</Label>
-                  <Input
-                    id="enderecoBairro"
-                    value={editFormData.enderecoBairro}
-                    onChange={(e) =>
-                      setEditFormData({
-                        ...editFormData,
-                        enderecoBairro: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="enderecoCidade">Cidade</Label>
-                  <Input
-                    id="enderecoCidade"
-                    value={editFormData.enderecoCidade}
-                    onChange={(e) =>
-                      setEditFormData({
-                        ...editFormData,
-                        enderecoCidade: e.target.value,
-                      })
-                    }
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <Label htmlFor="enderecoEstado">Estado</Label>
-                    <Input
-                      id="enderecoEstado"
-                      value={editFormData.enderecoEstado}
-                      onChange={(e) =>
-                        setEditFormData({
-                          ...editFormData,
-                          enderecoEstado: e.target.value.toUpperCase(),
-                        })
-                      }
-                      maxLength={2}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="enderecoCEP">CEP</Label>
-                    <Input
-                      id="enderecoCEP"
-                      value={editFormData.enderecoCEP}
-                      onChange={(e) => {
-                        const value = e.target.value.replace(/\D/g, "");
-                        setEditFormData({
-                          ...editFormData,
-                          enderecoCEP: value,
-                        });
-                      }}
-                      maxLength={8}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setEditDialogOpen(false)}
-              disabled={isUpdating}
-            >
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleUpdateEntry}
-              disabled={
-                isUpdating ||
-                !editFormData.nomeRegistro ||
-                !editFormData.telefonePessoal
-              }
-            >
-              {isUpdating ? "Salvando..." : "Salvar alterações"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setEditDialogOpen(false)}
+                            disabled={isUpdating}
+                        >
+                            Cancelar
+                        </Button>
+                        <Button
+                            onClick={handleUpdateEntry}
+                            disabled={
+                                isUpdating ||
+                                !editFormData.nomeRegistro ||
+                                !editFormData.telefonePessoal
+                            }
+                        >
+                            {isUpdating ? "Salvando..." : "Salvar alterações"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </div>
+    );
 }

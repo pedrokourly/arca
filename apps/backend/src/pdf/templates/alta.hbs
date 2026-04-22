@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="utf-8" />
     <title>Declaração de Alta Psicológica</title>
@@ -10,12 +11,14 @@
             color: #333;
             line-height: 1.6;
         }
+
         .container {
             width: 80%;
             margin: 0 auto;
             border: 1px solid #ddd;
             padding: 40px;
         }
+
         h2 {
             text-align: center;
             text-transform: uppercase;
@@ -23,30 +26,37 @@
             border-bottom: 1px solid #ccc;
             padding-bottom: 10px;
         }
+
         .section {
             margin-bottom: 20px;
         }
+
         .section-title {
             font-weight: bold;
             color: #555;
             font-size: 1.1em;
         }
+
         .info-list {
             list-style-type: none;
             padding-left: 10px;
         }
+
         .info-list li {
             margin-bottom: 5px;
         }
+
         .declaration {
             text-align: justify;
             margin-top: 30px;
             margin-bottom: 30px;
         }
+
         .footer {
             text-align: center;
             margin-top: 50px;
         }
+
         .signature-line {
             width: 60%;
             border-bottom: 1px solid #555;
@@ -54,6 +64,7 @@
         }
     </style>
 </head>
+
 <body>
 
     <div class="container">
@@ -62,7 +73,8 @@
         <div class="section">
             <p class="section-title">Remetente:</p>
             <ul class="info-list">
-                <li><strong>Instituição:</strong> Núcleo de Estudos e Aplicação em Psicologia (NEAP) - UEMG, Ituiutaba</li>
+                <li><strong>Instituição:</strong> Núcleo de Estudos e Aplicação em Psicologia (NEAP) - UEMG, Ituiutaba
+                </li>
                 <li><strong>Supervisor:</strong> {{supervisorNome}} - {{supervisorCRP}}</li>
             </ul>
         </div>
@@ -78,11 +90,18 @@
         <hr style="border: 0; border-top: 1px dashed #ccc; margin: 30px 0;">
 
         <p class="declaration">
-            Declara-se, para os devidos fins, que <strong>{{pacienteNome}}</strong>, portador do CPF <strong>{{cpf}}</strong>, esteve em acompanhamento psicológico no Núcleo de Estudos de Ensino e Aplicação em Psicologia (NEAP), da Universidade do Estado de Minas Gerais (UEMG) - Unidade Ituiutaba, durante os períodos de <strong>{{dataInicio}}</strong> e <strong>{{dataFim}}</strong>, sob supervisão de <strong>{{supervisorNome}}</strong> - <strong>{{supervisorCRP}}</strong>, e que, diante de <strong>{{motivoAlta}}</strong>, <strong>{{pacienteNome}}</strong> recebeu alta psicológica no dia <strong>{{dataAlta}}</strong>, não mais estando, portanto, vinculado(a) ao NEAP.
+            Declara-se, para os devidos fins, que <strong>{{pacienteNome}}</strong>, portador do CPF
+            <strong>{{cpf}}</strong>, esteve em acompanhamento psicológico no Núcleo de Estudos de Ensino e Aplicação em
+            Psicologia (NEAP), da Universidade do Estado de Minas Gerais (UEMG) - Unidade Ituiutaba, durante os períodos
+            de <strong>{{dataInicio}}</strong> e <strong>{{dataFim}}</strong>, sob supervisão de
+            <strong>{{supervisorNome}}</strong> - <strong>{{supervisorCRP}}</strong>, e que, diante de
+            <strong>{{motivoAlta}}</strong>, <strong>{{pacienteNome}}</strong> recebeu alta psicológica no dia
+            <strong>{{dataAlta}}</strong>, não mais estando, portanto, vinculado(a) ao NEAP.
         </p>
 
         <p class="declaration">
-            O NEAP se coloca à disposição para o fornecimento de quaisquer informações adicionais que se fizerem necessárias por meio do número de telefone (34) 98424-6977 e do e-mail neap.ituiutaba@uemg.br.
+            O NEAP se coloca à disposição para o fornecimento de quaisquer informações adicionais que se fizerem
+            necessárias por meio do número de telefone (34) 98424-6977 e do e-mail neap.ituiutaba@uemg.br.
         </p>
 
         <div class="footer">
@@ -98,4 +117,5 @@
     </div>
 
 </body>
+
 </html>
