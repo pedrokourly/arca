@@ -7,7 +7,7 @@
 const Footer = () => {
     return (
         <footer>
-            <h1>Footer!!!</h1>
+            <div className="bg-[#E0E0E0] h-16"></div>
         </footer>
     )
 };

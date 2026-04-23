@@ -4,7 +4,7 @@
 const Home = () => {
     return (
         <>
-            {/* Conteúdo */}
+            <div className="bg-blue-100 h-128"></div>
         </>
     );
 };

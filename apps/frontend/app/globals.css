@@ -6,8 +6,11 @@
 @import "tw-animate-css";
 
 :root {
-    --color-light: #ffffff;
     --color-dark: #000000;
+    --color-mdark: #404040;
+    --color-medium: #808080;
+    --color-mlight: #C0C0C0;
+    --color-light: #FFFFFF;
 
     --default-font: 'Geist', sans-serif;
 }
