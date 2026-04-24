@@ -7,6 +7,7 @@ import {
 } from 'next/navigation';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { navLinksExternal } from '@/lib/navigation';
 
 // Imports Components
 import {
@@ -40,12 +41,6 @@ const Header = () => {
     // Routes
     const pathname = usePathname();
 
-    const navLinks = [
-        { href: '/', label: 'Início' },
-        { href: '/inscrever', label: 'Inscrever-se' },
-        { href: '/consultar', label: 'Consultar Posição' }
-    ];
-
     // OffCanvas Control
     const [isSheetOpen, setIsSheetOpen] = useState(false);
 
@@ -76,7 +71,7 @@ const Header = () => {
 
                     <NavigationMenu className="flex-2 hidden justify-center lg:flex">
                         <NavigationMenuList>
-                            {navLinks.map((link) => {
+                            {navLinksExternal.map((link) => {
                                 const isActive = link.href === '/' ? pathname === '/' : pathname.startsWith(link.href);
 
                                 return (
@@ -92,7 +87,7 @@ const Header = () => {
 
                     <div className="flex-1 hidden justify-end lg:flex">
                         <Button asChild variant="primary">
-                            <Link href='/plataforma/login'>
+                            <Link href='#'>
                                 <LogIn color="#FFFFFF" />Acesso Interno
                             </Link>
                         </Button>
@@ -112,8 +107,9 @@ const Header = () => {
                             </SheetHeader>
 
                             <nav className="flex-1 flex flex-col items-start gap-4">
-                                {navLinks.map((link) => {
-                                    const isActive = link.href === '/' ? pathname === '/' : pathname.startsWith(link.href)
+                                {navLinksExternal.map((link) => {
+                                    const isActive = link.href === '/' ? pathname === '/' : pathname.startsWith(link.href);
+                                    
                                     return (
                                         <SheetClose asChild key={link.href}>
                                             <Link href={link.href} className={`${isActive ? 'font-bold' : 'font-normal'}`}>{link.label}</Link>
@@ -124,7 +120,7 @@ const Header = () => {
 
                             <SheetFooter>
                                 <Button asChild variant="primary">
-                                    <Link href="/plataforma/login">
+                                    <Link href="#">
                                         <LogIn color="#FFFFFF" />Acesso Interno
                                     </Link>
                                 </Button>

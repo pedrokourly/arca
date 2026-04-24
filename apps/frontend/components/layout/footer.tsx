@@ -3,6 +3,7 @@
 
 // Import Libs
 import Link from 'next/link';
+import { navLinksExternal, navLinksInternal } from '@/lib/navigation';
 
 // Imports Components
 // ...
@@ -10,7 +11,8 @@ import Link from 'next/link';
 // Import Icons
 import {
     Brain,
-    Mail
+    Mail,
+    ChevronRight
 } from 'lucide-react';
 import {
     FaWhatsapp,
@@ -22,57 +24,43 @@ const Footer = () => {
     return (
         <>
             <div className="bg-(--color-dark) p-4! rounded-[20px]">
-                <div className="container mx-auto! flex flex-col gap-20">
-                    <div className="flex flex-col gap-12 w-full px-8! py-8! lg:flex-row lg:px-0!">
+                <div className="container mx-auto! flex flex-col gap-8 px-4!">
+                    <div className="flex flex-col gap-12 w-full px-4! py-8! lg:flex-row lg:px-0!">
                         <div className="flex flex-col w-full">
                             <h2 className="font-bold text-(--color-light) text-[16px]">Navegação</h2>
-                            <hr className="bg-(--color-mdark) w-full h-0.5 mt-2! mb-6! lg:h-px" />
+                            <hr className="bg-(--color-mdark) w-full h-0.5 mt-2! mb-6!" />
 
                             <div className="flex flex-col gap-4">
-                                <Link href="/" className="text-(--color-light) text-[14px] transition-colors duration-250 hover:text-(--color-mlight)">
-                                    Início
-                                </Link>
-
-                                <Link href="/inscrever" className="text-(--color-light) text-[14px] transition-colors duration-250 hover:text-(--color-mlight)">
-                                    Inscrever-se
-                                </Link>
-
-                                <Link href="/cadastro" className="text-(--color-light) text-[14px] transition-colors duration-250 hover:text-(--color-mlight)">
-                                    Consultar Posição
-                                </Link>
+                                {navLinksExternal.map((link) => {
+                                    return (
+                                        <Link key={link.label} href={link.href} className="flex items-center gap-2 text-(--color-light) text-[14px] transition-colors duration-250 hover:text-(--color-mlight)">
+                                            {link.icon && ( <link.icon size={16} /> )}
+                                            {link.label}
+                                        </Link>
+                                    );
+                                })}
                             </div>
                         </div>
 
                         <div className="flex flex-col w-full">
                             <h2 className="font-bold text-(--color-light) text-[16px]">Plataforma</h2>
-                            <hr className="bg-(--color-mdark) w-full h-0.5 mt-2! mb-6! lg:h-px" />
+                            <hr className="bg-(--color-mdark) w-full h-0.5 mt-2! mb-6!" />
 
                             <div className="flex flex-col gap-4">
-                                <Link href="#" className="text-(--color-light) text-[14px] transition-colors duration-250 hover:text-(--color-mlight)">
-                                    Link 01
-                                </Link>
-
-                                <Link href="#" className="text-(--color-light) text-[14px] transition-colors duration-250 hover:text-(--color-mlight)">
-                                    Link 02
-                                </Link>
-
-                                <Link href="#" className="text-(--color-light) text-[14px] transition-colors duration-250 hover:text-(--color-mlight)">
-                                    Link 03
-                                </Link>
-
-                                <Link href="#" className="text-(--color-light) text-[14px] transition-colors duration-250 hover:text-(--color-mlight)">
-                                    Link 04
-                                </Link>
-
-                                <Link href="#" className="text-(--color-light) text-[14px] transition-colors duration-250 hover:text-(--color-mlight)">
-                                    Link 05
-                                </Link>
+                                {navLinksInternal.map((link) => {
+                                    return (
+                                        <Link key={link.label} href={link.href} className="flex items-center gap-2 text-(--color-light) text-[14px] transition-colors duration-250 hover:text-(--color-mlight)">
+                                            {link.icon && ( <link.icon size={16} /> )}
+                                            {link.label}
+                                        </Link>
+                                    );
+                                })}
                             </div>
                         </div>
 
                         <div className="flex flex-col w-full">
                             <h2 className="font-bold text-(--color-light) text-[16px]">Contato</h2>
-                            <hr className="bg-(--color-mdark) w-full h-0.5 mt-2! mb-6! lg:h-px" />
+                            <hr className="bg-(--color-mdark) w-full h-0.5 mt-2! mb-6!" />
 
                             <div className="flex flex-col gap-4">
                                 <Link href="mailto:contato@wizecode.com.br" target="_blank" rel="external" className="flex items-center gap-2 text-(--color-light) text-[14px] transition-colors duration-250 hover:text-(--color-mlight)">
