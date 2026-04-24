@@ -2,12 +2,18 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap');
 
-@import 'tailwindcss';
+@import "tailwindcss";
 @import "tw-animate-css";
 
+@custom-variant data-open (&[data-state="open"]);
+@custom-variant data-closed (&[data-state="closed"]);
+
 :root {
-    --color-light: #ffffff;
     --color-dark: #000000;
+    --color-mdark: #404040;
+    --color-medium: #808080;
+    --color-mlight: #C0C0C0;
+    --color-light: #FFFFFF;
 
     --default-font: 'Geist', sans-serif;
 }
