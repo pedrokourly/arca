@@ -5,15 +5,15 @@ import { Slot } from "radix-ui"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-    "inline-flex items-center justify-center gap-2 outline-none whitespace-nowrap transition-all hover:cursor-pointer disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4",
+    "relative inline-flex items-center justify-center gap-2 outline-none whitespace-nowrap transition-all hover:cursor-pointer disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4",
     {
         variants: {
             variant: {
                 primary: "bg-(--color-dark) text-(--color-light) border-[2px] border-solid border-transparent",
-                outline: "bg-(--color-light) text-(--color-dark) border-[2px] border-solid border-(--color-dark)"
+                outline: "bg-(--color-light) text-(--color-dark) border-[2px] border-solid border-(--color-mlight)"
             },
             size: {
-                default: "relative font-semibold text-center text-[14px] px-[16px]! py-[8px]! rounded-[8px] "
+                default: "font-semibold text-center text-[14px] px-[16px]! py-[8px]! rounded-[12px]"
             },
         },
         defaultVariants: {

@@ -21,11 +21,11 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     return (
         <html lang="pt-br">
             <body cz-shortcut-listen="true">
-                <Header />
+                <header className="m-4!"><Header /></header>
 
-                <main>{children}</main>
+                <main className="m-4!">{children}</main>
 
-                <Footer />
+                <footer className="m-4!"><Footer /></footer>
 
                 {/* <Toaster position="bottom-right" expand={true} /> */}
             </body>

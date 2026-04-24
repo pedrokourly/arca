@@ -2,8 +2,11 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap');
 
-@import 'tailwindcss';
+@import "tailwindcss";
 @import "tw-animate-css";
+
+@custom-variant data-open (&[data-state="open"]);
+@custom-variant data-closed (&[data-state="closed"]);
 
 :root {
     --color-dark: #000000;

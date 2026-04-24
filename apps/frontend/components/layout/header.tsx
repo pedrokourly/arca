@@ -6,8 +6,7 @@ import {
     usePathname
 } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 // Imports Components
 import {
@@ -26,14 +25,15 @@ import {
     SheetContent,
     SheetHeader,
     SheetTitle,
+    SheetDescription,
     SheetFooter
 } from '@/components/ui/sheet';
 
 // Import Icons
 import {
     Brain,
-    DoorOpen,
-    Menu
+    LogIn,
+    TextAlignJustify
 } from 'lucide-react';
 
 const Header = () => {
@@ -41,7 +41,7 @@ const Header = () => {
     const pathname = usePathname();
 
     const navLinks = [
-        { href: '/', label: 'Home' },
+        { href: '/', label: 'Início' },
         { href: '/inscrever', label: 'Inscrever-se' },
         { href: '/consultar', label: 'Consultar Posição' }
     ];
@@ -64,73 +64,76 @@ const Header = () => {
     }, []);
 
     return (
-        <header>
-            <div className="bg-(--color-light) flex items-center justify-between px-4! py-5!">
-                <div className="flex-1 flex justify-start">
-                    <Link href="/" className="flex items-center gap-2">
-                        <Brain size={36} color="#000000" />
-
-                        <h1 className="font-bold text-[18px]">ARCA</h1>
-                    </Link>
-                </div>
-
-                <NavigationMenu className="flex-1 hidden justify-center lg:flex">
-                    <NavigationMenuList>
-                        {navLinks.map((link) => {
-                            const isActive = link.href === '/' ? pathname === '/' : pathname.startsWith(link.href);
-
-                            return (
-                                <NavigationMenuItem key={link.label}>
-                                    <NavigationMenuLink asChild>
-                                        <Link href={link.href} className={`${isActive ? 'font-bold' : 'font-normal'}`}>{link.label}</Link>
-                                    </NavigationMenuLink>
-                                </NavigationMenuItem>
-                            );
-                        })}
-                    </NavigationMenuList>
-                </NavigationMenu>
-
-                <div className="flex-1 hidden justify-end lg:flex">
-                    <Button asChild variant="primary">
-                        <Link href='/plataforma/login'>
-                            <DoorOpen color="#FFFFFF" />Acesso Interno
+        <>
+            <div className="bg-(--color-light) p-4! rounded-[20px] border border-(--color-mlight)/50">
+                <div className="container mx-auto! flex justify-between items-center">
+                    <div className="flex-1 flex justify-start">
+                        <Link href="/" className="flex items-center gap-2">
+                            <Brain size={36} color="#000000" />
+                            <h1 className="font-bold text-[18px]">ARCA</h1>
                         </Link>
-                    </Button>
-                </div>
+                    </div>
 
-                <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-                    <SheetTrigger asChild className="flex lg:hidden">
-                        <Menu className="cursor-pointer" />
-                    </SheetTrigger>
-
-                    <SheetContent className="bg-(--color-light) px-4! py-4!">
-                        <SheetHeader>
-                            <SheetTitle className="font-bold">MENU</SheetTitle>
-                        </SheetHeader>
-
-                        <nav className="flex-1 flex flex-col items-start gap-2">
+                    <NavigationMenu className="flex-2 hidden justify-center lg:flex">
+                        <NavigationMenuList>
                             {navLinks.map((link) => {
-                                const isActive = link.href === '/' ? pathname === '/' : pathname.startsWith(link.href)
+                                const isActive = link.href === '/' ? pathname === '/' : pathname.startsWith(link.href);
 
                                 return (
-                                    <SheetClose asChild key={link.href}>
-                                        <Link href={link.href} className={`${isActive ? 'font-semibold' : 'font-normal'}`}>{link.label}</Link>
-                                    </SheetClose>
+                                    <NavigationMenuItem key={link.label}>
+                                        <NavigationMenuLink asChild>
+                                            <Link href={link.href} className={`${isActive ? 'font-bold' : 'font-normal'} relative after:content-[''] after:absolute after:-bottom-0.5 after:left-1/2 after:-translate-x-1/2 after:h-px after:w-0 after:bg-(--color-dark) after:transition-all after:duration-250 after:ease-in-out hover:after:w-[calc(100%-4px)]`}>{link.label}</Link>
+                                        </NavigationMenuLink>
+                                    </NavigationMenuItem>
                                 );
                             })}
-                        </nav>
+                        </NavigationMenuList>
+                    </NavigationMenu>
 
-                        <SheetFooter>
-                            <Button asChild variant="primary">
-                                <Link href="/plataforma/login">
-                                    <DoorOpen color="#FFFFFF" />Acesso Interno
-                                </Link>
-                            </Button>
-                        </SheetFooter>
-                    </SheetContent>
-                </Sheet>
+                    <div className="flex-1 hidden justify-end lg:flex">
+                        <Button asChild variant="primary">
+                            <Link href='/plataforma/login'>
+                                <LogIn color="#FFFFFF" />Acesso Interno
+                            </Link>
+                        </Button>
+                    </div>
+
+                    <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+                        <SheetTrigger asChild className="flex lg:hidden">
+                            <TextAlignJustify size={20} className="cursor-pointer" />
+                        </SheetTrigger>
+
+                        <SheetContent className="bg-(--color-light) px-4! py-4!">
+                            <SheetHeader>
+                                <SheetTitle className="font-bold">MENU</SheetTitle>
+                                <SheetDescription className="sr-only">
+                                    Menu principal de navegação.
+                                </SheetDescription>
+                            </SheetHeader>
+
+                            <nav className="flex-1 flex flex-col items-start gap-4">
+                                {navLinks.map((link) => {
+                                    const isActive = link.href === '/' ? pathname === '/' : pathname.startsWith(link.href)
+                                    return (
+                                        <SheetClose asChild key={link.href}>
+                                            <Link href={link.href} className={`${isActive ? 'font-bold' : 'font-normal'}`}>{link.label}</Link>
+                                        </SheetClose>
+                                    );
+                                })}
+                            </nav>
+
+                            <SheetFooter>
+                                <Button asChild variant="primary">
+                                    <Link href="/plataforma/login">
+                                        <LogIn color="#FFFFFF" />Acesso Interno
+                                    </Link>
+                                </Button>
+                            </SheetFooter>
+                        </SheetContent>
+                    </Sheet>
+                </div>
             </div>
-        </header>
+        </>
     )
 };
 
