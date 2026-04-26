@@ -2,40 +2,18 @@
 'use client';
 
 // Import Libs
-import {
-    usePathname
-} from 'next/navigation';
-import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { navLinksExternal } from '@/lib/navigation';
+import Link from 'next/link';
 
 // Imports Components
-import {
-    Button
-} from '@/components/ui/button';
-import {
-    NavigationMenu,
-    NavigationMenuList,
-    NavigationMenuItem,
-    NavigationMenuLink
-} from '@/components/ui/navigation-menu';
-import {
-    Sheet,
-    SheetTrigger,
-    SheetClose,
-    SheetContent,
-    SheetHeader,
-    SheetTitle,
-    SheetDescription,
-    SheetFooter
-} from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
+import { NavigationMenu, NavigationMenuList, NavigationMenuItem, NavigationMenuLink } from '@/components/ui/navigation-menu';
+import { Sheet, SheetTrigger, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from '@/components/ui/sheet';
 
 // Import Icons
-import {
-    Brain,
-    LogIn,
-    TextAlignJustify
-} from 'lucide-react';
+import { Brain, LogIn, TextAlignJustify } from 'lucide-react';
 
 const Header = () => {
     // Routes
@@ -65,7 +43,7 @@ const Header = () => {
                     <div className="flex-1 flex justify-start">
                         <Link href="/" className="flex items-center gap-2">
                             <Brain size={36} color="#000000" />
-                            <h1 className="font-bold text-[18px]">ARCA</h1>
+                            <h1 className="font-bold text-(--color-dark) text-[18px]">ARCA</h1>
                         </Link>
                     </div>
 
@@ -77,7 +55,7 @@ const Header = () => {
                                 return (
                                     <NavigationMenuItem key={link.label}>
                                         <NavigationMenuLink asChild>
-                                            <Link href={link.href} className={`${isActive ? 'font-bold' : 'font-normal'} relative after:content-[''] after:absolute after:-bottom-0.5 after:left-1/2 after:-translate-x-1/2 after:h-px after:w-0 after:bg-(--color-dark) after:transition-all after:duration-250 after:ease-in-out hover:after:w-[calc(100%-4px)]`}>{link.label}</Link>
+                                            <Link href={link.href} className={`${isActive ? 'font-bold' : 'font-normal'} text-(--color-dark) relative after:content-[''] after:absolute after:-bottom-0.5 after:left-1/2 after:-translate-x-1/2 after:h-px after:w-0 after:bg-(--color-dark) after:transition-all after:duration-250 after:ease-in-out hover:after:w-[calc(100%-4px)]`}>{link.label}</Link>
                                         </NavigationMenuLink>
                                     </NavigationMenuItem>
                                 );
@@ -87,7 +65,7 @@ const Header = () => {
 
                     <div className="flex-1 hidden justify-end lg:flex">
                         <Button asChild variant="primary">
-                            <Link href='#'>
+                            <Link href='/login'>
                                 <LogIn color="#FFFFFF" />Acesso Interno
                             </Link>
                         </Button>
@@ -95,12 +73,12 @@ const Header = () => {
 
                     <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
                         <SheetTrigger asChild className="flex lg:hidden">
-                            <TextAlignJustify size={20} className="cursor-pointer" />
+                            <TextAlignJustify size={20} color="#000000" className="cursor-pointer" />
                         </SheetTrigger>
 
                         <SheetContent className="bg-(--color-light) px-4! py-4!">
                             <SheetHeader>
-                                <SheetTitle className="font-bold">MENU</SheetTitle>
+                                <SheetTitle className="font-bold text-(--color-dark)">MENU</SheetTitle>
                                 <SheetDescription className="sr-only">
                                     Menu principal de navegação.
                                 </SheetDescription>
@@ -112,7 +90,7 @@ const Header = () => {
                                     
                                     return (
                                         <SheetClose asChild key={link.href}>
-                                            <Link href={link.href} className={`${isActive ? 'font-bold' : 'font-normal'}`}>{link.label}</Link>
+                                            <Link href={link.href} className={`${isActive ? 'font-bold' : 'font-normal'} text-(--color-dark)`}>{link.label}</Link>
                                         </SheetClose>
                                     );
                                 })}
@@ -120,7 +98,7 @@ const Header = () => {
 
                             <SheetFooter>
                                 <Button asChild variant="primary">
-                                    <Link href="#">
+                                    <Link href="/login">
                                         <LogIn color="#FFFFFF" />Acesso Interno
                                     </Link>
                                 </Button>

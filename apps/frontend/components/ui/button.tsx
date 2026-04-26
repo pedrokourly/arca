@@ -9,8 +9,8 @@ const buttonVariants = cva(
     {
         variants: {
             variant: {
-                primary: "bg-(--color-dark) text-(--color-light) border-[1px] border-solid border-transparent",
-                outline: "bg-(--color-light) text-(--color-dark) border-[1px] border-solid border-(--color-mlight)/75"
+                primary: "bg-(--color-dark) text-(--color-light) border border-solid border-transparent",
+                outline: "bg-(--color-light) text-(--color-dark) border border-solid border-(--color-mlight)/75"
             },
             size: {
                 default: "font-semibold text-center text-[14px] px-[16px]! py-[8px]! rounded-[12px]"
