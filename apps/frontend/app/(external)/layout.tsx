@@ -1,20 +1,20 @@
 // Import CSS
-import './globals.css';
+import '../globals.css';
 
-// Import Libs
+// Import Types
 import type { Metadata } from 'next';
 
 // Import Components
+import { Toaster } from '@/components/ui/sonner';
 import Header from '@/components/layout/header';
 import Footer from '@/components/layout/footer';
-/* import { Toaster } from '@/components/ui/sonner'; */
 
 // Metadata
 export const metadata: Metadata = {
     title: 'Arca | WizeCode',
-    // description: '',
-    // keywords: ['Arca', ''],
-    // robots: { index: true, follow: true }
+    description: '',
+    keywords: ['Arca'],
+    robots: { index: true, follow: true }
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode; }>) {
@@ -27,7 +27,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
 
                 <footer className="m-4!"><Footer /></footer>
 
-                {/* <Toaster position="bottom-right" expand={true} /> */}
+                <Toaster position="top-center" />
             </body>
         </html>
     );

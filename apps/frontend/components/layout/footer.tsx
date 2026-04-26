@@ -2,23 +2,12 @@
 'use client';
 
 // Import Libs
-import Link from 'next/link';
 import { navLinksExternal, navLinksInternal } from '@/lib/navigation';
-
-// Imports Components
-// ...
+import Link from 'next/link';
 
 // Import Icons
-import {
-    Brain,
-    Mail,
-    ChevronRight
-} from 'lucide-react';
-import {
-    FaWhatsapp,
-    FaInstagram,
-    FaLinkedin
-} from 'react-icons/fa';
+import { Brain, Mail } from 'lucide-react';
+import { FaWhatsapp, FaInstagram, FaLinkedin } from 'react-icons/fa';
 
 const Footer = () => {
     return (
