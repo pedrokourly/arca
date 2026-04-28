@@ -10,16 +10,17 @@ import helmet from 'helmet';
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
 
-    const config = new DocumentBuilder()
-        .setTitle('ARCA API')
-        .setDescription('API do sistema de gestão de clínica de psicologia')
-        .setVersion('1.0')
-        .addBearerAuth()
-        .build();
+    if (process.env.SWAGGER_ENABLED === 'true') {
+        const config = new DocumentBuilder()
+            .setTitle('ARCA API')
+            .setDescription('API do sistema de gestão de clínica de psicologia')
+            .setVersion('1.0')
+            .addBearerAuth()
+            .build();
 
-    const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup('docs', app, document);
-    
+        const document = SwaggerModule.createDocument(app, config);
+        SwaggerModule.setup('docs', app, document);
+    }
     app.use(helmet());
     app.enableShutdownHooks();
 
