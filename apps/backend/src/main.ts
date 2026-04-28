@@ -4,11 +4,23 @@ import { Logger, ValidationPipe } from '@nestjs/common';
 import { AuditService } from 'src/audit/audit.service';
 import { AuditInterceptor } from 'src/audit/audit.interceptor';
 import { HttpExceptionFilter } from 'src/common/filters/http-exception.filter';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import helmet from 'helmet';
 
 async function bootstrap() {
     const app = await NestFactory.create(AppModule);
 
+    if (process.env.SWAGGER_ENABLED === 'true') {
+        const config = new DocumentBuilder()
+            .setTitle('ARCA API')
+            .setDescription('API do sistema de gestão de clínica de psicologia')
+            .setVersion('1.0')
+            .addBearerAuth()
+            .build();
+
+        const document = SwaggerModule.createDocument(app, config);
+        SwaggerModule.setup('docs', app, document);
+    }
     app.use(helmet());
     app.enableShutdownHooks();
 
