@@ -1,4 +1,4 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3333";
+const API_BASE_URL = process.env.API_URL || "http://localhost:3333";
 const API_ENDPOINTS = { login: `${API_BASE_URL}/auth/login` } as const;
 
 export async function apiRequest(endpoint: string, options: RequestInit = {}) {
