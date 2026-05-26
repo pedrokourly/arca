@@ -59,10 +59,13 @@ describe('WaitlistService', () => {
                     id_Escolaridade: 1,
                 } as CreateWaitlistDto;
 
+                const createdEntry = { ...body, id_Lista: 'uuid-mock-123', createdAt: new Date() };
+
                 mockPrisma.listaEspera.findFirst.mockResolvedValue(undefined);
-                mockPrisma.listaEspera.create.mockResolvedValue(body);
+                mockPrisma.listaEspera.create.mockResolvedValue(createdEntry);
+                mockPrisma.listaEspera.count.mockResolvedValue(2);
                 const result = await service.create(body);
-                expect(result).toEqual(body);
+                expect(result).toEqual({ status: 'ok', id_Lista: 'uuid-mock-123', posicaoNaLista: 3 });
             });
 
             it('should throw BadRequestException when already have the same CPF of another ACTIVE patient', async () => {
@@ -84,7 +87,10 @@ describe('WaitlistService', () => {
                     id_Escolaridade: 1,
                 } as CreateWaitlistDto;
 
-                mockPrisma.listaEspera.findFirst.mockResolvedValue({ id_Lista: 'uuid-existente', CPF: '123.456.789-00' });
+                mockPrisma.listaEspera.findFirst.mockResolvedValue({
+                    id_Lista: 'uuid-existente',
+                    CPF: '123.456.789-00',
+                });
                 await expect(service.create(body)).rejects.toThrow(BadRequestException);
             });
         });

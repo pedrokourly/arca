@@ -11,7 +11,7 @@ import { PaginationDto } from 'src/common/dto/pagination.dto';
 @ApiTags('Lista de Espera')
 @Controller('waitlist')
 export class WaitlistController {
-    constructor(private readonly waitlistService: WaitlistService) { }
+    constructor(private readonly waitlistService: WaitlistService) {}
 
     @ApiOperation({ summary: 'Cadastro público de paciente na lista de espera' })
     @ApiResponse({ status: 201, description: 'Paciente cadastrado. Retorna UUID para consulta de posição.' })
@@ -34,6 +34,7 @@ export class WaitlistController {
 
     @ApiOperation({ summary: 'Estatísticas públicas da fila (quantidade e última atualização)' })
     @ApiResponse({ status: 200, description: 'Retorna { qntFila, ultimaAtualizacao }.' })
+    @Throttle({ default: { ttl: 60_000, limit: 10 } })
     @Get('stats')
     findPositions() {
         return this.waitlistService.findPositions();
@@ -42,6 +43,7 @@ export class WaitlistController {
     @ApiOperation({ summary: 'Consultar posição pública do paciente pelo UUID de cadastro' })
     @ApiResponse({ status: 200, description: 'Retorna posição na fila e dados básicos do paciente.' })
     @ApiResponse({ status: 404, description: 'Paciente não encontrado.' })
+    @Throttle({ default: { ttl: 60_000, limit: 5 } })
     @Get(':id/position')
     findPublicPosition(@Param('id', ParseUUIDPipe) id: UUID) {
         return this.waitlistService.findPublicPosition(id);
