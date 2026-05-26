@@ -19,7 +19,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode; }>) {
     return (
-        <html lang="pt-br">
+        <html lang="pt-br" suppressHydrationWarning>
             <body cz-shortcut-listen="true">
                 <header className="m-4!"><Header /></header>
 
@@ -27,7 +27,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
 
                 <footer className="m-4!"><Footer /></footer>
 
-                <Toaster position="top-center" />
+                <Toaster position="bottom-center" />
             </body>
         </html>
     );

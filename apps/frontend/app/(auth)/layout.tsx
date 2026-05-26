@@ -6,6 +6,7 @@ import type { Metadata } from 'next';
 
 // Import Components
 import { Toaster } from '@/components/ui/sonner';
+import { AuthProvider } from '@/components/providers/auth-provider';
 
 // Metadata
 export const metadata: Metadata = {
@@ -18,10 +19,11 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode; }>) {
     return (
         <html lang="pt-br">
-            <body cz-shortcut-listen="true">
-                <main>{children}</main>
-
-                <Toaster position="top-center" />
+            <body cz-shortcut-listen="true" suppressHydrationWarning>
+                <AuthProvider>
+                    <main>{children}</main>
+                    <Toaster position="bottom-center" />
+                </AuthProvider>
             </body>
         </html>
     );
