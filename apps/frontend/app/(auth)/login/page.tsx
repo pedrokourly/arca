@@ -1,8 +1,4 @@
-// Directives
-'use client';
-
 // Import Libs
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 // Import Components
@@ -12,9 +8,6 @@ import FormLogin from '@/components/forms/form-login';
 import { Brain, ArrowLeft } from 'lucide-react';
 
 const Login = () => {
-    // Router
-    const router = useRouter();
-
     return (
         <>
             <div className="bg-(--color-light) flex w-full min-h-screen">
@@ -25,9 +18,9 @@ const Login = () => {
                             <h1 className="font-bold text-(--color-dark) text-[18px]">ARCA</h1>
                         </Link>
 
-                        <div onClick={() => router.push('/')} className="bg-(--color-light) text-(--color-dark) p-2! border border-solid border-(--color-mlight)/75 rounded-xl">
-                            <ArrowLeft color="#000000" className="cursor-pointer" />
-                        </div>
+                        <Link href="/" className="bg-(--color-light) text-(--color-dark) p-2! border border-solid border-(--color-mlight)/75 rounded-xl">
+                            <ArrowLeft color="#000000" />
+                        </Link>
                     </div>
 
                     <div className="flex flex-col justify-center items-center gap-6 w-full">
