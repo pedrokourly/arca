@@ -7,7 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **ARCA** is a psychology clinic management system (Brazilian Portuguese UI) built as a Turborepo monorepo with two apps:
 
 - `apps/backend` — NestJS REST API on port 3333
-- `apps/frontend` — Next.js 15 web app on port 3000
+- `apps/frontend` — Next.js 16 web app on port 3000
 
 Domain: patient waitlist, therapy sessions (atendimentos), medical records (prontuários), audit logging, and role-based access for estagiários (interns) and supervisors.
 
@@ -81,48 +81,40 @@ Standard NestJS modular architecture. Each domain is a self-contained module in 
 - `alta` — discharge report
 - `encaminhamento` — referral
 
-### Frontend (Next.js 15 App Router)
+### Frontend (Next.js 16 App Router)
 
 Authentication uses **NextAuth v4** with a Credentials provider that calls the backend `/auth/login` endpoint. The JWT token from the backend is stored in the NextAuth session.
 
-- `middleware.ts` — protects `/dashboard/*` routes, enforces role-based redirects
-- `lib/api.ts` — Axios instance that automatically injects `Authorization: Bearer {token}` from NextAuth session
+- `proxy.ts` — Next.js 16 convention (replaces `middleware.ts`); protects `/plataforma/*` routes via `withAuth`
+- `lib/api.ts` — native `fetch` wrapper with error handling; used in Server Components/Actions (server-to-server, no CORS)
+- `lib/roles.ts` — role definitions and numeric IDs (ADMIN=1, SECRETARIO=2, SUPERVISOR=3, ESTAGIARIO=4)
 - `app/api/auth/[...nextauth]/route.ts` — NextAuth handler
 - `components/ui/` — shadcn/ui components (new-york style, neutral base, lucide icons)
 
-**Auth flow:** Login form → NextAuth CredentialsProvider → backend `/auth/login` → JWT stored in session → Axios interceptor adds token to all API calls.
+**Auth flow:** Login form → NextAuth CredentialsProvider → backend `/auth/login` → JWT stored in session.
 
 **Route structure:**
 
 ```
 app/
-├── login/                          # Public login page
-├── lista-espera/
-│   ├── cadastro/                   # Public patient self-registration
-│   └── consulta/                   # Public waitlist position check
-└── dashboard/                      # All protected (requires auth)
-    ├── agenda/                     # Calendar view
-    ├── atendimento/
-    │   └── cadastro/               # Create new session
-    ├── auditoria/                  # Audit logs viewer
-    ├── fluxo-atendimento/          # Session workflow
-    ├── lista-espera/               # Waitlist management
-    │   └── cadastro/
-    ├── pacientes/[id]/             # Patient detail
-    ├── perfil/                     # User profile
-    ├── relatorios/
-    │   ├── psicoterapia/[id]/      # Psychotherapy report (edit, aprovar)
-    │   └── triagem/[id]/           # Triage report (edit, aprovar)
-    ├── unauthorized/               # Access denied page
-    └── usuarios/
-        └── cadastro/               # Create user
+├── api/auth/[...nextauth]/         # NextAuth handler
+├── (auth)/                         # Route group — authenticated pages
+│   ├── login/                      # Login page
+│   └── plataforma/                 # Protected platform shell (in development)
+└── (external)/                     # Route group — public pages
+    ├── page.tsx                    # Home/landing page
+    ├── inscrever-se/               # Public patient self-registration
+    └── consultar/                  # Public waitlist position check
 ```
 
-**Auth components** (`components/auth/`):
+> **Note:** The internal `/plataforma/*` feature routes (lista-espera, fluxo, agenda, atendimento, prontuario, relatorios) are planned in `lib/navigation.ts` but not yet implemented — the new frontend is under active development.
 
-- `ConditionalRender.tsx` — renders children only if user has required role
-- `ProtectedRoute.tsx` — client-side route guard
-- `withRoleProtection.tsx` — HOC for role-based page protection
+**Components structure:**
+
+- `components/forms/` — form components (form-login, form-waitlist, form-consulta)
+- `components/layout/` — header, footer, platform shell (`plataforma/application-shell.tsx`)
+- `components/providers/` — `auth-provider.tsx` (NextAuth session provider)
+- `components/ui/` — shadcn/ui primitives
 
 ### Database Schema (Prisma / PostgreSQL)
 
@@ -163,11 +155,11 @@ Four roles with decreasing privileges (stored as `roleId` on `Usuario`):
 
 Critical access rules:
 
-- **Audit logs** (`/dashboard/auditoria`): Coordinator only
-- **Fluxo de atendimento** (`/dashboard/fluxo-atendimento`): Coordinator + Secretary only
+- **Audit logs**: Coordinator only
+- **Fluxo de atendimento**: Coordinator + Secretary only
 - **Patient visibility**: Coordinator/Secretary see all patients; Supervisor/Estagiário see only their assigned patients
 - **User creation**: A user can only create users with a role equal to or lower than their own
-- **Waitlist**: All internal roles can read/edit; public can self-register and check position
+- **Waitlist**: All internal roles can read/edit; public can self-register (`/inscrever-se`) and check position (`/consultar`)
 
 ### Regulatory Context
 
