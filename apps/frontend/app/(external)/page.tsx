@@ -1,9 +1,3 @@
-// Directives
-'use client';
-
-// Import Components
-/* ... */
-
 const Home = () => {
     return (
         <>
