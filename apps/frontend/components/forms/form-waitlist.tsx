@@ -23,7 +23,13 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { apiService } from "@/lib/api";
 
 // ─── Schema ──────────────────────────────────────────────────────────────────
@@ -192,16 +198,6 @@ const maskCEP = (value: string) => {
   return `${n.slice(0, 5)}-${n.slice(5)}`;
 };
 
-// ─── Select className ─────────────────────────────────────────────────────────
-
-const selectClassName = (invalid: boolean) =>
-  cn(
-    "bg-transparent text-(--color-dark) text-[14px] w-full min-w-0 h-10 px-2 border border-input rounded-lg outline-none transition-colors cursor-pointer",
-    "focus-visible:ring-1 focus-visible:ring-(--color-dark) focus-visible:border-ring",
-    "disabled:bg-input/50 disabled:cursor-not-allowed disabled:opacity-50",
-    invalid && "border-red-500 ring-red-500 ring-1",
-  );
-
 // ─── Component ────────────────────────────────────────────────────────────────
 
 const FormWaitlist = () => {
@@ -251,7 +247,10 @@ const FormWaitlist = () => {
         duration: 2000,
       });
 
-      setRegistroInfo({ id_Lista: result.id_Lista, posicaoNaLista: result.posicaoNaLista });
+      setRegistroInfo({
+        id_Lista: result.id_Lista,
+        posicaoNaLista: result.posicaoNaLista,
+      });
       form.reset();
     } catch (error) {
       const message =
@@ -269,7 +268,9 @@ const FormWaitlist = () => {
     <>
       <Dialog
         open={registroInfo !== null}
-        onOpenChange={(open) => { if (!open) setRegistroInfo(null); }}
+        onOpenChange={(open) => {
+          if (!open) setRegistroInfo(null);
+        }}
       >
         <DialogContent
           className="sm:max-w-md"
@@ -300,9 +301,9 @@ const FormWaitlist = () => {
             <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
               <TriangleAlertIcon className="mt-0.5 size-4 shrink-0" />
               <p>
-                <strong>Guarde este código em um local seguro.</strong> Ele não
-                será exibido novamente. Para recuperá-lo, entre em contato com a
-                equipe da clínica.
+                <strong>Guarde este código em um local seguro.</strong> Por
+                razões de segurança, ele não será exibido novamente. Para
+                recuperá-lo, entre em contato com a equipe da clínica.
               </p>
             </div>
           </div>
@@ -320,79 +321,36 @@ const FormWaitlist = () => {
       </Dialog>
 
       <form
-      id="form-waitlist"
-      className="w-full"
-      noValidate
-      onSubmit={form.handleSubmit(onSubmit)}
-    >
-      <FieldGroup>
-        {/* Nome de registro */}
-        <Controller
-          name="nomeRegistro"
-          control={form.control}
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="waitlist-nomeRegistro">
-                Nome de registro
-              </FieldLabel>
-              <Input
-                {...field}
-                id="waitlist-nomeRegistro"
-                placeholder="Nome completo conforme documento"
-                autoComplete="name"
-                aria-invalid={fieldState.invalid}
-                disabled={isLoading}
-              />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
+        id="form-waitlist"
+        className="w-full"
+        noValidate
+        onSubmit={form.handleSubmit(onSubmit)}
+      >
+        <FieldGroup>
+          {/* Section: Identificação */}
+          <div className="flex items-center gap-3 pt-1">
+            <span className="text-xs font-semibold tracking-widest text-primary uppercase">
+              Identificação
+            </span>
+            <div className="flex-1 border-t" />
+          </div>
 
-        {/* Nome social */}
-        <Controller
-          name="nomeSocial"
-          control={form.control}
-          render={({ field, fieldState }) => (
-            <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="waitlist-nomeSocial">
-                Nome social{" "}
-                <span className="text-(--color-medium) font-normal">
-                  (opcional)
-                </span>
-              </FieldLabel>
-              <Input
-                {...field}
-                id="waitlist-nomeSocial"
-                placeholder="Nome pelo qual prefere ser chamado"
-                autoComplete="off"
-                aria-invalid={fieldState.invalid}
-                disabled={isLoading}
-              />
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
-          )}
-        />
-
-        {/* Data de nascimento + CPF */}
-        <div className="grid grid-cols-2 gap-4">
+          {/* Nome de registro */}
           <Controller
-            name="dataNascimento"
+            name="nomeRegistro"
             control={form.control}
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="waitlist-dataNascimento">
-                  Data de nascimento
+                <FieldLabel htmlFor="waitlist-nomeRegistro">
+                  Nome de registro
                 </FieldLabel>
                 <Input
                   {...field}
-                  id="waitlist-dataNascimento"
-                  placeholder="DD/MM/AAAA"
-                  maxLength={10}
-                  inputMode="numeric"
-                  autoComplete="bday"
+                  id="waitlist-nomeRegistro"
+                  placeholder="Nome completo conforme documento"
+                  autoComplete="name"
                   aria-invalid={fieldState.invalid}
                   disabled={isLoading}
-                  onChange={(e) => field.onChange(maskDate(e.target.value))}
                 />
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
@@ -401,52 +359,25 @@ const FormWaitlist = () => {
             )}
           />
 
+          {/* Nome social */}
           <Controller
-            name="CPF"
+            name="nomeSocial"
             control={form.control}
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="waitlist-CPF">CPF</FieldLabel>
+                <FieldLabel htmlFor="waitlist-nomeSocial">
+                  Nome social{" "}
+                  <span className="text-(--color-medium) font-normal">
+                    (opcional)
+                  </span>
+                </FieldLabel>
                 <Input
                   {...field}
-                  id="waitlist-CPF"
-                  placeholder="000.000.000-00"
-                  maxLength={14}
-                  inputMode="numeric"
+                  id="waitlist-nomeSocial"
+                  placeholder="Nome pelo qual prefere ser chamado"
                   autoComplete="off"
                   aria-invalid={fieldState.invalid}
                   disabled={isLoading}
-                  onChange={(e) => field.onChange(maskCPF(e.target.value))}
-                />
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
-        </div>
-
-        {/* Telefone pessoal + Contato de emergência */}
-        <div className="grid grid-cols-2 gap-4">
-          <Controller
-            name="telefonePessoal"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="waitlist-telefonePessoal">
-                  Telefone pessoal
-                </FieldLabel>
-                <Input
-                  {...field}
-                  id="waitlist-telefonePessoal"
-                  type="tel"
-                  placeholder="(00) 00000-0000"
-                  maxLength={15}
-                  inputMode="numeric"
-                  autoComplete="tel"
-                  aria-invalid={fieldState.invalid}
-                  disabled={isLoading}
-                  onChange={(e) => field.onChange(maskPhone(e.target.value))}
                 />
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
@@ -455,285 +386,402 @@ const FormWaitlist = () => {
             )}
           />
 
-          <Controller
-            name="contatoEmergencia"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="waitlist-contatoEmergencia">
-                  Contato de emergência
-                </FieldLabel>
-                <Input
-                  {...field}
-                  id="waitlist-contatoEmergencia"
-                  type="tel"
-                  placeholder="(00) 00000-0000"
-                  maxLength={15}
-                  inputMode="numeric"
-                  autoComplete="off"
-                  aria-invalid={fieldState.invalid}
-                  disabled={isLoading}
-                  onChange={(e) => field.onChange(maskPhone(e.target.value))}
-                />
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
-        </div>
+          {/* Data de nascimento + CPF */}
+          <div className="grid grid-cols-2 gap-4">
+            <Controller
+              name="dataNascimento"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="waitlist-dataNascimento">
+                    Data de nascimento
+                  </FieldLabel>
+                  <Input
+                    {...field}
+                    id="waitlist-dataNascimento"
+                    placeholder="DD/MM/AAAA"
+                    maxLength={10}
+                    inputMode="numeric"
+                    autoComplete="bday"
+                    aria-invalid={fieldState.invalid}
+                    disabled={isLoading}
+                    onChange={(e) => field.onChange(maskDate(e.target.value))}
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
 
-        {/* Gênero + Etnia + Escolaridade */}
-        <div className="grid grid-cols-3 gap-4">
-          <Controller
-            name="id_Genero"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="waitlist-id_Genero">Gênero</FieldLabel>
-                <select
-                  id="waitlist-id_Genero"
-                  className={selectClassName(fieldState.invalid)}
-                  value={field.value}
-                  onChange={(e) => field.onChange(e.target.value)}
-                  disabled={isLoading}
-                >
-                  <option value="0" disabled>
-                    Selecione
-                  </option>
-                  {GENEROS.map((g) => (
-                    <option key={g.id} value={g.id}>
-                      {g.nome}
-                    </option>
-                  ))}
-                </select>
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
+            <Controller
+              name="CPF"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="waitlist-CPF">CPF</FieldLabel>
+                  <Input
+                    {...field}
+                    id="waitlist-CPF"
+                    placeholder="000.000.000-00"
+                    maxLength={14}
+                    inputMode="numeric"
+                    autoComplete="off"
+                    aria-invalid={fieldState.invalid}
+                    disabled={isLoading}
+                    onChange={(e) => field.onChange(maskCPF(e.target.value))}
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
+          </div>
 
-          <Controller
-            name="id_Etnia"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="waitlist-id_Etnia">Etnia</FieldLabel>
-                <select
-                  id="waitlist-id_Etnia"
-                  className={selectClassName(fieldState.invalid)}
-                  value={field.value}
-                  onChange={(e) => field.onChange(e.target.value)}
-                  disabled={isLoading}
-                >
-                  <option value="0" disabled>
-                    Selecione
-                  </option>
-                  {ETNIAS.map((e) => (
-                    <option key={e.id} value={e.id}>
-                      {e.nome}
-                    </option>
-                  ))}
-                </select>
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
+          {/* Section: Contato */}
+          <div className="flex items-center gap-3 pt-1">
+            <span className="text-xs font-semibold tracking-widest text-primary uppercase">
+              Contato
+            </span>
+            <div className="flex-1 border-t" />
+          </div>
 
-          <Controller
-            name="id_Escolaridade"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="waitlist-id_Escolaridade">
-                  Escolaridade
-                </FieldLabel>
-                <select
-                  id="waitlist-id_Escolaridade"
-                  className={selectClassName(fieldState.invalid)}
-                  value={field.value}
-                  onChange={(e) => field.onChange(e.target.value)}
-                  disabled={isLoading}
-                >
-                  <option value="0" disabled>
-                    Selecione
-                  </option>
-                  {ESCOLARIDADES.map((e) => (
-                    <option key={e.id} value={e.id}>
-                      {e.nome}
-                    </option>
-                  ))}
-                </select>
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
-        </div>
+          {/* Telefone pessoal + Contato de emergência */}
+          <div className="grid grid-cols-2 gap-4">
+            <Controller
+              name="telefonePessoal"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="waitlist-telefonePessoal">
+                    Telefone pessoal
+                  </FieldLabel>
+                  <Input
+                    {...field}
+                    id="waitlist-telefonePessoal"
+                    type="tel"
+                    placeholder="(00) 00000-0000"
+                    maxLength={15}
+                    inputMode="numeric"
+                    autoComplete="tel"
+                    aria-invalid={fieldState.invalid}
+                    disabled={isLoading}
+                    onChange={(e) => field.onChange(maskPhone(e.target.value))}
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
 
-        {/* CEP + Estado + Rua */}
-        <div className="grid grid-cols-[1fr_80px_2fr] gap-4">
-          <Controller
-            name="enderecoCEP"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="waitlist-enderecoCEP">CEP</FieldLabel>
-                <Input
-                  {...field}
-                  id="waitlist-enderecoCEP"
-                  placeholder="00000-000"
-                  maxLength={9}
-                  inputMode="numeric"
-                  autoComplete="postal-code"
-                  aria-invalid={fieldState.invalid}
-                  disabled={isLoading}
-                  onChange={(e) => field.onChange(maskCEP(e.target.value))}
-                />
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
+            <Controller
+              name="contatoEmergencia"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="waitlist-contatoEmergencia">
+                    Contato de emergência
+                  </FieldLabel>
+                  <Input
+                    {...field}
+                    id="waitlist-contatoEmergencia"
+                    type="tel"
+                    placeholder="(00) 00000-0000"
+                    maxLength={15}
+                    inputMode="numeric"
+                    autoComplete="off"
+                    aria-invalid={fieldState.invalid}
+                    disabled={isLoading}
+                    onChange={(e) => field.onChange(maskPhone(e.target.value))}
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
+          </div>
 
-          <Controller
-            name="enderecoEstado"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="waitlist-enderecoEstado">UF</FieldLabel>
-                <Input
-                  {...field}
-                  id="waitlist-enderecoEstado"
-                  placeholder="MG"
-                  maxLength={2}
-                  autoComplete="address-level1"
-                  aria-invalid={fieldState.invalid}
-                  disabled={isLoading}
-                  onChange={(e) => field.onChange(e.target.value.toUpperCase())}
-                />
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
+          {/* Section: Perfil */}
+          <div className="flex items-center gap-3 pt-1">
+            <span className="text-xs font-semibold tracking-widest text-primary uppercase">
+              Perfil
+            </span>
+            <div className="flex-1 border-t" />
+          </div>
 
-          <Controller
-            name="enderecoRua"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="waitlist-enderecoRua">
-                  Logradouro
-                </FieldLabel>
-                <Input
-                  {...field}
-                  id="waitlist-enderecoRua"
-                  placeholder="Rua, Avenida, Travessa..."
-                  autoComplete="street-address"
-                  aria-invalid={fieldState.invalid}
-                  disabled={isLoading}
-                />
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
-        </div>
+          {/* Gênero + Etnia + Escolaridade */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <Controller
+              name="id_Genero"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="waitlist-id_Genero">Gênero</FieldLabel>
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    disabled={isLoading}
+                  >
+                    <SelectTrigger
+                      id="waitlist-id_Genero"
+                      aria-invalid={fieldState.invalid}
+                    >
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {GENEROS.map((g) => (
+                        <SelectItem key={g.id} value={String(g.id)}>
+                          {g.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
 
-        {/* Número + Bairro + Cidade */}
-        <div className="grid grid-cols-[80px_1fr_1fr] gap-4">
-          <Controller
-            name="enderecoNumero"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="waitlist-enderecoNumero">
-                  Número
-                </FieldLabel>
-                <Input
-                  {...field}
-                  id="waitlist-enderecoNumero"
-                  placeholder="123"
-                  maxLength={10}
-                  aria-invalid={fieldState.invalid}
-                  disabled={isLoading}
-                />
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
+            <Controller
+              name="id_Etnia"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="waitlist-id_Etnia">Etnia</FieldLabel>
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    disabled={isLoading}
+                  >
+                    <SelectTrigger
+                      id="waitlist-id_Etnia"
+                      aria-invalid={fieldState.invalid}
+                    >
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ETNIAS.map((e) => (
+                        <SelectItem key={e.id} value={String(e.id)}>
+                          {e.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
 
-          <Controller
-            name="enderecoBairro"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="waitlist-enderecoBairro">
-                  Bairro
-                </FieldLabel>
-                <Input
-                  {...field}
-                  id="waitlist-enderecoBairro"
-                  placeholder="Bairro"
-                  autoComplete="address-level3"
-                  aria-invalid={fieldState.invalid}
-                  disabled={isLoading}
-                />
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
+            <Controller
+              name="id_Escolaridade"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="waitlist-id_Escolaridade">
+                    Escolaridade
+                  </FieldLabel>
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    disabled={isLoading}
+                  >
+                    <SelectTrigger
+                      id="waitlist-id_Escolaridade"
+                      aria-invalid={fieldState.invalid}
+                    >
+                      <SelectValue placeholder="Selecione" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ESCOLARIDADES.map((e) => (
+                        <SelectItem key={e.id} value={String(e.id)}>
+                          {e.nome}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
+          </div>
 
-          <Controller
-            name="enderecoCidade"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="waitlist-enderecoCidade">
-                  Cidade
-                </FieldLabel>
-                <Input
-                  {...field}
-                  id="waitlist-enderecoCidade"
-                  placeholder="Cidade"
-                  autoComplete="address-level2"
-                  aria-invalid={fieldState.invalid}
-                  disabled={isLoading}
-                />
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
-        </div>
+          {/* Section: Endereço */}
+          <div className="flex items-center gap-3 pt-1">
+            <span className="text-xs font-semibold tracking-widest text-primary uppercase">
+              Endereço
+            </span>
+            <div className="flex-1 border-t" />
+          </div>
 
-        {/* Submit */}
-        <Field orientation="horizontal" className="mt-2!">
-          <Button
-            form="form-waitlist"
-            type="submit"
-            variant="primary"
-            className="w-full"
-            disabled={isLoading}
-          >
-            {isLoading ? "Enviando..." : "Entrar na lista de espera"}
-          </Button>
-        </Field>
-      </FieldGroup>
-    </form>
+          {/* CEP + Estado + Rua */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_80px_2fr]">
+            <Controller
+              name="enderecoCEP"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="waitlist-enderecoCEP">CEP</FieldLabel>
+                  <Input
+                    {...field}
+                    id="waitlist-enderecoCEP"
+                    placeholder="00000-000"
+                    maxLength={9}
+                    inputMode="numeric"
+                    autoComplete="postal-code"
+                    aria-invalid={fieldState.invalid}
+                    disabled={isLoading}
+                    onChange={(e) => field.onChange(maskCEP(e.target.value))}
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
+
+            <Controller
+              name="enderecoEstado"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="waitlist-enderecoEstado">UF</FieldLabel>
+                  <Input
+                    {...field}
+                    id="waitlist-enderecoEstado"
+                    placeholder="MG"
+                    maxLength={2}
+                    autoComplete="address-level1"
+                    aria-invalid={fieldState.invalid}
+                    disabled={isLoading}
+                    onChange={(e) =>
+                      field.onChange(e.target.value.toUpperCase())
+                    }
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
+
+            <Controller
+              name="enderecoRua"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="waitlist-enderecoRua">
+                    Logradouro
+                  </FieldLabel>
+                  <Input
+                    {...field}
+                    id="waitlist-enderecoRua"
+                    placeholder="Rua, Avenida, Travessa..."
+                    autoComplete="street-address"
+                    aria-invalid={fieldState.invalid}
+                    disabled={isLoading}
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
+          </div>
+
+          {/* Número + Bairro + Cidade */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-[80px_1fr_1fr]">
+            <Controller
+              name="enderecoNumero"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="waitlist-enderecoNumero">
+                    Número
+                  </FieldLabel>
+                  <Input
+                    {...field}
+                    id="waitlist-enderecoNumero"
+                    placeholder="123"
+                    maxLength={10}
+                    aria-invalid={fieldState.invalid}
+                    disabled={isLoading}
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
+
+            <Controller
+              name="enderecoBairro"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="waitlist-enderecoBairro">
+                    Bairro
+                  </FieldLabel>
+                  <Input
+                    {...field}
+                    id="waitlist-enderecoBairro"
+                    placeholder="Bairro"
+                    autoComplete="address-level3"
+                    aria-invalid={fieldState.invalid}
+                    disabled={isLoading}
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
+
+            <Controller
+              name="enderecoCidade"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="waitlist-enderecoCidade">
+                    Cidade
+                  </FieldLabel>
+                  <Input
+                    {...field}
+                    id="waitlist-enderecoCidade"
+                    placeholder="Cidade"
+                    autoComplete="address-level2"
+                    aria-invalid={fieldState.invalid}
+                    disabled={isLoading}
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
+          </div>
+
+          {/* Submit */}
+          <Field orientation="horizontal" className="mt-2!">
+            <Button
+              form="form-waitlist"
+              type="submit"
+              variant="primary"
+              className="w-full"
+              disabled={isLoading}
+            >
+              {isLoading ? "Enviando..." : "Entrar na lista de espera"}
+            </Button>
+          </Field>
+        </FieldGroup>
+      </form>
     </>
   );
 };
