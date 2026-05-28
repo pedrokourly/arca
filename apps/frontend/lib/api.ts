@@ -14,6 +14,12 @@ export async function apiRequest(endpoint: string, options: RequestInit = {}) {
     });
 
     if (!response.ok) {
+        if (response.status === 429) {
+            const error = new Error("Muitas tentativas. Aguarde um momento e tente novamente.") as Error & { status: number };
+            error.status = 429;
+            throw error;
+        }
+
         let errorData;
 
         try {
@@ -52,5 +58,17 @@ export const apiService = {
             apiRequest(`${API_ENDPOINTS.waitlist}/stats`, {
                 next: { revalidate: 60 },
             } as RequestInit) as Promise<{ qntFila: number; ultimaAtualizacao: string | null }>,
+        findPublicPosition: (id: string) =>
+            apiRequest(`${API_ENDPOINTS.waitlist}/${id}/position`, {
+                cache: "no-store",
+            } as RequestInit) as Promise<{
+                id_Lista: string;
+                nomeRegistro: string;
+                nomeSocial: string | null;
+                createdAt: string;
+                id_Status: number;
+                posicaoNaLista: number;
+                situacao: "Ativo" | "Inativo";
+            }>,
     },
 };
